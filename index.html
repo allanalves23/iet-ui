@@ -483,9 +483,9 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Confronto lado a lado de até 3 sistemas selecionados</div>
       </div>
       <div class="filter-bar">
-        <div class="filter"><label>Sistema A</label><select id="selA" onchange="updateRadar()"><option>NRTC</option><option>Atlas</option><option>Pegasus</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option><option>Apollo</option><option>Saturno</option></select></div>
-        <div class="filter"><label>Sistema B</label><select id="selB" onchange="updateRadar()"><option value="Atlas" selected>Atlas</option><option>NRTC</option><option>Pegasus</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option></select></div>
-        <div class="filter"><label>Sistema C</label><select id="selC" onchange="updateRadar()"><option>Pegasus</option><option>NRTC</option><option>Atlas</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option></select></div>
+        <div class="filter"><label>Sistema A</label><select id="selA" onchange="updateRadar()"></select></div>
+        <div class="filter"><label>Sistema B</label><select id="selB" onchange="updateRadar()"></select></div>
+        <div class="filter"><label>Sistema C</label><select id="selC" onchange="updateRadar()"></select></div>
       </div>
       <div class="grid-3" id="comp-kpis"></div>
       <div class="card" style="margin-bottom:14px">
@@ -987,7 +987,7 @@ function showPage(id) {
   const nav = document.getElementById('nav-' + id);
   if (nav) nav.classList.add('active');
 
-  if (id === 'comp') { setTimeout(updateRadar, 100); }
+  if (id === 'comp') { loadComparacao(); }
   if (window.innerWidth <= 768) closeSidebar();
   if (id === 'hist') { loadHistorico(); }
 }
@@ -1147,8 +1147,42 @@ function populateExecFilters(filtros) {
 // CHARTS — COMPARAÇÃO
 // ============================================================
 let radarChart = null;
+let compSistemas = [];
 
-function getSysData(name) { return SYSTEMS.find(s => s.name === name) || SYSTEMS[0]; }
+function getSysData(name) {
+  return compSistemas.find(s => s.name === name) || compSistemas[0] || SYSTEMS[0];
+}
+
+async function loadComparacao() {
+  try {
+    const res = await fetch(getApiUrl() + '/api/dashboard/comparacao');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    compSistemas = data.sistemas.map(s => ({
+      name:    s.nome,
+      iet:     s.iet,
+      ies:     s.ies,
+      ir:      s.ir,
+      coh:     s.coerencia,
+      status:  s.status,
+      pillars: PILLAR_NAMES.map(p => s.pilares[p] ?? 0),
+    }));
+  } catch (err) {
+    console.error('Erro ao carregar comparação, usando dados locais:', err);
+    compSistemas = SYSTEMS;
+  }
+
+  ['selA', 'selB', 'selC'].forEach((id, idx) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = compSistemas.map(s =>
+      `<option value="${s.name}">${s.name}</option>`
+    ).join('');
+    if (compSistemas[idx]) sel.value = compSistemas[idx].name;
+  });
+
+  updateRadar();
+}
 
 function updateRadar() {
   const sA = getSysData(document.getElementById('selA').value);
