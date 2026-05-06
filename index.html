@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IET — Excelência Tecnológica</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:#1B2A4A; --blue:#2E5AAC; --blue-light:#4A7DC4;
+  --gold:#C9A227; --green:#27AE60; --green-dark:#1E8449;
+  --red:#C0392B; --red-light:#E74C3C; --yellow:#F1C232;
+  --teal:#1ABC9C; --gray:#F4F6F9; --gray2:#E8ECF2;
+  --border:#DDE3EE; --text:#1A2340; --muted:#6B7FA3;
+  --white:#FFFFFF;
+  --status-exc:#27AE60; --status-bom:#7CB342; --status-atc:#F1C232; --status-crit:#C0392B;
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); color:var(--text); min-height:100vh; }
+
+/* TOPBAR */
+.topbar { background:var(--navy); color:#fff; padding:0 24px; height:52px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 12px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+.topbar .logo { font-weight:800; font-size:17px; display:flex; align-items:center; gap:8px; }
+.topbar .logo span { background:var(--gold); color:var(--navy); padding:2px 7px; border-radius:4px; font-size:14px; }
+.topbar .version { font-size:12px; color:rgba(255,255,255,0.45); }
+.topbar .spacer { flex:1; }
+.topbar .btn-new { background:var(--blue); color:#fff; border:none; padding:7px 16px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .2s; }
+.topbar .btn-new:hover { background:var(--blue-light); }
+
+/* LAYOUT */
+.layout { display:flex; height:calc(100vh - 84px); overflow:hidden; }
+.main { flex:1; padding:20px; overflow-y:auto; min-width:0; }
+/* Hamburger button (mobile only) */
+.hamburger { display:none; background:none; border:none; cursor:pointer; padding:8px; color:#fff; }
+.hamburger svg { width:22px; height:22px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; }
+/* Overlay */
+.sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:49; }
+.sidebar-overlay.open { display:block; }
+/* Responsive */
+@media (max-width: 768px) {
+  .hamburger { display:flex; align-items:center; }
+  .sidebar {
+    position:fixed; top:84px; left:-224px; height:calc(100vh - 84px);
+    z-index:50; transition:left .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
+  }
+  .sidebar.open { left:0; }
+  .layout { height:calc(100vh - 84px); }
+  .main { padding:14px; }
+  .kpi-row { grid-template-columns:repeat(2,1fr) !important; }
+  .grid-2, .grid-3, .grid-23 { grid-template-columns:1fr !important; }
+  .coh-metric-row { grid-template-columns:repeat(2,1fr) !important; }
+  .filter-bar { flex-wrap:wrap; }
+  .score-live { grid-template-columns:repeat(2,1fr) !important; }
+  .assess-header { border-radius:8px !important; }
+  .topbar .version { display:none; }
+}
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns:1fr !important; }
+  .coh-metric-row { grid-template-columns:1fr !important; }
+  .score-live { grid-template-columns:1fr !important; }
+  .heatmap { overflow-x:auto; }
+}
+
+/* SIDEBAR */
+.sidebar {
+  width:224px; flex-shrink:0;
+  background:#131E35;
+  display:flex; flex-direction:column;
+  border-right:none;
+}
+.sidebar-brand {
+  padding:20px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.sidebar-brand .brand-title {
+  font-size:13px; font-weight:700; color:#fff; letter-spacing:.3px;
+}
+.sidebar-brand .brand-sub {
+  font-size:11px; color:rgba(255,255,255,0.35); margin-top:2px;
+}
+.sidebar-section { padding:16px 0 4px; }
+.sidebar-label {
+  font-size:9px; font-weight:700; letter-spacing:1.4px;
+  text-transform:uppercase; color:rgba(255,255,255,0.28);
+  padding:0 18px 8px;
+}
+.nav-item {
+  padding:8px 14px 8px 18px;
+  cursor:pointer; font-size:12.5px; font-weight:500;
+  color:rgba(255,255,255,0.5);
+  display:flex; align-items:center; gap:10px;
+  border-left:3px solid transparent;
+  border-radius:0;
+  transition:color .15s, background .15s, border-color .15s;
+  position:relative; margin:1px 0;
+}
+.nav-item:hover {
+  color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.05);
+}
+.nav-item.active {
+  color:#fff;
+  background:rgba(255,255,255,0.08);
+  border-left:3px solid var(--gold);
+  font-weight:600;
+}
+.nav-item svg {
+  width:16px; height:16px; flex-shrink:0; opacity:.7;
+  transition:opacity .15s;
+}
+.nav-item:hover svg, .nav-item.active svg { opacity:1; }
+.nav-item.active svg { stroke:var(--gold); }
+.sidebar-divider {
+  border:none; border-top:1px solid rgba(255,255,255,0.07);
+  margin:8px 0;
+}
+.sidebar-footer {
+  margin-top:auto;
+  padding:14px 18px;
+  border-top:1px solid rgba(255,255,255,0.07);
+  font-size:11px; color:rgba(255,255,255,0.25);
+  line-height:1.5;
+}
+
+/* PAGES */
+.page { display:none; }
+.page.active { display:block; }
+
+/* PAGE HEADER */
+.page-header { margin-bottom:20px; }
+.page-header h1 { font-size:22px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:10px; }
+.page-header .sub { font-size:13px; color:var(--muted); margin-top:4px; }
+
+/* FILTERS */
+.filter-bar { display:flex; gap:10px; margin-bottom:18px; padding:10px 14px; background:var(--white); border:1px solid var(--border); border-radius:8px; }
+.filter { display:flex; flex-direction:column; gap:3px; }
+.filter label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+.filter select { padding:6px 10px; border:1px solid var(--border); border-radius:5px; font-size:13px; background:var(--white); color:var(--text); cursor:pointer; }
+
+/* KPI CARDS */
+.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px; }
+.kpi-card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+.kpi-card .kpi-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:6px; }
+.kpi-card .kpi-val { font-size:30px; font-weight:800; line-height:1; }
+.kpi-card .kpi-val.gold { color:var(--gold); }
+.kpi-card .kpi-val.green { color:var(--green); }
+.kpi-card .kpi-val.red { color:var(--red); }
+.kpi-card .kpi-val.navy { color:var(--navy); }
+.kpi-card .kpi-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
+/* STATUS BADGE */
+.badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.3px; margin-top:6px; }
+.badge.exc { background:#D5F5E3; color:#1E8449; }
+.badge.bom { background:#E8F5E9; color:#2E7D32; }
+.badge.atc { background:#FEF9E7; color:#7D6608; }
+.badge.crit { background:#FDEDEC; color:#922B21; }
+.badge.risk { background:#FDFEFE; color:#7D3C98; border:1px solid #A569BD; }
+.badge.danger { background:#FDEDEC; color:#922B21; border:1px solid #E74C3C; }
+
+/* GRID */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px; }
+.grid-23 { display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px; }
+
+/* CARD */
+.card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:0; }
+.card h3 { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:10px; }
+.card .card-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
+canvas { max-height:260px; }
+
+/* TABLE */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { background:#F8FAFF; color:var(--muted); font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px; padding:9px 12px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
+td { padding:9px 12px; border-bottom:1px solid var(--gray2); color:var(--text); }
+tr:hover td { background:#F8FAFF; }
+.qid-link { color:var(--blue); font-weight:600; cursor:pointer; text-decoration:none; }
+
+/* HEATMAP */
+.heatmap { display:grid; gap:2px; }
+.heatmap .hm-header { display:grid; gap:2px; }
+.hm-cell { padding:10px 6px; text-align:center; font-size:12px; font-weight:700; border-radius:3px; }
+.hm-cell.exc { background:#27AE60; color:#fff; }
+.hm-cell.bom { background:#7CB342; color:#fff; }
+.hm-cell.atc { background:#F1C232; color:#333; }
+.hm-cell.crit { background:#C0392B; color:#fff; }
+.hm-cell.head { background:#EAF1FB; color:var(--navy); font-size:10px; }
+.hm-row-label { background:var(--navy); color:#fff; padding:10px 12px; font-size:12px; font-weight:600; border-radius:3px; }
+
+/* RANKING BAR */
+.rank-bar-wrap { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--gray2); }
+.rank-bar-wrap:last-child { border-bottom:none; }
+.rank-name { width:80px; font-size:12px; font-weight:600; color:var(--navy); flex-shrink:0; }
+.rank-bar { flex:1; background:var(--gray2); border-radius:3px; height:22px; overflow:hidden; position:relative; }
+.rank-bar .fill { height:100%; border-radius:3px; display:flex; align-items:center; padding-left:8px; }
+.rank-bar .fill span { font-size:11px; font-weight:700; color:#fff; }
+.rank-score { width:40px; text-align:right; font-size:13px; font-weight:700; }
+
+/* ASSESSMENT */
+.assess-header { background:var(--navy); color:#fff; padding:20px 24px; border-radius:12px; margin-bottom:24px; }
+.assess-header h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
+.assess-header p { font-size:13px; opacity:.7; }
+.score-live { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+.score-box { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+.score-box .s-label { font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+.score-box .s-val { font-size:32px; font-weight:800; }
+.score-box .s-val.gold { color:var(--gold); }
+.score-box .s-val.green { color:var(--green); }
+.score-box .s-val.navy { color:var(--navy); }
+.score-box .s-val.red { color:var(--red); }
+
+.pillar-block { background:var(--white); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden; }
+.pillar-header { background:#F0F4FF; padding:12px 18px; display:flex; align-items:center; gap:10px; cursor:pointer; border-bottom:1px solid var(--border); }
+.pillar-header h3 { font-size:14px; font-weight:700; color:var(--navy); flex:1; }
+.pillar-header .pillar-score-mini { font-size:22px; font-weight:800; color:var(--navy); }
+.pillar-body { padding:0; }
+.question-wrap { padding:16px 18px; border-bottom:1px solid var(--gray2); }
+.question-wrap:last-child { border-bottom:none; }
+.question-title { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:10px; line-height:1.4; }
+.question-note { font-size:11px; color:var(--muted); margin-bottom:10px; font-style:italic; }
+.option-list { display:flex; flex-direction:column; gap:6px; }
+.option-item { display:flex; align-items:flex-start; gap:10px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all .15s; }
+.option-item:hover { background:#F0F4FF; border-color:var(--blue-light); }
+.option-item.selected { background:#EAF1FB; border-color:var(--blue); }
+.option-item input[type=checkbox] { flex-shrink:0; margin-top:2px; width:15px; height:15px; accent-color:var(--blue); cursor:pointer; }
+.option-letter { flex-shrink:0; width:22px; height:22px; background:var(--navy); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.option-text { flex:1; font-size:12px; color:var(--text); line-height:1.4; }
+.option-score-badge { flex-shrink:0; background:var(--gray2); color:var(--navy); padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700; }
+.option-item.selected .option-score-badge { background:var(--blue); color:#fff; }
+
+/* COHERENCE */
+.coh-metric-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px; }
+.coh-metric { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px; }
+.coh-metric .cm-label { font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:.4px; margin-bottom:6px; }
+.coh-metric .cm-val { font-size:26px; font-weight:800; }
+.coh-metric .cm-sub { font-size:10px; color:var(--muted); margin-top:3px; }
+
+/* TEMPORAL */
+.trend-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+.trend-list { list-style:none; }
+.trend-list li { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--gray2); font-size:13px; }
+.trend-list li:last-child { border-bottom:none; }
+.delta { font-weight:700; padding:2px 8px; border-radius:10px; font-size:12px; }
+.delta.up { background:#D5F5E3; color:#1E8449; }
+.delta.down { background:#FDEDEC; color:#922B21; }
+
+/* PROGRESS BAR (pillar) */
+.pillar-prog { margin-bottom:6px; }
+.pillar-prog-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.pillar-prog-label { font-size:11px; font-weight:600; width:90px; color:var(--navy); }
+.pillar-prog-bar { flex:1; height:16px; background:var(--gray2); border-radius:3px; overflow:hidden; }
+.pillar-prog-fill { height:100%; border-radius:3px; display:flex; align-items:center; padding-left:6px; }
+.pillar-prog-fill span { font-size:10px; font-weight:700; color:#fff; }
+.pillar-prog-val { width:36px; text-align:right; font-size:12px; font-weight:700; }
+
+/* STATUS LEGEND */
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+.legend-dot { width:10px; height:10px; border-radius:2px; }
+
+/* SYSTEM DETAIL */
+.sys-detail-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:200; justify-content:center; align-items:flex-start; padding:40px 20px; }
+.sys-detail-modal.open { display:flex; }
+.sys-modal-inner { background:var(--white); border-radius:12px; width:100%; max-width:700px; max-height:80vh; overflow-y:auto; padding:24px; }
+
+/* RESPONSIVE */
+@media(max-width:900px) { .kpi-row { grid-template-columns:repeat(2,1fr); } .coh-metric-row { grid-template-columns:repeat(2,1fr); } }
+
+/* COMPONENTS */
+.component-type-badge { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; }
+.ct-paas { background:#DBEAFE; color:#1D4ED8; }
+.ct-saas { background:#EDE9FE; color:#5B21B6; }
+.ct-iaas { background:#FEF3C7; color:#B45309; }
+.ct-faas { background:#D1FAE5; color:#065F46; }
+.ct-dbaas { background:#FCE7F3; color:#9D174D; }
+.ct-op { background:#F3F4F6; color:#374151; }
+
+.scrolltop { position:fixed; bottom:24px; right:24px; background:var(--blue); color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:18px; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+/* TOAST */
+.toast-wrap { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+.toast { padding:12px 22px; border-radius:8px; font-size:13px; font-weight:600; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.2); pointer-events:all; display:flex; align-items:center; gap:10px; animation: slideUp .25s ease; min-width:280px; }
+.toast.success { background:#1E8449; }
+.toast.error   { background:#C0392B; }
+.toast.loading { background:#2E5AAC; }
+@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+/* API CONFIG BAR */
+.api-config { background:#EAF1FB; border-bottom:1px solid var(--border); padding:6px 24px; display:flex; align-items:center; gap:10px; font-size:12px; flex-wrap:wrap; }
+.api-config label { color:var(--muted); font-weight:600; white-space:nowrap; }
+.api-config input { flex:1; max-width:340px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:12px; font-family:monospace; background:#fff; }
+.api-config .api-status { display:flex; align-items:center; gap:5px; font-size:12px; }
+.api-dot { width:8px; height:8px; border-radius:50%; background:#aaa; flex-shrink:0; }
+.api-dot.ok { background:var(--green); }
+.api-dot.err { background:var(--red); }
+.api-dot.checking { background:var(--gold); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* HISTORY */
+.hist-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--gray2); font-size:12px; }
+.hist-item:last-child { border-bottom:none; }
+.hist-sys { font-weight:700; color:var(--navy); width:80px; flex-shrink:0; }
+.hist-score { font-weight:800; font-size:16px; }
+.hist-date { color:var(--muted); font-size:11px; }
+/* SAVE BUTTON STATES */
+.btn-save { background:var(--green);color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .2s; }
+.btn-save:hover { background:var(--green-dark); }
+.btn-save:disabled { background:#aaa; cursor:not-allowed; }
+
+
+/* TOAST */
+.toast-wrap { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+.toast { padding:12px 22px; border-radius:8px; font-size:13px; font-weight:600; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.2); pointer-events:all; display:flex; align-items:center; gap:10px; animation: slideUp .25s ease; min-width:280px; }
+.toast.success { background:#1E8449; }
+.toast.error   { background:#C0392B; }
+.toast.loading { background:#2E5AAC; }
+@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+/* API CONFIG BAR */
+.api-config { background:#EAF1FB; border-bottom:1px solid var(--border); padding:6px 24px; display:flex; align-items:center; gap:10px; font-size:12px; }
+.api-config label { color:var(--muted); font-weight:600; white-space:nowrap; }
+.api-config input { flex:1; max-width:340px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:12px; font-family:monospace; background:#fff; }
+.api-config .api-status { display:flex; align-items:center; gap:5px; font-size:12px; }
+.api-dot { width:8px; height:8px; border-radius:50%; background:#aaa; }
+.api-dot.ok { background:var(--green); }
+.api-dot.err { background:var(--red); }
+.api-dot.checking { background:var(--gold); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* HISTORY TABLE */
+.hist-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--gray2); font-size:12px; }
+.hist-item:last-child { border-bottom:none; }
+.hist-sys { font-weight:700; color:var(--navy); width:80px; flex-shrink:0; }
+.hist-score { font-weight:800; font-size:16px; }
+.hist-date { color:var(--muted); font-size:11px; }
+.hist-resp { color:var(--muted); font-size:11px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="logo"><span>⚡</span> IET — Excelência Tecnológica</div>
+  <div class="version">v4.0 · Portfólio</div>
+  <div class="spacer"></div>
+  <button class="btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
+</div>
+
+<!-- API CONFIG BAR -->
+<div class="api-config">
+  <label>🔌 API URL:</label>
+  <input id="api-url" type="text" value="https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io" placeholder="http://seu-servidor:3000" />
+  <button onclick="checkApiHealth()" style="padding:4px 12px;border:1px solid var(--border);border-radius:4px;font-size:12px;cursor:pointer;background:var(--white);font-weight:600">Testar conexão</button>
+  <div class="api-status">
+    <div class="api-dot" id="api-dot"></div>
+    <span id="api-status-text" style="color:var(--muted)">Não testado</span>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-title">⚡ IET Dashboard</div>
+      <div class="brand-sub">Excelência Tecnológica · v4.0</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Dashboard</div>
+      <div class="nav-item active" id="nav-exec" onclick="showPage('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0"/></svg> Visão Executiva</div>
+      <div class="nav-item" id="nav-comp" onclick="showPage('comp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Comparação Sistemas</div>
+      <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
+      <div class="nav-item" id="nav-coh" onclick="showPage('coh')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra</div>
+      <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
+      <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Avaliação</div>
+      <div class="nav-item" id="nav-assess" onclick="showPage('assess')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Nova Avaliação</div>
+      <div class="nav-item" id="nav-hist" onclick="showPage('hist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Histórico</div>
+    </div>
+
+    <div class="sidebar-footer">
+      IET · Índice de Excelência<br>Tecnológica
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- ========== P1: VISÃO EXECUTIVA ========== -->
+    <div class="page active" id="page-exec">
+      <div class="page-header">
+        <h1>📊 Visão Executiva — Portfólio</h1>
+        <div class="sub">Excelência tecnológica consolidada · Última atualização: 04/05/2026</div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter"><label>Período</label><select><option>2026 Q2</option><option>2026 Q1</option><option>2025 Q4</option></select></div>
+        <div class="filter"><label>Unidade de Negócio</label><select><option>Todas</option><option>Tecnologia</option><option>Dados</option></select></div>
+        <div class="filter"><label>Provedor de Nuvem</label><select><option>Todos</option><option>Azure</option><option>AWS</option><option>On-Premise</option></select></div>
+        <div class="filter"><label>Caminho Crítico</label><select><option>Todos</option><option>Core</option><option>Satélite</option></select></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">IET Médio Portfólio</div><div class="kpi-val gold">68.4</div><div class="badge atc">Atenção</div></div>
+        <div class="kpi-card"><div class="kpi-label">IES — Software Médio</div><div class="kpi-val navy">63.2</div><div class="badge atc">Atenção</div></div>
+        <div class="kpi-card"><div class="kpi-label">IR — Resiliência Média</div><div class="kpi-val green">76.1</div><div class="badge bom">Bom</div></div>
+        <div class="kpi-card"><div class="kpi-label">Coerência Média</div><div class="kpi-val navy">71.5%</div><div class="badge bom">Aceitável</div></div>
+        <div class="kpi-card"><div class="kpi-label">Sistemas Críticos</div><div class="kpi-val red">3</div><div class="badge danger">Ação imediata</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Distribuição por Status (Portfólio)</h3>
+          <canvas id="chartDonut"></canvas>
+        </div>
+        <div class="card">
+          <h3>IET Médio por Pilar</h3>
+          <canvas id="chartPilarBar"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Ranking de Sistemas — IET Geral</h3>
+        <div id="ranking-bars" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ========== P2: COMPARAÇÃO SISTEMAS ========== -->
+    <div class="page" id="page-comp">
+      <div class="page-header">
+        <h1>🆚 Comparação entre Sistemas</h1>
+        <div class="sub">Confronto lado a lado de até 3 sistemas selecionados</div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter"><label>Sistema A</label><select id="selA" onchange="updateRadar()"><option>NRTC</option><option>Atlas</option><option>Pegasus</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option><option>Apollo</option><option>Saturno</option></select></div>
+        <div class="filter"><label>Sistema B</label><select id="selB" onchange="updateRadar()"><option value="Atlas" selected>Atlas</option><option>NRTC</option><option>Pegasus</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option></select></div>
+        <div class="filter"><label>Sistema C</label><select id="selC" onchange="updateRadar()"><option>Pegasus</option><option>NRTC</option><option>Atlas</option><option>Hermes</option><option>Olimpo</option><option>Sol</option><option>Tellus</option></select></div>
+      </div>
+      <div class="grid-3" id="comp-kpis"></div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Comparação por Pilar (Radar)</h3>
+        <canvas id="chartRadar" style="max-height:360px;"></canvas>
+      </div>
+      <div class="card">
+        <h3>Matriz Heatmap — Pilar × Sistema</h3>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#27AE60"></div> ≥ 90 Excelente</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7CB342"></div> 75-89 Bom</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#F1C232"></div> 60-74 Atenção</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#C0392B"></div> &lt; 60 Crítico</div>
+        </div>
+        <div id="heatmap-table" class="table-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ========== P3: ANÁLISE POR PILAR ========== -->
+    <div class="page" id="page-pilar">
+      <div class="page-header">
+        <h1>🎯 Análise por Pilar</h1>
+        <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter"><label>Pilar</label><select><option>Todos</option><option>P1 Topologia</option><option>P2 Dados</option><option>P3 Operabilidade</option><option>P4 Arq.Evolutiva</option><option>P5 Observabilidade</option><option>P6 Segurança</option></select></div>
+        <div class="filter"><label>Status</label><select><option>Todos</option><option>Crítico</option><option>Atenção</option><option>Bom</option><option>Excelente</option></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Score Médio por Pilar (Portfólio)</h3>
+          <canvas id="chartPilarScore"></canvas>
+        </div>
+        <div class="card">
+          <h3>% de Sistemas em Cada Status, por Pilar</h3>
+          <canvas id="chartPilarStatus"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Top 10 Perguntas com Menores Scores no Portfólio</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>QID</th><th>Pilar</th><th>Pergunta</th><th>Score Médio</th><th># Sistemas</th><th>Status</th></tr></thead>
+            <tbody id="worst-questions-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== P4: COERÊNCIA SW × INFRA ========== -->
+    <div class="page" id="page-coh">
+      <div class="page-header">
+        <h1>🔄 Coerência Software × Infraestrutura</h1>
+        <div class="sub">Onde a arquitetura declarada não casa com a infra. Risco oculto.</div>
+      </div>
+      <div class="coh-metric-row">
+        <div class="coh-metric"><div class="cm-label">Coerência Média</div><div class="cm-val" style="color:var(--gold)">71.5%</div><div class="badge atc" style="margin-top:6px">Aceitável</div></div>
+        <div class="coh-metric"><div class="cm-label">Regras Coerentes</div><div class="cm-val" style="color:var(--green)">120</div><div class="cm-sub">de 168 totais (12 sistemas × 14 regras)</div></div>
+        <div class="coh-metric"><div class="cm-label">Inconsistências</div><div class="cm-val" style="color:var(--red)">38</div><div class="cm-sub">"SW Sim, Infra abaixo"</div></div>
+        <div class="coh-metric"><div class="cm-label">Atenções</div><div class="cm-val" style="color:var(--navy)">10</div><div class="cm-sub">"SW Não, Infra acima"</div></div>
+        <div class="coh-metric"><div class="cm-label">Penalidade Total</div><div class="cm-val" style="color:var(--red)">−12.4</div><div class="cm-sub">pts deduções no IET</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Top Regras com Mais Inconsistências</h3>
+          <canvas id="chartCohRules"></canvas>
+        </div>
+        <div class="card">
+          <h3>Mapa Sistema × Coerência (%)</h3>
+          <canvas id="chartCohSystems"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Detalhe — Inconsistências Críticas</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sistema</th><th>QID</th><th>Regra</th><th>Score SW</th><th>Valor Infra</th><th>Threshold</th><th>Status</th></tr></thead>
+            <tbody id="coh-detail-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== P5: COMPONENTES & RISCOS ========== -->
+    <div class="page" id="page-infra">
+      <div class="page-header">
+        <h1>☁️ Componentes & Riscos de Infraestrutura</h1>
+        <div class="sub">Análise por componente — onde concentrar investimento de modernização.</div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter"><label>Sistema</label><select><option>Todos</option><option>NRTC</option><option>Atlas</option><option>Pegasus</option></select></div>
+        <div class="filter"><label>Provedor</label><select><option>Todos</option><option>Azure</option><option>AWS</option><option>On-Premise</option></select></div>
+        <div class="filter"><label>Tipo</label><select><option>Todos</option><option>PaaS</option><option>SaaS</option><option>IaaS</option><option>FaaS</option><option>DBaaS</option></select></div>
+        <div class="filter"><label>Caminho</label><select><option>Todos</option><option>Core</option><option>Satélite</option></select></div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">Componentes Avaliados</div><div class="kpi-val navy">312</div><div class="kpi-sub">12 sistemas</div></div>
+        <div class="kpi-card"><div class="kpi-label">Risco Alto+</div><div class="kpi-val red">42</div><div class="kpi-sub">13.5%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Risco Muito Baixo</div><div class="kpi-val green">128</div><div class="kpi-sub">41%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Score Resil. Médio</div><div class="kpi-val gold">3.8/5</div><div class="kpi-sub">75/100</div></div>
+        <div class="kpi-card"><div class="kpi-label">Top Provedor</div><div class="kpi-val" style="color:var(--blue)">Azure</div><div class="kpi-sub">62% dos componentes</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Distribuição por Tipo de Serviço</h3>
+          <canvas id="chartInfraType"></canvas>
+        </div>
+        <div class="card">
+          <h3>Componentes por Score de Risco</h3>
+          <canvas id="chartInfraRisk"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Top 10 Componentes Mais Críticos do Portfólio</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Caminho</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
+            <tbody id="infra-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== P6: EVOLUÇÃO TEMPORAL ========== -->
+    <div class="page" id="page-tempo">
+      <div class="page-header">
+        <h1>📈 Evolução Temporal</h1>
+        <div class="sub">Tendência do portfólio ao longo dos trimestres — estamos melhorando?</div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter"><label>Granularidade</label><select><option>Trimestre</option><option>Semestre</option></select></div>
+        <div class="filter"><label>Sistema</label><select><option>Todos (média)</option><option>NRTC</option><option>Atlas</option><option>Pegasus</option></select></div>
+        <div class="filter"><label>Métrica</label><select><option>IET</option><option>IES</option><option>IR</option></select></div>
+      </div>
+      <div class="card">
+        <h3>Evolução IET / IES / IR — Média do Portfólio</h3>
+        <canvas id="chartTemporal" style="max-height:300px;"></canvas>
+      </div>
+      <div class="trend-row">
+        <div class="card">
+          <h3>Maiores Subidas (delta entre últimas 2 avaliações)</h3>
+          <ul class="trend-list">
+            <li><span>Atlas</span> <span class="delta up">+12.4 pts</span></li>
+            <li><span>Hermes</span> <span class="delta up">+8.2 pts</span></li>
+            <li><span>Olimpo</span> <span class="delta up">+5.8 pts</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Maiores Quedas (regressões)</h3>
+          <ul class="trend-list">
+            <li><span>Pegasus</span> <span class="delta down">−7.2 pts</span></li>
+            <li><span>Tellus</span> <span class="delta down">−4.1 pts</span></li>
+            <li><span>Sol</span> <span class="delta down">−2.8 pts</span></li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:#FEF9E7; border:1px solid var(--gold); border-radius:8px; padding:10px 14px; margin-top:14px; font-size:12px; color:#7a5500;">
+        ⚡ Esta página responde à pergunta executiva-chave: <strong>"estamos melhorando ou regredindo?"</strong>. Sistemas em queda recebem governança especial.
+      </div>
+    </div>
+
+    <!-- ========== AVALIAÇÃO ========== -->
+    <div class="page" id="page-assess">
+      <div class="assess-header">
+        <h2>📝 Nova Avaliação de Sistema</h2>
+        <p>Preencha as respostas abaixo. O score é calculado em tempo real. Múltipla escolha permitida — score = média das opções selecionadas.</p>
+      </div>
+
+      <div style="background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+        <div><label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px;">SISTEMA</label><input id="inp-sistema" type="text" placeholder="Ex: NRTC, Atlas..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;"></div>
+        <div><label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px;">RESPONSÁVEL</label><input id="inp-resp" type="text" placeholder="Nome do arquiteto..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;"></div>
+        <div><label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px;">DATA</label><input id="inp-data" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;"></div>
+      </div>
+
+      <!-- LIVE SCORE -->
+      <div class="score-live">
+        <div class="score-box">
+          <div class="s-label">IES — Software</div>
+          <div class="s-val gold" id="live-ies">—</div>
+          <div id="live-ies-badge" style="margin-top:6px"></div>
+        </div>
+        <div class="score-box">
+          <div class="s-label">IR — Resiliência</div>
+          <div class="s-val green">76.1</div>
+          <div class="badge bom" style="margin-top:6px">Bom</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Via Componentes Infra</div>
+        </div>
+        <div class="score-box">
+          <div class="s-label">IET — Geral</div>
+          <div class="s-val navy" id="live-iet">—</div>
+          <div id="live-iet-badge" style="margin-top:6px"></div>
+        </div>
+        <div class="score-box">
+          <div class="s-label">Progresso</div>
+          <div class="s-val navy" id="live-prog">0%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px" id="live-answered">0 / 25 respondidas</div>
+        </div>
+      </div>
+
+      <!-- QUESTIONS -->
+      <div id="questions-container"></div>
+
+      <div id="save-feedback" style="display:none;margin:16px 0 0;padding:14px 18px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
+      <div style="text-align:center; margin-top:24px; padding:16px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <button onclick="resetForm()" style="background:var(--gray2);color:var(--navy);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↺ Limpar</button>
+        <button class="btn-save" id="btn-save" onclick="saveAvaliacao()">💾 Salvar no Banco</button>
+        <button onclick="showPage('exec')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">📊 Ver Dashboard</button>
+      </div>
+    </div>
+
+
+    <!-- ========== HISTÓRICO ========== -->
+    <div class="page" id="page-hist">
+      <div class="page-header">
+        <h1>🗂️ Histórico de Avaliações</h1>
+        <div class="sub">Avaliações salvas no banco · carregadas via API</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+        <button onclick="loadHistorico()" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">↻ Recarregar</button>
+        <span id="hist-count" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="card">
+        <div id="hist-content">
+          <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Clique em "Recarregar" para buscar as avaliações salvas.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main -->
+</div><!-- end layout -->
+</div><!-- end layout -->
+
+<script>
+// ============================================================
+// DATA MODEL
+// ============================================================
+
+const SYSTEMS = [
+  { name:'Atlas',   iet:82.1, ies:78.0, ir:88.5, coh:88.0, pillars:[88,84,75,80,78,79] },
+  { name:'Hermes',  iet:78.4, ies:74.2, ir:85.0, coh:82.5, pillars:[82,78,70,72,74,77] },
+  { name:'Olimpo',  iet:76.2, ies:71.5, ir:83.0, coh:80.0, pillars:[79,76,68,70,72,74] },
+  { name:'Sol',     iet:68.5, ies:63.0, ir:77.0, coh:74.0, pillars:[70,68,58,65,66,68] },
+  { name:'NRTC',    iet:67.6, ies:61.8, ir:77.4, coh:64.3, pillars:[68,65,55,63,64,66] },
+  { name:'Tellus',  iet:65.3, ies:60.5, ir:73.0, coh:69.0, pillars:[65,63,55,60,62,63] },
+  { name:'Apollo',  iet:62.1, ies:57.0, ir:70.5, coh:61.0, pillars:[62,60,52,58,57,60] },
+  { name:'Pegasus', iet:54.8, ies:48.3, ir:64.5, coh:51.0, pillars:[55,52,44,48,50,52] },
+  { name:'Saturno', iet:52.0, ies:46.0, ir:61.0, coh:48.0, pillars:[52,50,42,46,47,50] },
+];
+
+const PILLAR_NAMES = ['P1 Topologia', 'P2 Dados', 'P3 Operab.', 'P4 Arq.Evo', 'P5 Observ.', 'P6 Seg.'];
+const PILLAR_WEIGHTS = [0.30, 0.25, 0.15, 0.10, 0.10, 0.10];
+
+const QUESTIONS = [
+  // P1 - Topologia (4 perguntas, peso 30%)
+  { id:'P1Q1_TOPO', pillar:0, pName:'P1 Topologia', title:'Resiliência de Topologia: qual o nível de redundância no caminho crítico para eliminar SPOF?',
+    options:[
+      {l:'A', t:'Há componente único no caminho crítico sem redundância (banco, mensageria ou aplicação).', s:1},
+      {l:'B', t:'Há redundância passiva (ativo/passivo), com failover manual ou tempo de comutação > 15 min.', s:3},
+      {l:'C', t:'Há redundância ativa na mesma zona/datacenter, sem isolamento entre zonas.', s:5},
+      {l:'D', t:'Há redundância ativo/ativo em múltiplas zonas, com failover automático testado.', s:7},
+      {l:'E', t:'Há arquitetura multi-região ativo/ativo com RTO ≤ 5 min e RPO ≤ 5 min, testados periodicamente.', s:10},
+    ]},
+  { id:'P1Q2_DEPEND', pillar:0, pName:'P1 Topologia', title:'Dependências Externas: como o sistema se comporta quando a principal dependência externa falha ou degrada?',
+    options:[
+      {l:'A', t:'Chamadas síncronas bloqueantes no caminho crítico, sem timeout ou circuit breaker efetivo.', s:1},
+      {l:'B', t:'Há timeout/retry básicos, porém sem isolamento; falhas externas ainda degradam o fluxo crítico.', s:3},
+      {l:'C', t:'Há circuit breaker e retry com backoff, com fallback parcial para funcionalidades não críticas.', s:6},
+      {l:'D', t:'O fluxo crítico usa processamento assíncrono/fila e mantém operação mesmo com indisponibilidade externa.', s:8},
+      {l:'E', t:'Há degradação graciosa e fallback completo; a dependência externa não interrompe o core business.', s:10},
+    ]},
+  { id:'P1Q3_ISOL', pillar:0, pName:'P1 Topologia', title:'Isolamento de Recursos: qual o nível de contenção para evitar efeito dominó entre módulos?',
+    options:[
+      {l:'A', t:'Todos os módulos compartilham recursos (threads/conexões) sem limites por domínio.', s:1},
+      {l:'B', t:'Há limites parciais, mas a contenção de um módulo ainda impacta os demais.', s:4},
+      {l:'C', t:'Há segregação de dados/filas por domínio e limites de consumo para os principais serviços.', s:6},
+      {l:'D', t:'Bulkheads e cotas por serviço são aplicados e testados sob carga.', s:8},
+      {l:'E', t:'Isolamento celular (rede, computação e dados) com blast radius controlado e validado em produção.', s:10},
+    ]},
+  { id:'P1Q4_FAILOVER', pillar:0, pName:'P1 Topologia', title:'Recuperação e Failover: qual a maturidade de recuperação frente a falhas críticas?',
+    options:[
+      {l:'A', t:'Recuperação manual, sem runbook testado e sem metas formais de RTO/RPO.', s:1},
+      {l:'B', t:'Runbook existe, mas failover é manual e testes são ocasionais.', s:3},
+      {l:'C', t:'Failover automatizado para componentes críticos, com testes periódicos de recuperação.', s:6},
+      {l:'D', t:'Recuperação zero-touch com orquestração automática e testes regulares de continuidade.', s:8},
+      {l:'E', t:'Zero-touch com chaos engineering contínuo e evidências recorrentes de cumprimento de RTO/RPO.', s:10},
+    ]},
+  // P2 - Dados (4 perguntas, peso 25%)
+  { id:'P2Q1_ACOPL', pillar:1, pName:'P2 Dados', title:'Acoplamento de Dados: qual o grau de dependência entre serviços no armazenamento de dados?',
+    options:[
+      {l:'A', t:'Múltiplos serviços leem/escrevem diretamente nas mesmas tabelas (integration database).', s:1},
+      {l:'B', t:'Há separação por schema, mas na mesma instância; transações dependem de forte acoplamento.', s:3},
+      {l:'C', t:'Cada serviço é dono de seu banco (database per service); integração apenas via API/eventos.', s:6},
+      {l:'D', t:'Há separação física por domínio e integração assíncrona com contratos de eventos versionados.', s:8},
+      {l:'E', t:'Arquitetura orientada a eventos com trilha imutável/auditável e possibilidade de replay.', s:10},
+    ]},
+  { id:'P2Q2_CONSIST', pillar:1, pName:'P2 Dados', title:'Consistência Distribuída: como transações entre domínios mantêm consistência sem comprometer resiliência?',
+    options:[
+      {l:'A', t:'Não há mecanismo explícito de consistência entre domínios; reconciliações são reativas.', s:1},
+      {l:'B', t:'Consistência baseada principalmente em 2PC, com latência elevada e acoplamento operacional.', s:3},
+      {l:'C', t:'Consistência eventual com compensação manual em casos de falha.', s:6},
+      {l:'D', t:'Sagas orquestradas com compensações automáticas e operações idempotentes.', s:8},
+      {l:'E', t:'Sagas + padrões de confiabilidade (outbox/inbox) com reconciliação automática e monitoramento fim a fim.', s:10},
+    ]},
+  { id:'P2Q3_ESTRAT', pillar:1, pName:'P2 Dados', title:'Estratégia de Consistência: o modelo (forte/eventual/híbrido) é definido por requisito de negócio mensurável?',
+    options:[
+      {l:'A', t:'O modelo não é explicitado; decisões são impostas por tecnologia ou legado.', s:1},
+      {l:'B', t:'Modelo documentado parcialmente, sem validação contra requisitos críticos de negócio.', s:3},
+      {l:'C', t:'Modelo definido por domínio com trade-offs claros e invariantes documentados.', s:6},
+      {l:'D', t:'Modelo híbrido por jornada, com critérios explícitos de quando usar consistência forte ou eventual.', s:8},
+      {l:'E', t:'Política adaptativa por operação, com guardrails e telemetria comprovando aderência aos requisitos.', s:10},
+    ]},
+  { id:'P2Q4_ESCALA', pillar:1, pName:'P2 Dados', title:'Escalabilidade de Escrita: a arquitetura sustenta picos extremos de escrita com previsibilidade?',
+    options:[
+      {l:'A', t:'Não há evidência de capacidade; o banco torna-se gargalo em picos.', s:1},
+      {l:'B', t:'Suporta carga usual, mas degrada significativamente em picos e depende de contenções manuais.', s:3},
+      {l:'C', t:'Há particionamento/sharding e testes de carga cobrindo picos projetados.', s:6},
+      {l:'D', t:'Há fila/stream com backpressure, escala horizontal e controle de lag em períodos de pico.', s:8},
+      {l:'E', t:'Arquitetura de streaming em tempo real com autoescala e evidência de folga operacional ≥ 2x pico previsto.', s:10},
+    ]},
+  // P3 - Operabilidade (4 perguntas, peso 15%)
+  { id:'P3Q1_TOIL', pillar:2, pName:'P3 Operab.', title:'Intervenção Manual: A operação diária exige intervenção manual frequente?',
+    options:[
+      {l:'A', t:'Sim. Diariamente há tarefas manuais. O time é reativo a problemas.', s:1},
+      {l:'B', t:'Ocasionalmente. 1-2 vezes por semana há necessidade de intervenção manual.', s:3},
+      {l:'C', t:'Raro. Menos de 1 vez por mês. A maioria das operações é automatizada.', s:6},
+      {l:'D', t:'Praticamente nunca. O sistema é auto-curável. Playlists automatizadas resolvem 95% dos incidentes.', s:8},
+      {l:'E', t:'Zero toil. O sistema é autônomo. Os SREs focam 100% em evolução, não em operação.', s:10},
+    ]},
+  { id:'P3Q2_INCID', pillar:2, pName:'P3 Operab.', title:'Resposta a Incidentes: Qual a maturidade do processo de resposta operacional?',
+    options:[
+      {l:'A', t:'Não há plantão formal nem critérios de severidade. Resposta é ad-hoc e depende de pessoas específicas.', s:1},
+      {l:'B', t:'Plantão existe, mas sem runbooks completos e com escalonamento inconsistente.', s:3},
+      {l:'C', t:'Plantão e runbooks formalizados para incidentes críticos, com papéis e escalonamento definidos.', s:6},
+      {l:'D', t:'Além do processo formal, há treinamento recorrente e simulações de incidente com plano de ação registrado.', s:8},
+      {l:'E', t:'Resposta operacional é previsível e contínua: simulações frequentes, aprendizado institucional.', s:10},
+    ]},
+  { id:'P3Q3_MUDANCA', pillar:2, pName:'P3 Operab.', title:'Confiabilidade de Mudanças: Qual a capacidade de implantar mudanças com baixo risco operacional?',
+    options:[
+      {l:'A', t:'Deploys em produção ocorrem sem estratégia de rollback validada e com alto risco de interrupção.', s:1},
+      {l:'B', t:'Existe rollback manual, porém sem critérios claros de reversão e sem validação contínua.', s:3},
+      {l:'C', t:'Deploy com rollback definido e monitoramento básico de estabilidade após liberação.', s:6},
+      {l:'D', t:'Deploy progressivo (canary/blue-green) com gates de saúde e reversão rápida.', s:8},
+      {l:'E', t:'Mudanças orientadas por confiabilidade: deploy progressivo automatizado, rollback seguro e baixa taxa de falha.', s:10},
+    ]},
+  { id:'P3Q4_SLO', pillar:2, pName:'P3 Operab.', title:'Gestão de SLO e Error Budget: SLOs são usados para priorizar estabilidade versus novas entregas?',
+    options:[
+      {l:'A', t:'Não há SLOs formais; decisões de entrega ignoram impacto em confiabilidade.', s:1},
+      {l:'B', t:'SLOs existem informalmente, mas não influenciam planejamento e priorização de trabalho.', s:3},
+      {l:'C', t:'SLOs e error budget são medidos e discutidos em ritos operacionais regulares.', s:6},
+      {l:'D', t:'Quando error budget entra em risco, há ações preventivas e replanejamento de capacidade/estabilidade.', s:8},
+      {l:'E', t:'Error budget governa decisões de produto e engenharia: novas entregas condicionadas à saúde operacional.', s:10},
+    ]},
+  // P4 - Arq. Evolutiva (5 perguntas, peso 10%)
+  { id:'P4Q1_DOC', pillar:3, pName:'P4 Arq.Evo', title:'Documentação: Como as decisões de arquitetura e trade-offs são documentadas?',
+    options:[
+      {l:'A', t:'Não há documentação. "O código é a documentação". Alto débito técnico.', s:1},
+      {l:'B', t:'Documentação em Word/Wiki. Frequentemente fica desatualizada do código em produção.', s:3},
+      {l:'C', t:'ADRs (Architecture Decision Records) versionados junto com o código-fonte.', s:6},
+      {l:'D', t:'ADRs + Diagramas (C4, ArchiMate) mantidos em Sync com código via CI/CD.', s:8},
+      {l:'E', t:'Arquitetura como Código. Diagrama é gerado automaticamente a partir do código via análise estática.', s:10},
+    ]},
+  { id:'P4Q2_IAC', pillar:3, pName:'P4 Arq.Evo', title:'IaC: A infraestrutura e os pipelines (CI/CD) são totalmente definidos como código?',
+    options:[
+      {l:'A', t:'Não. Infraestrutura provisionada manualmente. Deploys com passos manuais.', s:1},
+      {l:'B', t:'Infraestrutura parcialmente como código. Alguns componentes ainda são manuais.', s:3},
+      {l:'C', t:'Infraestrutura 100% como código (Terraform/Ansible). Deploy zero-downtime.', s:6},
+      {l:'D', t:'IaC + GitOps. Todo mudança em infra é Pull Request. Ambiente é WYSIWYG com Git.', s:8},
+      {l:'E', t:'IaC + Self-healing. Infraestrutura se auto-reconstrói se divergir do código.', s:10},
+    ]},
+  { id:'P4Q3_FIT', pillar:3, pName:'P4 Arq.Evo', title:'Fitness Functions: Existem testes automatizados que validam regras de arquitetura?',
+    options:[
+      {l:'A', t:'Não. Regras de arquitetura são informais ou apenas documentadas.', s:1},
+      {l:'B', t:'Code Reviews manuais. Não há testes automatizados que validem arquitetura.', s:3},
+      {l:'C', t:'Testes de Contrato (Pact). Mudanças em APIs são validadas automaticamente.', s:6},
+      {l:'D', t:'ArchUnit / NetArchTest. Regras de arquitetura quebram o build se violadas.', s:8},
+      {l:'E', t:'Fitness Functions contínuas. Testes de performance, latência e segurança rodam no CI antes de merge.', s:10},
+    ]},
+  { id:'P4Q4_TESTES', pillar:3, pName:'P4 Arq.Evo', title:'Cobertura de Testes: Qual é o nível de cobertura de testes (Unitários, Integração e Contrato)?',
+    options:[
+      {l:'A', t:'Praticamente nenhuma. Testes são raramente escritos. Confiança na qualidade é baixa.', s:1},
+      {l:'B', t:'Testes unitários básicos. Poucos testes de integração. Nenhum teste de contrato.', s:3},
+      {l:'C', t:'Cobertura de Unitários > 60%. Testes de integração para fluxos críticos. Alguns testes de contrato.', s:6},
+      {l:'D', t:'Cobertura de Unitários > 80%. Testes de Integração > 70%. Testes de Contrato completos (Pact).', s:8},
+      {l:'E', t:'Cobertura > 90%. Testes de Segurança, Performance e Chaos Engineering rodam no CI.', s:10},
+    ]},
+  { id:'P4Q5_OBSOL', pillar:3, pName:'P4 Arq.Evo', title:'Obsolescência Tecnológica: Como a organização gerencia ciclo de vida, EOL e atualização de componentes críticos?',
+    options:[
+      {l:'A', t:'Não há inventário nem plano de obsolescência. Componentes EOL permanecem em produção.', s:1},
+      {l:'B', t:'Inventário parcial de versões, sem política formal de atualização e sem datas-alvo de correção.', s:3},
+      {l:'C', t:'Inventário completo com revisão periódica. Há plano de upgrade para componentes críticos.', s:6},
+      {l:'D', t:'Gestão proativa com alertas de EOL/EOS, backlog priorizado por risco e execução contínua de modernização.', s:8},
+      {l:'E', t:'Obsolescência tratada por política corporativa com automação (scanner de versões/SBOM), métricas e governança executiva.', s:10},
+    ]},
+  // P5 - Observabilidade (4 perguntas, peso 10%)
+  { id:'P5Q1_TELEM', pillar:4, pName:'P5 Observ.', title:'Cobertura de Telemetria: Qual o percentual dos fluxos críticos com logs estruturados, métricas e traces correlacionados?',
+    options:[
+      {l:'A', t:'< 30% dos fluxos críticos possuem telemetria mínima. Não há padrão único de logs, métricas e traces.', s:1},
+      {l:'B', t:'Entre 30% e 59% dos fluxos críticos possuem telemetria, com padrões diferentes entre times.', s:3},
+      {l:'C', t:'Entre 60% e 79% dos fluxos críticos possuem logs estruturados e métricas.', s:6},
+      {l:'D', t:'Entre 80% e 94% dos fluxos críticos possuem logs, métricas e traces padronizados com correlation_id.', s:8},
+      {l:'E', t:'95%+ dos fluxos críticos possuem telemetria completa e validada automaticamente em pipeline de entrega.', s:10},
+    ]},
+  { id:'P5Q2_SLO_OBS', pillar:4, pName:'P5 Observ.', title:'Observabilidade orientada a SLO: Telemetria e alertas permitem monitorar SLI/SLO e antecipar risco de violação?',
+    options:[
+      {l:'A', t:'Não há SLI/SLO instrumentados na telemetria; alertas não mostram risco de violação de nível de serviço.', s:1},
+      {l:'B', t:'Parte dos SLIs é coletada, porém sem SLO formal por jornada crítica e com alertas pouco acionáveis.', s:3},
+      {l:'C', t:'SLIs e SLOs críticos são monitorados em dashboards com alertas por limiar de erro e latência.', s:6},
+      {l:'D', t:'Há alertas de burn rate e tendência de violação de SLO, com roteamento por serviço/jornada crítica.', s:8},
+      {l:'E', t:'Observabilidade é totalmente orientada a SLO: SLIs confiáveis, burn-rate multi-janela e resposta automática.', s:10},
+    ]},
+  { id:'P5Q3_DIAG', pillar:4, pName:'P5 Observ.', title:'Diagnóstico e Recuperação: Qual a maturidade para investigar e recuperar incidentes de produção?',
+    options:[
+      {l:'A', t:'Não existem runbooks padronizados; diagnóstico depende de especialistas específicos. MTTR médio > 4h.', s:1},
+      {l:'B', t:'Runbooks existem apenas para parte dos incidentes; acionamento manual predominante. MTTR 2-4h.', s:3},
+      {l:'C', t:'Runbooks cobrem incidentes Sev1 e Sev2 e são usados pelo time de plantão. MTTR 60-120 min.', s:6},
+      {l:'D', t:'Runbooks automatizados cobrem ao menos 80% dos incidentes recorrentes. MTTR 30-60 min.', s:8},
+      {l:'E', t:'Auto-remediação cobre > 90% dos incidentes recorrentes com auditoria completa. MTTR < 30 min.', s:10},
+    ]},
+  { id:'P5Q4_NEG', pillar:4, pName:'P5 Observ.', title:'Correlação Técnica × Negócio: O time correlaciona sinais técnicos, KPIs de negócio e cumprimento de SLO em tempo real?',
+    options:[
+      {l:'A', t:'Não há correlação entre sinais técnicos, KPIs de negócio e SLO; análise ocorre apenas após incidentes.', s:1},
+      {l:'B', t:'KPIs e SLO existem, mas não estão conectados por serviço/jornada para diagnóstico rápido.', s:3},
+      {l:'C', t:'KPIs críticos e SLOs são monitorados em tempo real, com visão conjunta por jornada de negócio.', s:6},
+      {l:'D', t:'Degradação de KPI e risco de SLO são correlacionados com causa provável por serviço, com alertas preditivos.', s:8},
+      {l:'E', t:'KPIs, SLIs/SLOs e telemetria acionam respostas automáticas com rastreabilidade ponta a ponta.', s:10},
+    ]},
+  // P6 - Segurança (4 perguntas, peso 10%)
+  { id:'P6Q1_IAM', pillar:5, pName:'P6 Seg.', title:'Identidade e Acesso: Como o controle de acesso é aplicado e auditado nos ambientes críticos?',
+    options:[
+      {l:'A', t:'Contas compartilhadas são utilizadas e MFA não é obrigatório. Não há revisão formal de permissões.', s:1},
+      {l:'B', t:'MFA é aplicado apenas para parte dos usuários privilegiados; permissões amplas ainda são comuns.', s:3},
+      {l:'C', t:'MFA é obrigatório para acessos administrativos e RBAC é aplicado com revisão anual de permissões.', s:6},
+      {l:'D', t:'MFA é obrigatório para todos os acessos privilegiados, princípio de menor privilégio revisado trimestralmente.', s:8},
+      {l:'E', t:'Acesso privilegiado é Just-in-Time, com credenciais efêmeras, aprovação registrada e trilha completa de auditoria.', s:10},
+    ]},
+  { id:'P6Q2_VULN', pillar:5, pName:'P6 Seg.', title:'Vulnerabilidades: Qual o nível de controle sobre vulnerabilidades em código, dependências e imagens?',
+    options:[
+      {l:'A', t:'Não há varredura automatizada de vulnerabilidades (SAST/SCA/DAST) no fluxo de entrega.', s:1},
+      {l:'B', t:'Varreduras são manuais ou esporádicas, sem SLA formal de correção por severidade.', s:3},
+      {l:'C', t:'SAST e SCA rodam em pull requests, com SLA de correção definido para vulnerabilidades altas e críticas.', s:6},
+      {l:'D', t:'SAST, SCA e DAST rodam continuamente; merge é bloqueado para severidade crítica.', s:8},
+      {l:'E', t:'Além de SAST/SCA/DAST, há modelagem de ameaças recorrente e validação de exploração com correção priorizada.', s:10},
+    ]},
+  { id:'P6Q3_DADOS', pillar:5, pName:'P6 Seg.', title:'Proteção de Dados: Como dados sensíveis são classificados, criptografados e governados?',
+    options:[
+      {l:'A', t:'Dados sensíveis não possuem classificação formal e podem existir sem criptografia em repouso.', s:1},
+      {l:'B', t:'Existe classificação parcial; criptografia em trânsito é aplicada, mas há lacunas em repouso.', s:3},
+      {l:'C', t:'Dados sensíveis possuem classificação formal e criptografia em trânsito e em repouso com rotação periódica.', s:6},
+      {l:'D', t:'Além da criptografia, há tokenização ou mascaramento para dados críticos e segregação de acesso por domínio.', s:8},
+      {l:'E', t:'Proteção é fim a fim com HSM/BYOK, política de retenção automatizada e auditoria contínua de acesso.', s:10},
+    ]},
+  { id:'P6Q4_INCID_SEC', pillar:5, pName:'P6 Seg.', title:'Resposta a Incidentes de Segurança: Qual a capacidade de detectar, conter e aprender com incidentes de segurança?',
+    options:[
+      {l:'A', t:'Não existe playbook de resposta a incidentes de segurança e a detecção depende de terceiros.', s:1},
+      {l:'B', t:'Existe playbook básico, porém sem testes regulares e sem métricas de detecção e resposta.', s:3},
+      {l:'C', t:'Playbook é testado ao menos uma vez por ano, com processo de escalonamento e comunicação definido.', s:6},
+      {l:'D', t:'Simulações semestrais são executadas com metas de MTTD e MTTR para incidentes de alta severidade.', s:8},
+      {l:'E', t:'Há automação SOAR para contenção inicial, exercícios trimestrais e incorporação formal de lições aprendidas.', s:10},
+    ]},
+];
+
+// State for assessment
+let answers = {}; // { qId: [scoreValues] }
+
+function getStatus(score) {
+  if (score >= 90) return {label:'Excelente', cls:'exc'};
+  if (score >= 75) return {label:'Bom', cls:'bom'};
+  if (score >= 60) return {label:'Atenção', cls:'atc'};
+  return {label:'Crítico', cls:'crit'};
+}
+
+function getBarColor(score) {
+  if (score >= 90) return '#27AE60';
+  if (score >= 75) return '#7CB342';
+  if (score >= 60) return '#F1C232';
+  return '#C0392B';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+// ── Sidebar toggle (mobile) ──────────────────────────────────
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('open', open);
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+
+  if (id === 'comp') { setTimeout(updateRadar, 100); }
+  if (window.innerWidth <= 768) closeSidebar();
+  if (id === 'hist') { loadHistorico(); }
+}
+
+// ============================================================
+// CHARTS — VISÃO EXECUTIVA
+// ============================================================
+let charts = {};
+
+function initExecCharts() {
+  // Donut
+  const ctxDonut = document.getElementById('chartDonut').getContext('2d');
+  charts.donut = new Chart(ctxDonut, {
+    type: 'doughnut',
+    data: {
+      labels: ['Excelente (≥90)', 'Bom (75-89)', 'Atenção (60-74)', 'Crítico (<60)'],
+      datasets: [{ data: [3, 3, 3, 3], backgroundColor: ['#27AE60','#7CB342','#F1C232','#C0392B'], borderWidth: 2 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'right', labels:{font:{size:11}, boxWidth:12} } }, cutout:'60%' }
+  });
+
+  // Pilar Bar (exec)
+  const ctxPilar = document.getElementById('chartPilarBar').getContext('2d');
+  charts.pilarBar = new Chart(ctxPilar, {
+    type: 'bar',
+    data: {
+      labels: PILLAR_NAMES,
+      datasets: [{ data:[68,65,55,63,64,67], backgroundColor:['#2E5AAC','#2E5AAC','#C0392B','#2E5AAC','#2E5AAC','#2E5AAC'], borderRadius:4 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{min:0,max:100,grid:{color:'#EEE'} }, x:{grid:{display:false}} } }
+  });
+
+  // Ranking bars
+  const rankDiv = document.getElementById('ranking-bars');
+  rankDiv.innerHTML = '';
+  SYSTEMS.sort((a,b)=>b.iet-a.iet).forEach((sys,i) => {
+    const st = getStatus(sys.iet);
+    const color = getBarColor(sys.iet);
+    rankDiv.innerHTML += `<div class="rank-bar-wrap">
+      <div class="rank-name">${sys.name}</div>
+      <div class="rank-bar"><div class="fill" style="width:${sys.iet}%;background:${color}"><span>${sys.iet}</span></div></div>
+      <div class="rank-score" style="color:${color}">${sys.iet}</div>
+      <span class="badge ${st.cls}" style="min-width:70px;justify-content:center">${st.label}</span>
+    </div>`;
+  });
+}
+
+// ============================================================
+// CHARTS — COMPARAÇÃO
+// ============================================================
+let radarChart = null;
+
+function getSysData(name) { return SYSTEMS.find(s => s.name === name) || SYSTEMS[0]; }
+
+function updateRadar() {
+  const sA = getSysData(document.getElementById('selA').value);
+  const sB = getSysData(document.getElementById('selB').value);
+  const sC = getSysData(document.getElementById('selC').value);
+
+  // KPI cards
+  const kpiDiv = document.getElementById('comp-kpis');
+  [sA, sB, sC].forEach(sys => {
+    const st = getStatus(sys.iet);
+    kpiDiv.innerHTML = '';
+  });
+  kpiDiv.innerHTML = [sA,sB,sC].map(sys => {
+    const st = getStatus(sys.iet);
+    const color = getBarColor(sys.iet);
+    return `<div class="kpi-card">
+      <div class="kpi-label">${sys.name} · IET</div>
+      <div class="kpi-val" style="color:${color}">${sys.iet}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">IES ${sys.ies} · IR ${sys.ir} · Coer. ${sys.coh}%</div>
+      <span class="badge ${st.cls}">${st.label}</span>
+    </div>`;
+  }).join('');
+
+  // Radar
+  if (radarChart) radarChart.destroy();
+  const ctx = document.getElementById('chartRadar').getContext('2d');
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: PILLAR_NAMES,
+      datasets: [
+        { label:sA.name, data:sA.pillars, borderColor:'#2E5AAC', backgroundColor:'rgba(46,90,172,0.1)', pointBackgroundColor:'#2E5AAC' },
+        { label:sB.name, data:sB.pillars, borderColor:'#27AE60', backgroundColor:'rgba(39,174,96,0.1)', pointBackgroundColor:'#27AE60' },
+        { label:sC.name, data:sC.pillars, borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,0.1)', pointBackgroundColor:'#C0392B' },
+      ]
+    },
+    options: { responsive:true, scales:{ r:{ min:0, max:100, ticks:{stepSize:20,font:{size:10}}, pointLabels:{font:{size:11}} } }, plugins:{ legend:{position:'top'} } }
+  });
+
+  // Heatmap
+  const hm = document.getElementById('heatmap-table');
+  let html = `<div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:2px;">`;
+  html += `<div class="hm-cell head">Sistema</div>`;
+  PILLAR_NAMES.forEach(p => html += `<div class="hm-cell head">${p}</div>`);
+  [sA,sB,sC].forEach(sys => {
+    html += `<div class="hm-row-label">${sys.name}</div>`;
+    sys.pillars.forEach(v => {
+      const st = getStatus(v);
+      html += `<div class="hm-cell ${st.cls}">${v}</div>`;
+    });
+  });
+  html += '</div>';
+  hm.innerHTML = html;
+}
+
+// ============================================================
+// CHARTS — ANÁLISE POR PILAR
+// ============================================================
+function initPilarCharts() {
+  const scores = PILLAR_NAMES.map((_,i) => {
+    return Math.round(SYSTEMS.reduce((acc,s) => acc + s.pillars[i], 0) / SYSTEMS.length);
+  });
+
+  const ctx1 = document.getElementById('chartPilarScore').getContext('2d');
+  charts.pilarScore = new Chart(ctx1, {
+    type:'bar', data:{ labels:PILLAR_NAMES, datasets:[{ data:scores, backgroundColor:scores.map(s=>getBarColor(s)), borderRadius:4 }] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100},x:{grid:{display:false}}} }
+  });
+
+  const ctx2 = document.getElementById('chartPilarStatus').getContext('2d');
+  charts.pilarStatus = new Chart(ctx2, {
+    type:'bar', data:{
+      labels:PILLAR_NAMES,
+      datasets:[
+        {label:'Excelente', data:[33,22,11,22,22,22], backgroundColor:'#27AE60'},
+        {label:'Bom',       data:[22,33,11,33,33,33], backgroundColor:'#7CB342'},
+        {label:'Atenção',   data:[33,22,33,22,22,33], backgroundColor:'#F1C232'},
+        {label:'Crítico',   data:[12,23,45,23,23,12], backgroundColor:'#C0392B'},
+      ]
+    },
+    options:{ responsive:true, scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,min:0,max:100}}, plugins:{legend:{position:'top',labels:{font:{size:10}}}} }
+  });
+
+  // Top worst questions
+  const worstQ = [
+    {id:'P3Q4_SLO',   pilar:'P3 Operab.', q:'SLOs e error budget formalizados...', score:2.4, n:12, st:'crit'},
+    {id:'P5Q4_NEG',   pilar:'P5 Observ.', q:'Correlação técnica × negócio em tempo real...', score:2.8, n:12, st:'crit'},
+    {id:'P4Q5_OBSOL', pilar:'P4 Arq.Evo', q:'Gestão de obsolescência tecnológica...', score:3.2, n:12, st:'crit'},
+    {id:'P2Q4_ESCALA',pilar:'P2 Dados',   q:'Escalabilidade de escrita em picos...', score:3.5, n:12, st:'crit'},
+    {id:'P6Q4_INCID', pilar:'P6 Seg.',    q:'Resposta a incidentes de segurança testada...', score:4.1, n:12, st:'atc'},
+    {id:'P1Q3_ISOL',  pilar:'P1 Topologia',q:'Isolamento de recursos (Bulkhead)...', score:4.3, n:12, st:'atc'},
+    {id:'P3Q3_MUDANCA',pilar:'P3 Operab.',q:'Confiabilidade de mudanças (canary, rollback)...', score:4.5, n:12, st:'atc'},
+  ];
+  const tbody = document.getElementById('worst-questions-table');
+  tbody.innerHTML = worstQ.map(q => `<tr>
+    <td><span class="qid-link">${q.id}</span></td>
+    <td>${q.pilar}</td>
+    <td>${q.q}</td>
+    <td><strong>${q.score}</strong></td>
+    <td>${q.n}</td>
+    <td><span class="badge ${q.st}">${q.st==='crit'?'Crítico':'Atenção'}</span></td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// CHARTS — COERÊNCIA
+// ============================================================
+function initCohCharts() {
+  const ctxR = document.getElementById('chartCohRules').getContext('2d');
+  charts.cohRules = new Chart(ctxR, {
+    type:'bar', data:{
+      labels:['OPE_LOG','RES_AA','RES_DR','RES_BKP','EA_MULTI_AZ','OPE_TELE','RES_FAIL'],
+      datasets:[{data:[8,7,6,5,4,4,3], backgroundColor:'#C0392B', borderRadius:4}]
+    },
+    options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'#EEE'}},y:{grid:{display:false}}}}
+  });
+
+  const ctxS = document.getElementById('chartCohSystems').getContext('2d');
+  const sysCoh = SYSTEMS.sort((a,b)=>b.coh-a.coh);
+  charts.cohSystems = new Chart(ctxS, {
+    type:'bar', data:{
+      labels:sysCoh.map(s=>s.name),
+      datasets:[{data:sysCoh.map(s=>s.coh), backgroundColor:sysCoh.map(s=>getBarColor(s.coh)), borderRadius:4}]
+    },
+    options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{min:0,max:100,grid:{color:'#EEE'}},y:{grid:{display:false}}}}
+  });
+
+  // Coherence detail table
+  const cohData = [
+    {sys:'NRTC', qid:'RES_AA', regra:'Multi-AZ Ativo/Ativo', sw:'SIM (8.5)', infra:'3.2', thr:'≥ 4', st:'crit'},
+    {sys:'NRTC', qid:'OPE_LOG', regra:'Telemetria correlacionada', sw:'SIM (7.0)', infra:'2.5', thr:'≥ 4', st:'crit'},
+    {sys:'Pegasus', qid:'RES_DR', regra:'Plano DR testado anualmente', sw:'SIM (6.5)', infra:'2.0', thr:'≥ 3', st:'crit'},
+    {sys:'Pegasus', qid:'RES_BKP', regra:'Backup automatizado validado', sw:'SIM (8.0)', infra:'2.8', thr:'≥ 4', st:'crit'},
+    {sys:'Saturno', qid:'EA_MULTI_AZ', regra:'Deploy Multi-AZ habilitado', sw:'SIM (7.5)', infra:'1.5', thr:'≥ 4', st:'crit'},
+  ];
+  document.getElementById('coh-detail-table').innerHTML = cohData.map(r => `<tr>
+    <td><strong>${r.sys}</strong></td>
+    <td><span class="qid-link">${r.qid}</span></td>
+    <td>${r.regra}</td>
+    <td>${r.sw}</td>
+    <td>${r.infra}</td>
+    <td>${r.thr}</td>
+    <td><span class="badge crit">Inconsistente</span></td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// CHARTS — INFRA
+// ============================================================
+function initInfraCharts() {
+  const ctxT = document.getElementById('chartInfraType').getContext('2d');
+  charts.infraType = new Chart(ctxT, {
+    type:'doughnut', data:{
+      labels:['PaaS','SaaS','IaaS','FaaS','DBaaS'],
+      datasets:[{data:[35,20,28,8,9], backgroundColor:['#1D4ED8','#5B21B6','#B45309','#065F46','#9D174D'], borderWidth:2}]
+    },
+    options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}, cutout:'55%'}
+  });
+
+  const ctxR = document.getElementById('chartInfraRisk').getContext('2d');
+  charts.infraRisk = new Chart(ctxR, {
+    type:'bar', data:{
+      labels:['Muito Baixo','Baixo','Médio','Alto','Muito Alto'],
+      datasets:[{data:[128,85,57,35,7], backgroundColor:['#27AE60','#7CB342','#F1C232','#E67E22','#C0392B'], borderRadius:4}]
+    },
+    options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#EEE'}},x:{grid:{display:false}}}}
+  });
+
+  // Infra table
+  const infraComponents = [
+    {sys:'Pegasus', comp:'Postgres Single-AZ', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'1.8', risco:'22.4', cls:'danger'},
+    {sys:'Pegasus', comp:'RabbitMQ Single-Node', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'2.0', risco:'18.7', cls:'danger'},
+    {sys:'NRTC',   comp:'Azure Express Route', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'3.1', risco:'8.5', cls:'bom'},
+    {sys:'Atlas',  comp:'Legacy Mainframe API', tipo:'On-Premise', prov:'—', cam:'Core', resil:'2.4', risco:'16.2', cls:'atc'},
+    {sys:'Saturno',comp:'Redis Single-Node', tipo:'IaaS', prov:'AWS', cam:'Core', resil:'2.2', risco:'14.1', cls:'danger'},
+  ];
+  document.getElementById('infra-table').innerHTML = infraComponents.map(r => `<tr>
+    <td>${r.sys}</td>
+    <td><strong>${r.comp}</strong></td>
+    <td><span class="component-type-badge ct-${r.tipo.toLowerCase().replace('-','').replace(' ','')}">${r.tipo}</span></td>
+    <td>${r.prov}</td>
+    <td>${r.cam}</td>
+    <td>${r.resil}</td>
+    <td>${r.risco}</td>
+    <td><span class="badge ${r.cls}">${r.cls==='danger'?'Muito Alto':r.cls==='atc'?'Alto':'Baixo'}</span></td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// CHARTS — TEMPORAL
+// ============================================================
+function initTemporalChart() {
+  const ctxT = document.getElementById('chartTemporal').getContext('2d');
+  charts.temporal = new Chart(ctxT, {
+    type:'line', data:{
+      labels:['2025 Q1','2025 Q2','2025 Q3','2025 Q4','2026 Q1','2026 Q2'],
+      datasets:[
+        {label:'IET (Geral)', data:[58,60,63,65,66,68.4], borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,0.08)', tension:.4, fill:true, pointRadius:4},
+        {label:'IES (Software)', data:[55,57,59,61,62,63.2], borderColor:'#2E5AAC', backgroundColor:'transparent', tension:.4, pointRadius:4},
+        {label:'IR (Resiliência)', data:[64,65,68,70,74,76.1], borderColor:'#1B2A4A', backgroundColor:'transparent', tension:.4, pointRadius:4},
+      ]
+    },
+    options:{responsive:true, plugins:{legend:{position:'top',labels:{font:{size:11}}}}, scales:{y:{min:50,max:90,grid:{color:'#EEE'}},x:{grid:{display:false}}}}
+  });
+}
+
+// ============================================================
+// ASSESSMENT FORM
+// ============================================================
+function buildAssessmentForm() {
+  const container = document.getElementById('questions-container');
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-data').value = today;
+
+  // Group by pillar
+  const pillarNames = ['P1 — Topologia & SPOF','P2 — Dados Distribuídos','P3 — Operabilidade & SRE','P4 — Arquitetura Evolutiva','P5 — Observabilidade','P6 — Segurança'];
+  const pillarWeights = ['30%','25%','15%','10%','10%','10%'];
+  const pillarColors = ['#2E5AAC','#1ABC9C','#E67E22','#9B59B6','#E74C3C','#2ECC71'];
+
+  let html = '';
+  for (let p = 0; p < 6; p++) {
+    const pQuestions = QUESTIONS.filter(q => q.pillar === p);
+    html += `<div class="pillar-block">
+      <div class="pillar-header" onclick="togglePillar(${p})">
+        <div style="width:10px;height:10px;border-radius:2px;background:${pillarColors[p]};flex-shrink:0"></div>
+        <h3>${pillarNames[p]} <span style="font-weight:400;color:var(--muted);font-size:12px">Peso: ${pillarWeights[p]}</span></h3>
+        <div class="pillar-score-mini" id="pillar-score-${p}">—</div>
+      </div>
+      <div class="pillar-body" id="pillar-body-${p}">`;
+
+    pQuestions.forEach((q, qi) => {
+      html += `<div class="question-wrap">
+        <div class="question-title">${q.id} — ${q.title}</div>
+        <div class="question-note">Múltipla escolha permitida — score = média das opções selecionadas</div>
+        <div class="option-list">`;
+      q.options.forEach(opt => {
+        html += `<label class="option-item" id="opt-${q.id}-${opt.l}">
+          <input type="checkbox" value="${opt.s}" data-qid="${q.id}" onchange="onAnswer('${q.id}')">
+          <div class="option-letter">${opt.l}</div>
+          <div class="option-text">${opt.t}</div>
+          <div class="option-score-badge">${opt.s}</div>
+        </label>`;
+      });
+      html += `</div></div>`;
+    });
+
+    html += `</div></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function togglePillar(p) {
+  const body = document.getElementById('pillar-body-' + p);
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+function onAnswer(qid) {
+  const checkboxes = document.querySelectorAll(`input[data-qid="${qid}"]:checked`);
+  const scores = Array.from(checkboxes).map(cb => parseFloat(cb.value));
+  answers[qid] = scores;
+
+  // Update option item styling
+  const q = QUESTIONS.find(q => q.id === qid);
+  q.options.forEach(opt => {
+    const el = document.getElementById(`opt-${qid}-${opt.l}`);
+    const cb = el.querySelector('input');
+    el.classList.toggle('selected', cb.checked);
+  });
+
+  updateLiveScore();
+}
+
+function updateLiveScore() {
+  // Compute per-pillar scores
+  let pillarScores = [];
+  for (let p = 0; p < 6; p++) {
+    const pQs = QUESTIONS.filter(q => q.pillar === p);
+    let pillarSum = 0, pillarCount = 0;
+    pQs.forEach(q => {
+      if (answers[q.id] && answers[q.id].length > 0) {
+        const avg = answers[q.id].reduce((a,b)=>a+b,0) / answers[q.id].length;
+        pillarSum += avg;
+        pillarCount++;
+      }
+    });
+    if (pillarCount > 0) {
+      pillarScores[p] = Math.round((pillarSum / pillarCount) * 10);
+    } else {
+      pillarScores[p] = null;
+    }
+    const el = document.getElementById('pillar-score-' + p);
+    if (pillarScores[p] !== null) {
+      const st = getStatus(pillarScores[p]);
+      const color = getBarColor(pillarScores[p]);
+      el.textContent = pillarScores[p];
+      el.style.color = color;
+    } else {
+      el.textContent = '—';
+      el.style.color = 'var(--muted)';
+    }
+  }
+
+  // Compute IES
+  let iesWeightedSum = 0, iesWeightSum = 0;
+  pillarScores.forEach((s, i) => {
+    if (s !== null) { iesWeightedSum += s * PILLAR_WEIGHTS[i]; iesWeightSum += PILLAR_WEIGHTS[i]; }
+  });
+  let ies = iesWeightSum > 0 ? Math.round(iesWeightedSum / iesWeightSum) : null;
+
+  // IET = IES*60% + IR*40%
+  const ir = 76.1;
+  let iet = ies !== null ? Math.round(ies * 0.6 + ir * 0.4) : null;
+
+  // Update UI
+  const iesEl = document.getElementById('live-ies');
+  const ietEl = document.getElementById('live-iet');
+  const iesBadge = document.getElementById('live-ies-badge');
+  const ietBadge = document.getElementById('live-iet-badge');
+
+  if (ies !== null) {
+    iesEl.textContent = ies;
+    iesEl.style.color = getBarColor(ies);
+    const st = getStatus(ies);
+    iesBadge.innerHTML = `<span class="badge ${st.cls}">${st.label}</span>`;
+  } else {
+    iesEl.textContent = '—'; iesEl.style.color = 'var(--muted)'; iesBadge.innerHTML = '';
+  }
+  if (iet !== null) {
+    ietEl.textContent = iet;
+    ietEl.style.color = getBarColor(iet);
+    const st = getStatus(iet);
+    ietBadge.innerHTML = `<span class="badge ${st.cls}">${st.label}</span>`;
+  } else {
+    ietEl.textContent = '—'; ietEl.style.color = 'var(--muted)'; ietBadge.innerHTML = '';
+  }
+
+  // Progress
+  const answered = Object.keys(answers).filter(k => answers[k].length > 0).length;
+  const total = QUESTIONS.length;
+  document.getElementById('live-prog').textContent = Math.round(answered/total*100) + '%';
+  document.getElementById('live-answered').textContent = `${answered} / ${total} respondidas`;
+}
+
+function resetForm() {
+  answers = {};
+  document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+  for (let p = 0; p < 6; p++) {
+    const el = document.getElementById('pillar-score-' + p);
+    el.textContent = '—'; el.style.color = 'var(--muted)';
+  }
+  document.getElementById('live-ies').textContent = '—';
+  document.getElementById('live-iet').textContent = '—';
+  document.getElementById('live-prog').textContent = '0%';
+  document.getElementById('live-answered').textContent = '0 / 25 respondidas';
+  document.getElementById('live-ies-badge').innerHTML = '';
+  document.getElementById('live-iet-badge').innerHTML = '';
+}
+
+
+// ============================================================
+// API INTEGRATION
+// ============================================================
+
+function getApiUrl() {
+  return (document.getElementById('api-url').value || 'http://localhost:3000').replace(/\/$/, '');
+}
+
+function showToast(msg, type = 'success', duration = 4000) {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '⏳';
+  t.className = 'toast ' + type;
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  wrap.appendChild(t);
+  if (duration > 0) setTimeout(() => t.remove(), duration);
+  return t;
+}
+
+async function checkApiHealth() {
+  const dot = document.getElementById('api-dot');
+  const txt = document.getElementById('api-status-text');
+  dot.className = 'api-dot checking';
+  txt.textContent = 'Verificando...';
+  txt.style.color = 'var(--gold)';
+  try {
+    const ctrl1 = new AbortController();
+    const t1 = setTimeout(() => ctrl1.abort(), 5000);
+    const res = await fetch(getApiUrl() + '/api/health', { signal: ctrl1.signal });
+    clearTimeout(t1);
+    const data = await res.json();
+    if (res.ok && data.status === 'ok') {
+      dot.className = 'api-dot ok';
+      txt.textContent = 'Conectado ✓';
+      txt.style.color = 'var(--green)';
+      showToast('API conectada com sucesso!', 'success', 3000);
+    } else {
+      throw new Error(data.db || 'Resposta inesperada');
+    }
+  } catch (err) {
+    dot.className = 'api-dot err';
+    txt.textContent = 'Falha — ' + err.message;
+    txt.style.color = 'var(--red)';
+    showToast('Não foi possível conectar: ' + err.message, 'error', 5000);
+  }
+}
+
+async function saveAvaliacao() {
+  // Validações
+  const sistema = document.getElementById('inp-sistema').value.trim();
+  const responsavel = document.getElementById('inp-resp').value.trim();
+  const data = document.getElementById('inp-data').value;
+
+  if (!sistema) {
+    showToast('Informe o nome do sistema antes de salvar.', 'error');
+    document.getElementById('inp-sistema').focus();
+    return;
+  }
+
+  const iesEl = document.getElementById('live-ies');
+  const ietEl = document.getElementById('live-iet');
+  const ies = parseFloat(iesEl.textContent);
+  const iet = parseFloat(ietEl.textContent);
+
+  if (isNaN(iet)) {
+    showToast('Responda ao menos uma pergunta antes de salvar.', 'error');
+    return;
+  }
+
+  // Monta respostas
+  const respostas = QUESTIONS.map(q => {
+    const sels = answers[q.id] || [];
+    const score = sels.length > 0 ? sels.reduce((a,b)=>a+b,0)/sels.length : null;
+    // Descobre letras selecionadas
+    const opcoes = q.options
+      .filter(opt => {
+        const cb = document.querySelector(`input[data-qid="${q.id}"][value="${opt.s}"]`);
+        return cb && cb.checked;
+      })
+      .map(opt => opt.l);
+    return { questao_id: q.id, pilar: q.pName, opcoes_selecionadas: opcoes, score };
+  }).filter(r => r.opcoes_selecionadas.length > 0);
+
+  const payload = {
+    sistema_nome: sistema,
+    responsavel: responsavel || null,
+    data_avaliacao: data || new Date().toISOString().split('T')[0],
+    ies: isNaN(ies) ? null : ies,
+    ir: 76.1,
+    iet,
+    respostas,
+  };
+
+  // Salva
+  const btn = document.getElementById('btn-save');
+  const feedback = document.getElementById('save-feedback');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Salvando...';
+  const loadingToast = showToast('Salvando avaliação...', 'loading', 0);
+
+  try {
+    const res = await fetch(getApiUrl() + '/api/avaliacoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data2 = await res.json();
+    loadingToast.remove();
+
+    if (res.ok) {
+      showToast(`Avaliação #${data2.id} salva! IET: ${iet} — ${data2.status}`, 'success', 5000);
+      feedback.style.display = 'block';
+      feedback.style.background = '#D5F5E3';
+      feedback.style.color = '#1E8449';
+      feedback.style.border = '1px solid #A9DFBF';
+      feedback.innerHTML = `✅ Avaliação <strong>#${data2.id}</strong> salva com sucesso! 
+        Sistema: <strong>${sistema}</strong> · IET: <strong>${iet}</strong> · Status: <strong>${data2.status}</strong>
+        · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`;
+      btn.innerHTML = '✅ Salvo!';
+      btn.style.background = 'var(--green-dark)';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Salvar no Banco';
+        btn.style.background = '';
+      }, 4000);
+    } else {
+      throw new Error(data2.error || 'Erro desconhecido');
+    }
+  } catch (err) {
+    loadingToast.remove();
+    showToast('Erro ao salvar: ' + err.message, 'error', 6000);
+    feedback.style.display = 'block';
+    feedback.style.background = '#FDEDEC';
+    feedback.style.color = '#922B21';
+    feedback.style.border = '1px solid #F1948A';
+    feedback.innerHTML = `❌ Falha ao salvar: <strong>${err.message}</strong><br>
+      <small>Verifique se a API está rodando e a URL está correta na barra acima.</small>`;
+    btn.disabled = false;
+    btn.innerHTML = '💾 Salvar no Banco';
+  }
+}
+
+async function loadHistorico() {
+  const container = document.getElementById('hist-content');
+  const count = document.getElementById('hist-count');
+  container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ Carregando...</div>';
+
+  try {
+    const ctrl2 = new AbortController();
+    const t2 = setTimeout(() => ctrl2.abort(), 8000);
+    const res = await fetch(getApiUrl() + '/api/avaliacoes', { signal: ctrl2.signal });
+    clearTimeout(t2);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    count.textContent = `${data.length} avaliação(ões) encontrada(s)`;
+
+    if (!data.length) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma avaliação salva ainda.</div>';
+      return;
+    }
+
+    let html = '<div class="table-wrap"><table><thead><tr>';
+    html += '<th>#</th><th>Sistema</th><th>Responsável</th><th>Data</th><th>IES</th><th>IR</th><th>IET</th><th>Status</th>';
+    html += '</tr></thead><tbody>';
+
+    data.forEach(av => {
+      const st = getStatus(av.iet);
+      const color = getBarColor(av.iet);
+      const dateStr = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
+      html += `<tr>
+        <td style="color:var(--muted)">#${av.id}</td>
+        <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
+        <td>${av.responsavel || '—'}</td>
+        <td>${dateStr}</td>
+        <td>${av.ies ?? '—'}</td>
+        <td>${av.ir ?? '—'}</td>
+        <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px;">
+      ❌ Não foi possível carregar: <strong>${err.message}</strong><br>
+      <small style="color:var(--muted)">Verifique se a API está rodando e a URL está configurada corretamente.</small>
+    </div>`;
+    count.textContent = '';
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = function() {
+  initExecCharts();
+  initPilarCharts();
+  initCohCharts();
+  initInfraCharts();
+  initTemporalChart();
+  updateRadar();
+  buildAssessmentForm();
+};
+</script>
+</body>
+</html>
