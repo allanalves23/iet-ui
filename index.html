@@ -229,6 +229,36 @@ tr:hover td { background:#F8FAFF; }
 .score-box .s-val.gold { color:var(--gold); }
 .score-box .s-val.green { color:var(--green); }
 .score-box .s-val.navy { color:var(--navy); }
+
+/* COMPONENTES DE INFRAESTRUTURA */
+.comp-section { margin-top:28px; }
+.comp-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.comp-section-header h3 { font-size:16px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:8px; margin:0; }
+.comp-section-header p  { font-size:12px; color:var(--muted); margin:2px 0 0; }
+.btn-add-comp { background:var(--navy); color:#fff; border:none; border-radius:7px; padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; white-space:nowrap; }
+.btn-add-comp:hover { background:var(--blue); }
+.comp-empty { text-align:center; padding:36px; color:var(--muted); font-size:13px; background:var(--white); border:1px dashed var(--border); border-radius:8px; }
+.comp-card { background:var(--white); border:1px solid var(--border); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.comp-card-head { display:flex; align-items:center; gap:10px; background:#F8FAFF; padding:10px 14px; border-bottom:1px solid var(--border); }
+.comp-card-num { font-size:11px; font-weight:700; color:var(--muted); background:var(--border); border-radius:4px; padding:2px 7px; white-space:nowrap; }
+.comp-nome { flex:1; border:1px solid var(--border); border-radius:6px; padding:7px 10px; font-size:13px; font-weight:600; color:var(--navy); background:#fff; }
+.comp-nome:focus { outline:none; border-color:var(--blue); }
+.comp-del-btn { background:none; border:1px solid #F1948A; color:#C0392B; border-radius:6px; padding:5px 10px; font-size:13px; cursor:pointer; transition:background .15s; }
+.comp-del-btn:hover { background:#FDEDEC; }
+.comp-fields { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px; }
+@media(max-width:900px){ .comp-fields { grid-template-columns:repeat(2,1fr); } }
+.comp-field label { display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.comp-field select { width:100%; padding:7px 9px; border:1px solid var(--border); border-radius:6px; font-size:12.5px; color:var(--navy); background:#fff; cursor:pointer; }
+.comp-field select:focus { outline:none; border-color:var(--blue); }
+.comp-scores { display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--border); }
+.comp-score-item { flex:1; min-width:90px; padding:10px 12px; border-right:1px solid var(--border); text-align:center; }
+.comp-score-item:last-child { border-right:none; }
+.comp-score-item .cs-label { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.comp-score-item .cs-val { font-size:18px; font-weight:800; color:var(--navy); }
+.comp-score-item .cs-badge { font-size:10px; font-weight:600; margin-top:3px; }
+.cs-verde   { color:#27AE60; }
+.cs-amarelo { color:#F1C232; }
+.cs-vermelho{ color:#C0392B; }
 .score-box .s-val.red { color:var(--red); }
 
 .pillar-block { background:var(--white); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden; }
@@ -705,6 +735,20 @@ tr:hover td { background:#F8FAFF; }
 
       <!-- QUESTIONS -->
       <div id="questions-container"></div>
+
+      <!-- COMPONENTES DE INFRAESTRUTURA -->
+      <div class="comp-section" id="comp-section">
+        <div class="comp-section-header">
+          <div>
+            <h3>🖥️ Componentes de Infraestrutura</h3>
+            <p>Especifique os componentes de nuvem do sistema. Os scores P–V são calculados automaticamente.</p>
+          </div>
+          <button class="btn-add-comp" onclick="addComponente()">+ Adicionar Componente</button>
+        </div>
+        <div id="componentes-list">
+          <div id="comp-empty" class="comp-empty">Nenhum componente adicionado. Clique em "+ Adicionar Componente" para começar.</div>
+        </div>
+      </div>
 
       <div id="save-feedback" style="display:none;margin:16px 0 0;padding:14px 18px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
       <div style="text-align:center; margin-top:24px; padding:16px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
@@ -1800,6 +1844,155 @@ async function loadHistorico() {
     </div>`;
     count.textContent = '';
   }
+}
+
+// ============================================================
+// COMPONENTES DE INFRAESTRUTURA
+// ============================================================
+let compIdSeq = 0;
+
+const COMP_OPTS = {
+  tipo:        ['IaaS','PaaS','SaaS','FaaS','DBaaS'],
+  provedor:    ['Azure','AWS','GCP','On-Premise','Outro'],
+  impacto:     ['Baixo','Médio','Alto','Extremo'],
+  sla:         ['< 99,5%','99,5% – 99,9%','99,9% – 99,99%','> 99,99%'],
+  redundancia: ['Nenhuma (SPOF)','Ativo/Passivo','Ativo/Ativo (mesma zona)','Multi-AZ','Multi-Region ativo/ativo'],
+  tolerancia:  ['Nenhuma','Restart manual','Auto-restart','Auto-repair automático','Sistema distribuído com failover'],
+  backup:      ['Sem backup','Manual/esporádico (RPO > 24h)','Frequente (RPO 4h–24h)','Contínuo (RPO < 1h)','RPO ≤ 15 min'],
+  dr:          ['Sem DR','DR manual (RTO > 24h)','DR < 4h','DR < 1h','Failover automático (RTO < 15 min)'],
+  monit:       ['Nenhum','Métricas básicas','Alertas estruturados','Dashboards + alertas','Runbooks automatizados + SLO'],
+  depend:      ['Acoplamento total (sem alternativa)','Baixo acoplamento','Algumas alternativas','Totalmente desacoplado'],
+  happy:       ['Verde','Amarelo','Vermelho'],
+  contorno:    ['Não — sem contorno possível','Sim — possui contorno'],
+  caminho:     ['Satélite — sistema auxiliar','Core — caminho crítico'],
+};
+
+function makeSelect(key, cid) {
+  const opts = COMP_OPTS[key].map(o => `<option>${o}</option>`).join('');
+  return `<select id="c${cid}-${key}" onchange="calcComp(${cid})">${opts}</select>`;
+}
+
+function buildCompCard(cid) {
+  const s = (key) => makeSelect(key, cid);
+  return `
+  <div class="comp-card" id="comp-card-${cid}">
+    <div class="comp-card-head">
+      <span class="comp-card-num">#${cid}</span>
+      <input id="c${cid}-nome" class="comp-nome" type="text" placeholder="Nome do componente (ex: Azure SQL, App Service, S3...)">
+      <button class="comp-del-btn" onclick="removeComp(${cid})">✕ Remover</button>
+    </div>
+    <div class="comp-fields">
+      <div class="comp-field"><label>C · Tipo</label>${s('tipo')}</div>
+      <div class="comp-field"><label>D · Provedor</label>${s('provedor')}</div>
+      <div class="comp-field"><label>E · Impacto</label>${s('impacto')}</div>
+      <div class="comp-field"><label>F · Disponibilidade / SLA</label>${s('sla')}</div>
+      <div class="comp-field"><label>G · Redundância</label>${s('redundancia')}</div>
+      <div class="comp-field"><label>H · Tolerância a Falhas</label>${s('tolerancia')}</div>
+      <div class="comp-field"><label>I · Backup / RPO</label>${s('backup')}</div>
+      <div class="comp-field"><label>J · DR / RTO</label>${s('dr')}</div>
+      <div class="comp-field"><label>K · Monitoramento</label>${s('monit')}</div>
+      <div class="comp-field"><label>L · Dependências</label>${s('depend')}</div>
+      <div class="comp-field"><label>M · Happy Socks (Risco Visual)</label>${s('happy')}</div>
+      <div class="comp-field"><label>N · Contorno</label>${s('contorno')}</div>
+      <div class="comp-field"><label>O · Caminho Crítico</label>${s('caminho')}</div>
+    </div>
+    <div class="comp-scores">
+      <div class="comp-score-item"><div class="cs-label">P · Score Resil. (1–5)</div><div class="cs-val" id="c${cid}-p">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">Q · Score (0–100)</div><div class="cs-val" id="c${cid}-q">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">R · Score Risco</div><div class="cs-val" id="c${cid}-r">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">S · Class. Risco</div><div class="cs-val cs-badge" id="c${cid}-s">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">T · Peso Imp.</div><div class="cs-val" id="c${cid}-t">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">U · Peso Crit.</div><div class="cs-val" id="c${cid}-u">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">V · Peso Caminho</div><div class="cs-val" id="c${cid}-v">—</div></div>
+    </div>
+  </div>`;
+}
+
+function addComponente() {
+  compIdSeq++;
+  const list = document.getElementById('componentes-list');
+  document.getElementById('comp-empty')?.remove();
+  const wrap = document.createElement('div');
+  wrap.innerHTML = buildCompCard(compIdSeq);
+  list.appendChild(wrap.firstElementChild);
+  calcComp(compIdSeq);
+}
+
+function removeComp(cid) {
+  document.getElementById('comp-card-' + cid)?.remove();
+  if (!document.querySelector('.comp-card')) {
+    const list = document.getElementById('componentes-list');
+    list.innerHTML = '<div id="comp-empty" class="comp-empty">Nenhum componente adicionado. Clique em "+ Adicionar Componente" para começar.</div>';
+  }
+}
+
+function calcComp(cid) {
+  const g = (key) => {
+    const el = document.getElementById(`c${cid}-${key}`);
+    return el ? el.selectedIndex : 0;
+  };
+
+  // P — Score Resil. (1–5): média de G,H,I,J (índice 0–4 → score 1–5)
+  const pRaw = ((g('redundancia') + g('tolerancia') + g('backup') + g('dr')) / 4) + 1;
+  const p    = Math.round(pRaw * 10) / 10;
+
+  // Q — Score 0–100
+  const q = Math.round(p * 20);
+
+  // R — Score Risco: (impacto 1–4) × (happy 1–3) normalizado em 0–100
+  const impactoVal = g('impacto') + 1;   // 1–4
+  const happyVal   = g('happy') + 1;     // 1–3
+  const r = Math.round((impactoVal * happyVal) / 12 * 100);
+
+  // S — Classificação Risco
+  const sLabel = r < 30 ? 'Verde' : r < 65 ? 'Amarelo' : 'Vermelho';
+  const sCls   = r < 30 ? 'cs-verde' : r < 65 ? 'cs-amarelo' : 'cs-vermelho';
+
+  // T — Peso Imp.
+  const pesoImp = [0.5, 1.0, 1.5, 2.0][g('impacto')];
+
+  // U — Peso Crit. (Core vs Satélite × Impacto)
+  const pesoCritCore = [1.5, 2.0, 2.5, 3.0];
+  const pesoCritSat  = [0.8, 1.0, 1.2, 1.5];
+  const isCore = g('caminho') === 1;
+  const pesoU  = isCore ? pesoCritCore[g('impacto')] : pesoCritSat[g('impacto')];
+
+  // V — Peso Caminho
+  const pesoV = isCore ? 1.5 : 0.5;
+
+  // Render
+  document.getElementById(`c${cid}-p`).textContent = p.toFixed(1);
+  document.getElementById(`c${cid}-q`).textContent = q;
+  document.getElementById(`c${cid}-r`).textContent = r;
+
+  const sEl = document.getElementById(`c${cid}-s`);
+  sEl.textContent = sLabel;
+  sEl.className = `cs-val cs-badge ${sCls}`;
+
+  document.getElementById(`c${cid}-t`).textContent = pesoImp.toFixed(1);
+  document.getElementById(`c${cid}-u`).textContent = pesoU.toFixed(1);
+  document.getElementById(`c${cid}-v`).textContent = pesoV.toFixed(1);
+}
+
+function getComponentesData() {
+  return [...document.querySelectorAll('.comp-card')].map(card => {
+    const cid = card.id.replace('comp-card-', '');
+    const g = (key) => document.getElementById(`c${cid}-${key}`)?.value || '';
+    return {
+      nome:        document.getElementById(`c${cid}-nome`)?.value || '',
+      tipo:        g('tipo'), provedor:    g('provedor'),
+      impacto:     g('impacto'), sla:         g('sla'),
+      redundancia: g('redundancia'), tolerancia:  g('tolerancia'),
+      backup:      g('backup'), dr:          g('dr'),
+      monit:       g('monit'), depend:      g('depend'),
+      happy:       g('happy'), contorno:    g('contorno'),
+      caminho:     g('caminho'),
+      score_resil: parseFloat(document.getElementById(`c${cid}-p`)?.textContent) || null,
+      score_100:   parseInt(document.getElementById(`c${cid}-q`)?.textContent)   || null,
+      score_risco: parseInt(document.getElementById(`c${cid}-r`)?.textContent)   || null,
+      class_risco: document.getElementById(`c${cid}-s`)?.textContent || '',
+    };
+  });
 }
 
 // ============================================================
