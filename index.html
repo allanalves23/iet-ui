@@ -110,10 +110,32 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 }
 .nav-item:hover svg, .nav-item.active svg { opacity:1; }
 .nav-item.active svg { stroke:var(--gold); }
+.nav-item.disabled {
+  opacity:.35; cursor:not-allowed; pointer-events:none;
+}
+.nav-item.disabled .nav-soon {
+  font-size:9px; font-weight:700; letter-spacing:.4px;
+  background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.6);
+  border-radius:3px; padding:1px 5px; margin-left:auto; white-space:nowrap;
+}
 .sidebar-divider {
   border:none; border-top:1px solid rgba(255,255,255,0.07);
   margin:8px 0;
 }
+.page.has-api-error > *:not(.page-header):not(.api-error-state) { display:none; }
+.api-error-state {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:64px 24px; text-align:center; gap:14px;
+}
+.api-error-state svg { width:48px; height:48px; stroke:#C0392B; opacity:.65; }
+.api-error-title { font-size:16px; font-weight:600; color:var(--navy); }
+.api-error-sub { font-size:13px; color:var(--muted); max-width:340px; line-height:1.5; }
+.api-error-btn {
+  margin-top:6px; padding:9px 24px;
+  background:var(--navy); color:#fff; border:none; border-radius:7px;
+  font-size:13px; font-weight:600; cursor:pointer; transition:background .15s;
+}
+.api-error-btn:hover { background:var(--blue); }
 .sidebar-footer {
   margin-top:auto;
   padding:14px 18px;
@@ -381,7 +403,7 @@ tr:hover td { background:#F8FAFF; }
       <div class="nav-item active" id="nav-exec" onclick="showPage('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0"/></svg> Visão Executiva</div>
       <div class="nav-item" id="nav-comp" onclick="showPage('comp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Comparação Sistemas</div>
       <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
-      <div class="nav-item" id="nav-coh" onclick="showPage('coh')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra</div>
+      <div class="nav-item disabled" id="nav-coh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra<span class="nav-soon">Em breve</span></div>
       <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
       <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
     </div>
@@ -474,7 +496,6 @@ tr:hover td { background:#F8FAFF; }
       </div>
 
       <!-- ERRO -->
-      <div id="exec-error" style="display:none;background:#FDEDEC;border:1px solid #F1948A;border-radius:8px;padding:14px 18px;margin-top:14px;font-size:13px;color:#922B21;"></div>
     </div>
 
     <!-- ========== P2: COMPARAÇÃO SISTEMAS ========== -->
@@ -991,17 +1012,43 @@ function showPage(id) {
 }
 
 // ============================================================
+// ERRO DE API — helpers reutilizáveis para todos os dashboards
+// ============================================================
+function showApiError(pageId, retryFn) {
+  clearApiError(pageId);
+  const page   = document.getElementById('page-' + pageId);
+  const header = page.querySelector('.page-header');
+  page.classList.add('has-api-error');
+  const div    = document.createElement('div');
+  div.id        = 'api-error-' + pageId;
+  div.className = 'api-error-state';
+  div.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <div class="api-error-title">Não foi possível carregar os dados</div>
+    <div class="api-error-sub">Verifique se a API está acessível e tente novamente.</div>
+    <button class="api-error-btn">↻ Tentar novamente</button>`;
+  div.querySelector('.api-error-btn').addEventListener('click', retryFn);
+  if (header) header.after(div); else page.prepend(div);
+}
+
+function clearApiError(pageId) {
+  document.getElementById('api-error-' + pageId)?.remove();
+  document.getElementById('page-' + pageId)?.classList.remove('has-api-error');
+}
+
+// ============================================================
 // CHARTS — VISÃO EXECUTIVA (dados da API)
 // ============================================================
 let charts = {};
 
 async function loadExecDashboard() {
-  const btn = document.getElementById('btn-exec-reload');
-  const errBox = document.getElementById('exec-error');
+  const btn    = document.getElementById('btn-exec-reload');
   const kpiRow = document.getElementById('exec-kpis');
+  clearApiError('exec');
   btn.textContent = '⏳ Atualizando...';
   btn.disabled = true;
-  errBox.style.display = 'none';
   kpiRow.classList.add('exec-loading');
 
   const params = new URLSearchParams({
@@ -1018,9 +1065,7 @@ async function loadExecDashboard() {
     renderExecDashboard(data);
     populateExecFilters(data.filtros_disponiveis);
   } catch (err) {
-    errBox.style.display = 'block';
-    errBox.innerHTML = `❌ Não foi possível carregar os dados: <strong>${err.message}</strong><br>
-      <small>Verifique se a API está online e a URL está correta.</small>`;
+    showApiError('exec', loadExecDashboard);
   } finally {
     btn.textContent = '↻ Atualizar';
     btn.disabled = false;
@@ -1152,6 +1197,7 @@ function getSysData(name) {
 }
 
 async function loadComparacao() {
+  clearApiError('comp');
   try {
     const res = await fetch(getApiUrl() + '/api/dashboard/comparacao');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1166,20 +1212,19 @@ async function loadComparacao() {
       status:  s.status,
       pillars: PILLAR_NAMES.map(p => s.pilares[p] ?? 0),
     }));
+
+    ['selA', 'selB', 'selC'].forEach((id, idx) => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = compSistemas.map(s =>
+        `<option value="${s.name}">${s.name}</option>`
+      ).join('');
+      if (compSistemas[idx]) sel.value = compSistemas[idx].name;
+    });
+
+    updateRadar();
   } catch (err) {
-    console.error('Erro ao carregar comparação, usando dados locais:', err);
-    compSistemas = SYSTEMS;
+    showApiError('comp', loadComparacao);
   }
-
-  ['selA', 'selB', 'selC'].forEach((id, idx) => {
-    const sel = document.getElementById(id);
-    sel.innerHTML = compSistemas.map(s =>
-      `<option value="${s.name}">${s.name}</option>`
-    ).join('');
-    if (compSistemas[idx]) sel.value = compSistemas[idx].name;
-  });
-
-  updateRadar();
 }
 
 function updateRadar() {
@@ -1242,13 +1287,14 @@ function updateRadar() {
 const STATUS_COLORS = { 'Excelente':'#27AE60', 'Bom':'#7CB342', 'Atenção':'#F1C232', 'Crítico':'#C0392B' };
 
 async function loadPilarCharts() {
+  clearApiError('pilar');
   try {
     const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderPilarCharts(data);
   } catch (err) {
-    console.error('Erro ao carregar análise por pilar:', err);
+    showApiError('pilar', loadPilarCharts);
   }
 }
 
