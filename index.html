@@ -266,6 +266,15 @@ tr:hover td { background:#F8FAFF; }
 /* RESPONSIVE */
 @media(max-width:900px) { .kpi-row { grid-template-columns:repeat(2,1fr); } .coh-metric-row { grid-template-columns:repeat(2,1fr); } }
 
+/* EXEC SKELETON */
+.exec-skeleton { position:relative; overflow:hidden; }
+.exec-loading .exec-skeleton::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.6) 50%,transparent 100%);
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
 /* COMPONENTS */
 .component-type-badge { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; }
 .ct-paas { background:#DBEAFE; color:#1D4ED8; }
@@ -394,41 +403,77 @@ tr:hover td { background:#F8FAFF; }
 
     <!-- ========== P1: VISÃO EXECUTIVA ========== -->
     <div class="page active" id="page-exec">
-      <div class="page-header">
-        <h1>📊 Visão Executiva — Portfólio</h1>
-        <div class="sub">Excelência tecnológica consolidada · Última atualização: 04/05/2026</div>
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h1>📊 Visão Executiva — Portfólio</h1>
+          <div class="sub" id="exec-subtitle">Excelência tecnológica consolidada · Carregando...</div>
+        </div>
+        <button onclick="loadExecDashboard()" id="btn-exec-reload"
+          style="background:var(--white);border:1px solid var(--border);color:var(--navy);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          ↻ Atualizar
+        </button>
       </div>
 
-      <div class="filter-bar">
-        <div class="filter"><label>Período</label><select><option>2026 Q2</option><option>2026 Q1</option><option>2025 Q4</option></select></div>
-        <div class="filter"><label>Unidade de Negócio</label><select><option>Todas</option><option>Tecnologia</option><option>Dados</option></select></div>
-        <div class="filter"><label>Provedor de Nuvem</label><select><option>Todos</option><option>Azure</option><option>AWS</option><option>On-Premise</option></select></div>
-        <div class="filter"><label>Caminho Crítico</label><select><option>Todos</option><option>Core</option><option>Satélite</option></select></div>
+      <!-- FILTROS DINÂMICOS -->
+      <div class="filter-bar" id="exec-filters">
+        <div class="filter">
+          <label>Período</label>
+          <select id="f-periodo" onchange="loadExecDashboard()">
+            <option value="Todos">Todos</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label>Unidade de Negócio</label>
+          <select id="f-unidade" onchange="loadExecDashboard()">
+            <option value="Todas">Todas</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label>Provedor de Nuvem</label>
+          <select id="f-provedor" onchange="loadExecDashboard()">
+            <option value="Todos">Todos</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label>Caminho Crítico</label>
+          <select id="f-caminho" onchange="loadExecDashboard()">
+            <option value="Todos">Todos</option>
+          </select>
+        </div>
       </div>
 
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">IET Médio Portfólio</div><div class="kpi-val gold">68.4</div><div class="badge atc">Atenção</div></div>
-        <div class="kpi-card"><div class="kpi-label">IES — Software Médio</div><div class="kpi-val navy">63.2</div><div class="badge atc">Atenção</div></div>
-        <div class="kpi-card"><div class="kpi-label">IR — Resiliência Média</div><div class="kpi-val green">76.1</div><div class="badge bom">Bom</div></div>
-        <div class="kpi-card"><div class="kpi-label">Coerência Média</div><div class="kpi-val navy">71.5%</div><div class="badge bom">Aceitável</div></div>
-        <div class="kpi-card"><div class="kpi-label">Sistemas Críticos</div><div class="kpi-val red">3</div><div class="badge danger">Ação imediata</div></div>
+      <!-- KPI SKELETON / REAL -->
+      <div class="kpi-row" id="exec-kpis">
+        <div class="kpi-card exec-skeleton"><div class="kpi-label">IET Médio Portfólio</div><div class="kpi-val gold" id="kpi-iet">—</div><div id="kpi-iet-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label">IES — Software Médio</div><div class="kpi-val navy" id="kpi-ies">—</div><div id="kpi-ies-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label">IR — Resiliência Média</div><div class="kpi-val green" id="kpi-ir">—</div><div id="kpi-ir-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label">Coerência Média</div><div class="kpi-val navy" id="kpi-coh">—</div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label">Sistemas Críticos</div><div class="kpi-val red" id="kpi-criticos">—</div><div id="kpi-criticos-badge"></div></div>
       </div>
 
+      <!-- CHARTS -->
       <div class="grid-2">
         <div class="card">
           <h3>Distribuição por Status (Portfólio)</h3>
+          <div id="exec-donut-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px;">Sem dados</div>
           <canvas id="chartDonut"></canvas>
         </div>
         <div class="card">
           <h3>IET Médio por Pilar</h3>
+          <div id="exec-pilar-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px;">Sem respostas por pilar ainda</div>
           <canvas id="chartPilarBar"></canvas>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px">
         <h3>Ranking de Sistemas — IET Geral</h3>
-        <div id="ranking-bars" style="margin-top:12px;"></div>
+        <div id="ranking-bars" style="margin-top:12px;">
+          <div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">Carregando...</div>
+        </div>
       </div>
+
+      <!-- ERRO -->
+      <div id="exec-error" style="display:none;background:#FDEDEC;border:1px solid #F1948A;border-radius:8px;padding:14px 18px;margin-top:14px;font-size:13px;color:#922B21;"></div>
     </div>
 
     <!-- ========== P2: COMPARAÇÃO SISTEMAS ========== -->
@@ -948,46 +993,154 @@ function showPage(id) {
 }
 
 // ============================================================
-// CHARTS — VISÃO EXECUTIVA
+// CHARTS — VISÃO EXECUTIVA (dados da API)
 // ============================================================
 let charts = {};
 
-function initExecCharts() {
-  // Donut
-  const ctxDonut = document.getElementById('chartDonut').getContext('2d');
-  charts.donut = new Chart(ctxDonut, {
-    type: 'doughnut',
-    data: {
-      labels: ['Excelente (≥90)', 'Bom (75-89)', 'Atenção (60-74)', 'Crítico (<60)'],
-      datasets: [{ data: [3, 3, 3, 3], backgroundColor: ['#27AE60','#7CB342','#F1C232','#C0392B'], borderWidth: 2 }]
-    },
-    options: { responsive:true, plugins:{ legend:{ position:'right', labels:{font:{size:11}, boxWidth:12} } }, cutout:'60%' }
+async function loadExecDashboard() {
+  const btn = document.getElementById('btn-exec-reload');
+  const errBox = document.getElementById('exec-error');
+  const kpiRow = document.getElementById('exec-kpis');
+  btn.textContent = '⏳ Atualizando...';
+  btn.disabled = true;
+  errBox.style.display = 'none';
+  kpiRow.classList.add('exec-loading');
+
+  const params = new URLSearchParams({
+    periodo:         document.getElementById('f-periodo').value,
+    unidade_negocio: document.getElementById('f-unidade').value,
+    provedor_nuvem:  document.getElementById('f-provedor').value,
+    caminho_critico: document.getElementById('f-caminho').value,
   });
 
-  // Pilar Bar (exec)
-  const ctxPilar = document.getElementById('chartPilarBar').getContext('2d');
-  charts.pilarBar = new Chart(ctxPilar, {
-    type: 'bar',
-    data: {
-      labels: PILLAR_NAMES,
-      datasets: [{ data:[68,65,55,63,64,67], backgroundColor:['#2E5AAC','#2E5AAC','#C0392B','#2E5AAC','#2E5AAC','#2E5AAC'], borderRadius:4 }]
-    },
-    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{min:0,max:100,grid:{color:'#EEE'} }, x:{grid:{display:false}} } }
-  });
+  try {
+    const res = await fetch(`${getApiUrl()}/api/dashboard/visao-executiva?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderExecDashboard(data);
+    populateExecFilters(data.filtros_disponiveis);
+  } catch (err) {
+    errBox.style.display = 'block';
+    errBox.innerHTML = `❌ Não foi possível carregar os dados: <strong>${err.message}</strong><br>
+      <small>Verifique se a API está online e a URL está correta.</small>`;
+  } finally {
+    btn.textContent = '↻ Atualizar';
+    btn.disabled = false;
+    kpiRow.classList.remove('exec-loading');
+  }
+}
 
-  // Ranking bars
+function renderExecDashboard(data) {
+  const { kpis, distribuicao_status, ranking_sistemas, score_por_pilar, ultima_atualizacao } = data;
+
+  // Subtitle
+  const dtStr = ultima_atualizacao
+    ? new Date(ultima_atualizacao).toLocaleDateString('pt-BR')
+    : '—';
+  document.getElementById('exec-subtitle').textContent =
+    `Excelência tecnológica consolidada · Última avaliação: ${dtStr} · ${kpis.total_sistemas} sistema(s)`;
+
+  // ── KPIs ──
+  function setKpi(elId, badgeId, value, suffix, colorClass) {
+    const el = document.getElementById(elId);
+    el.textContent = value != null ? value + suffix : '—';
+    el.className = `kpi-val ${colorClass}`;
+    if (badgeId) {
+      const st = value != null ? getStatus(value) : null;
+      document.getElementById(badgeId).innerHTML = st
+        ? `<span class="badge ${st.cls}">${st.label}</span>` : '';
+    }
+  }
+
+  setKpi('kpi-iet',      'kpi-iet-badge',      kpis.iet_medio,       '', 'gold');
+  setKpi('kpi-ies',      'kpi-ies-badge',      kpis.ies_medio,       '', 'navy');
+  setKpi('kpi-ir',       'kpi-ir-badge',       kpis.ir_medio,        '', 'green');
+  setKpi('kpi-coh',      null,                 kpis.coerencia_media, '%','navy');
+
+  const critEl    = document.getElementById('kpi-criticos');
+  const critBadge = document.getElementById('kpi-criticos-badge');
+  critEl.textContent = kpis.sistemas_criticos;
+  critEl.className   = `kpi-val ${kpis.sistemas_criticos > 0 ? 'red' : 'green'}`;
+  critBadge.innerHTML = kpis.sistemas_criticos > 0
+    ? `<span class="badge danger">Ação imediata</span>`
+    : `<span class="badge exc">Nenhum</span>`;
+
+  // ── Donut ──
+  const dist   = distribuicao_status;
+  const dTotal = Object.values(dist).reduce((a,b)=>a+b,0);
+  if (charts.donut) charts.donut.destroy();
+  document.getElementById('exec-donut-empty').style.display = dTotal === 0 ? 'block' : 'none';
+  document.getElementById('chartDonut').style.display       = dTotal === 0 ? 'none'  : 'block';
+  if (dTotal > 0) {
+    const ctxD = document.getElementById('chartDonut').getContext('2d');
+    charts.donut = new Chart(ctxD, {
+      type: 'doughnut',
+      data: {
+        labels: ['Excelente (≥90)', 'Bom (75-89)', 'Atenção (60-74)', 'Crítico (<60)'],
+        datasets: [{ data: [dist['Excelente']||0, dist['Bom']||0, dist['Atenção']||0, dist['Crítico']||0],
+          backgroundColor: ['#27AE60','#7CB342','#F1C232','#C0392B'], borderWidth: 2 }]
+      },
+      options: { responsive:true, plugins:{ legend:{ position:'right', labels:{font:{size:11}, boxWidth:12} } }, cutout:'60%' }
+    });
+  }
+
+  // ── Pilar Bar ──
+  if (charts.pilarBar) charts.pilarBar.destroy();
+  const pilarEmpty = document.getElementById('exec-pilar-empty');
+  const pilarCanvas = document.getElementById('chartPilarBar');
+  if (!score_por_pilar || score_por_pilar.length === 0) {
+    pilarEmpty.style.display = 'block';
+    pilarCanvas.style.display = 'none';
+  } else {
+    pilarEmpty.style.display = 'none';
+    pilarCanvas.style.display = 'block';
+    const pilarLabels = score_por_pilar.map(p => p.pilar);
+    const pilarScores = score_por_pilar.map(p => p.score_medio);
+    const ctxP = pilarCanvas.getContext('2d');
+    charts.pilarBar = new Chart(ctxP, {
+      type: 'bar',
+      data: {
+        labels: pilarLabels,
+        datasets: [{ data: pilarScores, backgroundColor: pilarScores.map(s => getBarColor(s)), borderRadius: 4 }]
+      },
+      options: { responsive:true, plugins:{legend:{display:false}},
+        scales:{ y:{min:0,max:100,grid:{color:'#EEE'}}, x:{grid:{display:false}} } }
+    });
+  }
+
+  // ── Ranking ──
   const rankDiv = document.getElementById('ranking-bars');
-  rankDiv.innerHTML = '';
-  SYSTEMS.sort((a,b)=>b.iet-a.iet).forEach((sys,i) => {
-    const st = getStatus(sys.iet);
+  if (!ranking_sistemas || ranking_sistemas.length === 0) {
+    rankDiv.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">Nenhum sistema avaliado ainda.<br>Clique em "+ Nova Avaliação" para começar.</div>';
+    return;
+  }
+  rankDiv.innerHTML = ranking_sistemas.map(sys => {
+    const st    = getStatus(sys.iet);
     const color = getBarColor(sys.iet);
-    rankDiv.innerHTML += `<div class="rank-bar-wrap">
-      <div class="rank-name">${sys.name}</div>
-      <div class="rank-bar"><div class="fill" style="width:${sys.iet}%;background:${color}"><span>${sys.iet}</span></div></div>
+    const sub   = [sys.provedor_nuvem, sys.caminho_critico].filter(Boolean).join(' · ');
+    return `<div class="rank-bar-wrap">
+      <div class="rank-name" title="${sys.nome}">${sys.nome}${sub ? `<br><span style="font-size:10px;color:var(--muted);font-weight:400">${sub}</span>` : ''}</div>
+      <div class="rank-bar"><div class="fill" style="width:${sys.iet}%;background:${color}">
+        <span>${sys.iet}</span>
+      </div></div>
       <div class="rank-score" style="color:${color}">${sys.iet}</div>
       <span class="badge ${st.cls}" style="min-width:70px;justify-content:center">${st.label}</span>
     </div>`;
-  });
+  }).join('');
+}
+
+function populateExecFilters(filtros) {
+  function fill(selId, items, allLabel) {
+    const sel = document.getElementById(selId);
+    const cur = sel.value;
+    const extra = items.map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.innerHTML = `<option value="${allLabel}">${allLabel}</option>${extra}`;
+    if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+  }
+  fill('f-periodo',  filtros.periodos          || [], 'Todos');
+  fill('f-unidade',  filtros.unidades_negocio  || [], 'Todas');
+  fill('f-provedor', filtros.provedores         || [], 'Todos');
+  fill('f-caminho',  filtros.caminhos           || [], 'Todos');
 }
 
 // ============================================================
@@ -1553,7 +1706,7 @@ async function loadHistorico() {
 // INIT
 // ============================================================
 window.onload = function() {
-  initExecCharts();
+  loadExecDashboard();
   initPilarCharts();
   initCohCharts();
   initInfraCharts();
