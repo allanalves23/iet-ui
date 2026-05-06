@@ -356,6 +356,7 @@ tr:hover td { background:#F8FAFF; }
 <div class="api-config">
   <label>🔌 API URL:</label>
   <input id="api-url" type="text" value="https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io" placeholder="http://seu-servidor:3000" />
+  <!-- <input id="api-url" type="text" value="http://localhost:3000" placeholder="http://seu-servidor:3000" /> -->
   <button onclick="checkApiHealth()" style="padding:4px 12px;border:1px solid var(--border);border-radius:4px;font-size:12px;cursor:pointer;background:var(--white);font-weight:600">Testar conexão</button>
   <div class="api-status">
     <div class="api-dot" id="api-dot"></div>
@@ -509,10 +510,6 @@ tr:hover td { background:#F8FAFF; }
       <div class="page-header">
         <h1>🎯 Análise por Pilar</h1>
         <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
-      </div>
-      <div class="filter-bar">
-        <div class="filter"><label>Pilar</label><select><option>Todos</option><option>P1 Topologia</option><option>P2 Dados</option><option>P3 Operabilidade</option><option>P4 Arq.Evolutiva</option><option>P5 Observabilidade</option><option>P6 Segurança</option></select></div>
-        <div class="filter"><label>Status</label><select><option>Todos</option><option>Crítico</option><option>Atenção</option><option>Bom</option><option>Excelente</option></select></div>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -987,7 +984,8 @@ function showPage(id) {
   const nav = document.getElementById('nav-' + id);
   if (nav) nav.classList.add('active');
 
-  if (id === 'comp') { loadComparacao(); }
+  if (id === 'comp')  { loadComparacao(); }
+  if (id === 'pilar') { loadPilarCharts(); }
   if (window.innerWidth <= 768) closeSidebar();
   if (id === 'hist') { loadHistorico(); }
 }
@@ -1241,50 +1239,72 @@ function updateRadar() {
 // ============================================================
 // CHARTS — ANÁLISE POR PILAR
 // ============================================================
-function initPilarCharts() {
-  const scores = PILLAR_NAMES.map((_,i) => {
-    return Math.round(SYSTEMS.reduce((acc,s) => acc + s.pillars[i], 0) / SYSTEMS.length);
-  });
+const STATUS_COLORS = { 'Excelente':'#27AE60', 'Bom':'#7CB342', 'Atenção':'#F1C232', 'Crítico':'#C0392B' };
 
+async function loadPilarCharts() {
+  try {
+    const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderPilarCharts(data);
+  } catch (err) {
+    console.error('Erro ao carregar análise por pilar:', err);
+  }
+}
+
+function renderPilarCharts(data) {
+  // ── Score médio por pilar ──
+  const scoreMap = {};
+  data.score_por_pilar.forEach(r => { scoreMap[r.pilar] = r.score_medio; });
+  const scores = PILLAR_NAMES.map(p => scoreMap[p] ?? 0);
+
+  if (charts.pilarScore) charts.pilarScore.destroy();
   const ctx1 = document.getElementById('chartPilarScore').getContext('2d');
   charts.pilarScore = new Chart(ctx1, {
-    type:'bar', data:{ labels:PILLAR_NAMES, datasets:[{ data:scores, backgroundColor:scores.map(s=>getBarColor(s)), borderRadius:4 }] },
+    type:'bar',
+    data:{ labels:PILLAR_NAMES, datasets:[{ data:scores, backgroundColor:scores.map(s=>getBarColor(s)), borderRadius:4 }] },
     options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100},x:{grid:{display:false}}} }
   });
 
+  // ── Distribuição de status por pilar ──
+  const distMap = {};
+  data.distribuicao_status.forEach(r => {
+    if (!distMap[r.pilar]) distMap[r.pilar] = {};
+    distMap[r.pilar][r.status_pilar] = r.qtd;
+  });
+
+  const statusDatasets = ['Excelente','Bom','Atenção','Crítico'].map(st => ({
+    label: st,
+    backgroundColor: STATUS_COLORS[st],
+    data: PILLAR_NAMES.map(pilar => {
+      const pData = distMap[pilar] || {};
+      const total = Object.values(pData).reduce((a,b) => a+b, 0);
+      return total === 0 ? 0 : Math.round(((pData[st] || 0) / total) * 100);
+    }),
+  }));
+
+  if (charts.pilarStatus) charts.pilarStatus.destroy();
   const ctx2 = document.getElementById('chartPilarStatus').getContext('2d');
   charts.pilarStatus = new Chart(ctx2, {
-    type:'bar', data:{
-      labels:PILLAR_NAMES,
-      datasets:[
-        {label:'Excelente', data:[33,22,11,22,22,22], backgroundColor:'#27AE60'},
-        {label:'Bom',       data:[22,33,11,33,33,33], backgroundColor:'#7CB342'},
-        {label:'Atenção',   data:[33,22,33,22,22,33], backgroundColor:'#F1C232'},
-        {label:'Crítico',   data:[12,23,45,23,23,12], backgroundColor:'#C0392B'},
-      ]
-    },
+    type:'bar',
+    data:{ labels:PILLAR_NAMES, datasets:statusDatasets },
     options:{ responsive:true, scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,min:0,max:100}}, plugins:{legend:{position:'top',labels:{font:{size:10}}}} }
   });
 
-  // Top worst questions
-  const worstQ = [
-    {id:'P3Q4_SLO',   pilar:'P3 Operab.', q:'SLOs e error budget formalizados...', score:2.4, n:12, st:'crit'},
-    {id:'P5Q4_NEG',   pilar:'P5 Observ.', q:'Correlação técnica × negócio em tempo real...', score:2.8, n:12, st:'crit'},
-    {id:'P4Q5_OBSOL', pilar:'P4 Arq.Evo', q:'Gestão de obsolescência tecnológica...', score:3.2, n:12, st:'crit'},
-    {id:'P2Q4_ESCALA',pilar:'P2 Dados',   q:'Escalabilidade de escrita em picos...', score:3.5, n:12, st:'crit'},
-    {id:'P6Q4_INCID', pilar:'P6 Seg.',    q:'Resposta a incidentes de segurança testada...', score:4.1, n:12, st:'atc'},
-    {id:'P1Q3_ISOL',  pilar:'P1 Topologia',q:'Isolamento de recursos (Bulkhead)...', score:4.3, n:12, st:'atc'},
-    {id:'P3Q3_MUDANCA',pilar:'P3 Operab.',q:'Confiabilidade de mudanças (canary, rollback)...', score:4.5, n:12, st:'atc'},
-  ];
+  // ── Top piores questões ──
   const tbody = document.getElementById('worst-questions-table');
-  tbody.innerHTML = worstQ.map(q => `<tr>
-    <td><span class="qid-link">${q.id}</span></td>
-    <td>${q.pilar}</td>
-    <td>${q.q}</td>
-    <td><strong>${q.score}</strong></td>
-    <td>${q.n}</td>
-    <td><span class="badge ${q.st}">${q.st==='crit'?'Crítico':'Atenção'}</span></td>
-  </tr>`).join('');
+  tbody.innerHTML = data.piores_questoes.map(q => {
+    const title = (QUESTIONS.find(x => x.id === q.questao_id)?.title || q.questao_id).slice(0, 60) + '...';
+    const st = getStatus(q.score_medio * 10);
+    return `<tr>
+      <td><span class="qid-link">${q.questao_id}</span></td>
+      <td>${q.pilar}</td>
+      <td>${title}</td>
+      <td><strong>${q.score_medio}</strong></td>
+      <td>${q.total_sistemas}</td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // ============================================================
@@ -1741,7 +1761,6 @@ async function loadHistorico() {
 // ============================================================
 window.onload = function() {
   loadExecDashboard();
-  initPilarCharts();
   initCohCharts();
   initInfraCharts();
   initTemporalChart();
