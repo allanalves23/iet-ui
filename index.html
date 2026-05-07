@@ -694,17 +694,17 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Análise por componente — onde concentrar investimento de modernização.</div>
       </div>
       <div class="filter-bar">
-        <div class="filter"><label>Sistema</label><select><option>Todos</option><option>NRTC</option><option>Atlas</option><option>Pegasus</option></select></div>
-        <div class="filter"><label>Provedor</label><select><option>Todos</option><option>Azure</option><option>AWS</option><option>On-Premise</option></select></div>
-        <div class="filter"><label>Tipo</label><select><option>Todos</option><option>PaaS</option><option>SaaS</option><option>IaaS</option><option>FaaS</option><option>DBaaS</option></select></div>
-        <div class="filter"><label>Caminho</label><select><option>Todos</option><option>Core</option><option>Satélite</option></select></div>
+        <div class="filter"><label>Sistema</label><select id="infra-f-sistema" onchange="loadInfraCharts()"><option>Todos</option></select></div>
+        <div class="filter"><label>Provedor</label><select id="infra-f-provedor" onchange="loadInfraCharts()"><option>Todos</option></select></div>
+        <div class="filter"><label>Tipo</label><select id="infra-f-tipo" onchange="loadInfraCharts()"><option>Todos</option></select></div>
+        <div class="filter"><label>Caminho</label><select id="infra-f-caminho" onchange="loadInfraCharts()"><option>Todos</option></select></div>
       </div>
       <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">Componentes Avaliados</div><div class="kpi-val navy">312</div><div class="kpi-sub">12 sistemas</div></div>
-        <div class="kpi-card"><div class="kpi-label">Risco Alto+</div><div class="kpi-val red">42</div><div class="kpi-sub">13.5%</div></div>
-        <div class="kpi-card"><div class="kpi-label">Risco Muito Baixo</div><div class="kpi-val green">128</div><div class="kpi-sub">41%</div></div>
-        <div class="kpi-card"><div class="kpi-label">Score Resil. Médio</div><div class="kpi-val gold">3.8/5</div><div class="kpi-sub">75/100</div></div>
-        <div class="kpi-card"><div class="kpi-label">Top Provedor</div><div class="kpi-val" style="color:var(--blue)">Azure</div><div class="kpi-sub">62% dos componentes</div></div>
+        <div class="kpi-card"><div class="kpi-label">Componentes Avaliados</div><div class="kpi-val navy" id="infra-kpi-total">—</div><div class="kpi-sub" id="infra-kpi-sub-total">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Risco Alto+</div><div class="kpi-val red" id="infra-kpi-alto">—</div><div class="kpi-sub" id="infra-kpi-sub-alto">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Risco Muito Baixo</div><div class="kpi-val green" id="infra-kpi-baixo">—</div><div class="kpi-sub" id="infra-kpi-sub-baixo">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Score Resil. Médio</div><div class="kpi-val gold" id="infra-kpi-resil">—</div><div class="kpi-sub" id="infra-kpi-sub-resil">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Top Provedor</div><div class="kpi-val" style="color:var(--blue)" id="infra-kpi-prov">—</div><div class="kpi-sub" id="infra-kpi-sub-prov">—</div></div>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -1121,6 +1121,7 @@ function showPage(id) {
 
   if (id === 'comp')  { loadComparacao(); }
   if (id === 'pilar') { loadPilarCharts(); }
+  if (id === 'infra') { loadInfraCharts(); }
   if (window.innerWidth <= 768) closeSidebar();
   if (id === 'hist') { loadHistorico(); }
 }
@@ -1512,43 +1513,119 @@ function initCohCharts() {
 // ============================================================
 // CHARTS — INFRA
 // ============================================================
-function initInfraCharts() {
-  const ctxT = document.getElementById('chartInfraType').getContext('2d');
-  charts.infraType = new Chart(ctxT, {
-    type:'doughnut', data:{
-      labels:['PaaS','SaaS','IaaS','FaaS','DBaaS'],
-      datasets:[{data:[35,20,28,8,9], backgroundColor:['#1D4ED8','#5B21B6','#B45309','#065F46','#9D174D'], borderWidth:2}]
-    },
-    options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}, cutout:'55%'}
-  });
+const TYPE_COLORS = {PaaS:'#1D4ED8',SaaS:'#5B21B6',IaaS:'#B45309',FaaS:'#065F46',DBaaS:'#9D174D'};
 
-  const ctxR = document.getElementById('chartInfraRisk').getContext('2d');
-  charts.infraRisk = new Chart(ctxR, {
-    type:'bar', data:{
-      labels:['Muito Baixo','Baixo','Médio','Alto','Muito Alto'],
-      datasets:[{data:[128,85,57,35,7], backgroundColor:['#27AE60','#7CB342','#F1C232','#E67E22','#C0392B'], borderRadius:4}]
-    },
-    options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#EEE'}},x:{grid:{display:false}}}}
-  });
+function populateInfraFilter(id, values, current) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = '<option>Todos</option>' +
+    values.map(v => `<option${v === current ? ' selected' : ''}>${v}</option>`).join('');
+}
 
-  // Infra table
-  const infraComponents = [
-    {sys:'Pegasus', comp:'Postgres Single-AZ', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'1.8', risco:'22.4', cls:'danger'},
-    {sys:'Pegasus', comp:'RabbitMQ Single-Node', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'2.0', risco:'18.7', cls:'danger'},
-    {sys:'NRTC',   comp:'Azure Express Route', tipo:'IaaS', prov:'Azure', cam:'Core', resil:'3.1', risco:'8.5', cls:'bom'},
-    {sys:'Atlas',  comp:'Legacy Mainframe API', tipo:'On-Premise', prov:'—', cam:'Core', resil:'2.4', risco:'16.2', cls:'atc'},
-    {sys:'Saturno',comp:'Redis Single-Node', tipo:'IaaS', prov:'AWS', cam:'Core', resil:'2.2', risco:'14.1', cls:'danger'},
-  ];
-  document.getElementById('infra-table').innerHTML = infraComponents.map(r => `<tr>
-    <td>${r.sys}</td>
-    <td><strong>${r.comp}</strong></td>
-    <td><span class="component-type-badge ct-${r.tipo.toLowerCase().replace('-','').replace(' ','')}">${r.tipo}</span></td>
-    <td>${r.prov}</td>
-    <td>${r.cam}</td>
-    <td>${r.resil}</td>
-    <td>${r.risco}</td>
-    <td><span class="badge ${r.cls}">${r.cls==='danger'?'Muito Alto':r.cls==='atc'?'Alto':'Baixo'}</span></td>
-  </tr>`).join('');
+async function loadInfraCharts() {
+  clearApiError('infra');
+
+  const sistema  = document.getElementById('infra-f-sistema')?.value  || 'Todos';
+  const provedor = document.getElementById('infra-f-provedor')?.value || 'Todos';
+  const tipo     = document.getElementById('infra-f-tipo')?.value     || 'Todos';
+  const caminho  = document.getElementById('infra-f-caminho')?.value  || 'Todos';
+
+  const params = new URLSearchParams();
+  if (sistema  !== 'Todos') params.set('sistema',  sistema);
+  if (provedor !== 'Todos') params.set('provedor', provedor);
+  if (tipo     !== 'Todos') params.set('tipo',     tipo);
+  if (caminho  !== 'Todos') params.set('caminho',  caminho);
+  const qs = params.size ? '?' + params.toString() : '';
+
+  let data;
+  try {
+    const res = await fetch(getApiUrl() + '/api/dashboard/componentes-riscos' + qs);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    data = await res.json();
+  } catch (err) {
+    console.error('Erro ao carregar componentes-riscos:', err);
+    showApiError('infra', loadInfraCharts);
+    return;
+  }
+
+  // KPIs
+  const k = data.kpis;
+  const total = k.total_componentes;
+  document.getElementById('infra-kpi-total').textContent     = total;
+  document.getElementById('infra-kpi-sub-total').textContent = `${k.total_sistemas} sistema${k.total_sistemas !== 1 ? 's' : ''}`;
+  document.getElementById('infra-kpi-alto').textContent      = k.risco_alto_mais;
+  document.getElementById('infra-kpi-sub-alto').textContent  = total ? ((k.risco_alto_mais / total * 100).toFixed(1) + '%') : '—';
+  document.getElementById('infra-kpi-baixo').textContent     = k.risco_muito_baixo;
+  document.getElementById('infra-kpi-sub-baixo').textContent = total ? ((k.risco_muito_baixo / total * 100).toFixed(1) + '%') : '—';
+  document.getElementById('infra-kpi-resil').textContent     = k.score_resil_medio != null ? `${k.score_resil_medio}/5` : '—';
+  document.getElementById('infra-kpi-sub-resil').textContent = k.score_100_medio  != null ? `${k.score_100_medio}/100` : '—';
+  document.getElementById('infra-kpi-prov').textContent      = data.top_provedor?.nome || '—';
+  document.getElementById('infra-kpi-sub-prov').textContent  = data.top_provedor ? `${data.top_provedor.pct}% dos componentes` : '—';
+
+  // Filters
+  const f = data.filtros_disponiveis;
+  populateInfraFilter('infra-f-sistema',  f.sistemas,  sistema);
+  populateInfraFilter('infra-f-provedor', f.provedores, provedor);
+  populateInfraFilter('infra-f-tipo',     f.tipos,      tipo);
+  populateInfraFilter('infra-f-caminho',  f.caminhos,   caminho);
+
+  // Donut — por tipo
+  if (charts.infraType) { charts.infraType.destroy(); charts.infraType = null; }
+  charts.infraType = new Chart(
+    document.getElementById('chartInfraType').getContext('2d'), {
+      type:'doughnut',
+      data:{
+        labels: data.por_tipo.map(t => t.tipo),
+        datasets:[{
+          data: data.por_tipo.map(t => t.total),
+          backgroundColor: data.por_tipo.map(t => TYPE_COLORS[t.tipo] || '#6B7280'),
+          borderWidth:2
+        }]
+      },
+      options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}, cutout:'55%'}
+    }
+  );
+
+  // Bar — por faixa de risco
+  if (charts.infraRisk) { charts.infraRisk.destroy(); charts.infraRisk = null; }
+  const rb = data.por_faixa_risco;
+  charts.infraRisk = new Chart(
+    document.getElementById('chartInfraRisk').getContext('2d'), {
+      type:'bar',
+      data:{
+        labels:['Muito Baixo','Baixo','Médio','Alto','Muito Alto'],
+        datasets:[{
+          data:[rb.muito_baixo, rb.baixo, rb.medio, rb.alto, rb.muito_alto],
+          backgroundColor:['#27AE60','#7CB342','#F1C232','#E67E22','#C0392B'],
+          borderRadius:4
+        }]
+      },
+      options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#EEE'}},x:{grid:{display:false}}}}
+    }
+  );
+
+  // Table
+  const tbody = document.getElementById('infra-table');
+  if (!data.top_criticos.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Nenhum componente encontrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.top_criticos.map(r => {
+    const cls     = r.class_risco === 'Vermelho' ? 'danger' : r.class_risco === 'Amarelo' ? 'atc' : 'bom';
+    const label   = r.class_risco === 'Vermelho' ? 'Vermelho' : r.class_risco === 'Amarelo' ? 'Amarelo' : (r.class_risco || '—');
+    const tipoKey = (r.tipo || '').toLowerCase().replace(/[^a-z]/g, '');
+    const clickable = r.avaliacao_id ? `class="hist-row-click" onclick="openAvaliacaoDetail(${r.avaliacao_id})" title="Clique para ver a avaliação completa"` : '';
+    return `<tr ${clickable}>
+      <td>${r.sistema_nome || '—'}</td>
+      <td><strong>${r.nome || '—'}</strong></td>
+      <td><span class="component-type-badge ct-${tipoKey}">${r.tipo || '—'}</span></td>
+      <td>${r.provedor || '—'}</td>
+      <td>${r.caminho_critico || '—'}</td>
+      <td>${r.score_resil != null ? r.score_resil : '—'}</td>
+      <td>${r.score_risco != null ? r.score_risco : '—'}</td>
+      <td><span class="badge ${cls}">${label}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // ============================================================
@@ -2256,7 +2333,6 @@ function buildDetailModal(av) {
 window.onload = function() {
   loadExecDashboard();
   initCohCharts();
-  initInfraCharts();
   initTemporalChart();
   updateRadar();
   buildAssessmentForm();
