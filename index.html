@@ -290,11 +290,26 @@ tr:hover td { background:#F8FAFF; }
 /* TEMPORAL */
 .trend-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
 .trend-list { list-style:none; }
-.trend-list li { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--gray2); font-size:13px; }
+.trend-list li { display:block; border-bottom:1px solid var(--gray2); font-size:13px; }
 .trend-list li:last-child { border-bottom:none; }
 .delta { font-weight:700; padding:2px 8px; border-radius:10px; font-size:12px; }
 .delta.up { background:#D5F5E3; color:#1E8449; }
 .delta.down { background:#FDEDEC; color:#922B21; }
+.trend-item-header { display:flex; align-items:center; justify-content:space-between; padding:8px 4px; cursor:pointer; border-radius:5px; transition:background .12s; gap:8px; }
+.trend-item-header:hover { background:#F0F4FF; }
+.trend-chevron { font-size:10px; color:var(--muted); transition:transform .2s; flex-shrink:0; }
+.trend-item-header.open .trend-chevron { transform:rotate(180deg); }
+.trend-compare { display:none; padding:10px 4px 12px; }
+.trend-compare.open { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:start; }
+.av-mini-card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+.av-mini-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+.av-mini-date { font-size:11px; color:var(--muted); margin-bottom:6px; }
+.av-mini-scores { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+.av-mini-score { font-size:12px; color:var(--navy); }
+.av-mini-score strong { font-size:14px; }
+.av-mini-btn { margin-top:8px; width:100%; padding:5px 0; background:var(--navy); color:#fff; border:none; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; }
+.av-mini-btn:hover { background:#162038; }
+.trend-compare-arrow { display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--muted); padding-top:28px; }
 
 /* PROGRESS BAR (pillar) */
 .pillar-prog { margin-bottom:6px; }
@@ -505,7 +520,7 @@ tr:hover td { background:#F8FAFF; }
       <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
       <div class="nav-item disabled" id="nav-coh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra<span class="nav-soon">Em breve</span></div>
       <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
-      <div class="nav-item disabled" id="nav-tempo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal<span class="nav-soon">Em breve</span></div>
+      <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
     </div>
 
     <div class="sidebar-divider"></div>
@@ -734,30 +749,22 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Tendência do portfólio ao longo dos trimestres — estamos melhorando?</div>
       </div>
       <div class="filter-bar">
-        <div class="filter"><label>Granularidade</label><select><option>Trimestre</option><option>Semestre</option></select></div>
-        <div class="filter"><label>Sistema</label><select><option>Todos (média)</option><option>NRTC</option><option>Atlas</option><option>Pegasus</option></select></div>
-        <div class="filter"><label>Métrica</label><select><option>IET</option><option>IES</option><option>IR</option></select></div>
+        <div class="filter"><label>Granularidade</label><select id="tempo-f-gran" onchange="loadTemporalChart()"><option value="T">Trimestre</option><option value="S">Semestre</option></select></div>
+        <div class="filter"><label>Sistema</label><select id="tempo-f-sistema" onchange="loadTemporalChart()"><option value="">Todos (média)</option></select></div>
+        <div class="filter"><label>Métrica</label><select id="tempo-f-metrica" onchange="applyTemporalMetrica()"><option value="todas">IET + IES + IR</option><option value="iet">IET</option><option value="ies">IES</option><option value="ir">IR</option></select></div>
       </div>
       <div class="card">
-        <h3>Evolução IET / IES / IR — Média do Portfólio</h3>
+        <h3 id="tempo-chart-title">Evolução IET / IES / IR — Média do Portfólio</h3>
         <canvas id="chartTemporal" style="max-height:300px;"></canvas>
       </div>
       <div class="trend-row">
         <div class="card">
           <h3>Maiores Subidas (delta entre últimas 2 avaliações)</h3>
-          <ul class="trend-list">
-            <li><span>Atlas</span> <span class="delta up">+12.4 pts</span></li>
-            <li><span>Hermes</span> <span class="delta up">+8.2 pts</span></li>
-            <li><span>Olimpo</span> <span class="delta up">+5.8 pts</span></li>
-          </ul>
+          <ul class="trend-list" id="tempo-list-subidas"></ul>
         </div>
         <div class="card">
           <h3>Maiores Quedas (regressões)</h3>
-          <ul class="trend-list">
-            <li><span>Pegasus</span> <span class="delta down">−7.2 pts</span></li>
-            <li><span>Tellus</span> <span class="delta down">−4.1 pts</span></li>
-            <li><span>Sol</span> <span class="delta down">−2.8 pts</span></li>
-          </ul>
+          <ul class="trend-list" id="tempo-list-quedas"></ul>
         </div>
       </div>
       <div style="background:#FEF9E7; border:1px solid var(--gold); border-radius:8px; padding:10px 14px; margin-top:14px; font-size:12px; color:#7a5500;">
@@ -1122,6 +1129,7 @@ function showPage(id) {
   if (id === 'comp')  { loadComparacao(); }
   if (id === 'pilar') { loadPilarCharts(); }
   if (id === 'infra') { loadInfraCharts(); }
+  if (id === 'tempo') { loadTemporalChart(); }
   if (window.innerWidth <= 768) closeSidebar();
   if (id === 'hist') { loadHistorico(); }
 }
@@ -1631,19 +1639,114 @@ async function loadInfraCharts() {
 // ============================================================
 // CHARTS — TEMPORAL
 // ============================================================
-function initTemporalChart() {
-  const ctxT = document.getElementById('chartTemporal').getContext('2d');
-  charts.temporal = new Chart(ctxT, {
-    type:'line', data:{
-      labels:['2025 Q1','2025 Q2','2025 Q3','2025 Q4','2026 Q1','2026 Q2'],
-      datasets:[
-        {label:'IET (Geral)', data:[58,60,63,65,66,68.4], borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,0.08)', tension:.4, fill:true, pointRadius:4},
-        {label:'IES (Software)', data:[55,57,59,61,62,63.2], borderColor:'#2E5AAC', backgroundColor:'transparent', tension:.4, pointRadius:4},
-        {label:'IR (Resiliência)', data:[64,65,68,70,74,76.1], borderColor:'#1B2A4A', backgroundColor:'transparent', tension:.4, pointRadius:4},
-      ]
-    },
-    options:{responsive:true, plugins:{legend:{position:'top',labels:{font:{size:11}}}}, scales:{y:{min:50,max:90,grid:{color:'#EEE'}},x:{grid:{display:false}}}}
+async function loadTemporalChart() {
+  clearApiError('tempo');
+  const gran     = document.getElementById('tempo-f-gran').value;
+  const sistemaId = document.getElementById('tempo-f-sistema').value;
+  const qs       = '?granularidade=' + gran + (sistemaId ? '&sistema_id=' + sistemaId : '');
+
+  try {
+    const res = await fetch(getApiUrl() + '/api/dashboard/evolucao-temporal' + qs);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    // Popula dropdown de sistemas (mantém seleção atual)
+    const selSistema = document.getElementById('tempo-f-sistema');
+    const prev = selSistema.value;
+    selSistema.innerHTML = '<option value="">Todos (média)</option>' +
+      data.sistemas.map(s => `<option value="${s.id}"${String(s.id) === prev ? ' selected' : ''}>${s.nome}</option>`).join('');
+
+    // Título dinâmico
+    const nomeAtual = sistemaId
+      ? (data.sistemas.find(s => String(s.id) === sistemaId)?.nome || 'Sistema')
+      : 'Média do Portfólio';
+    document.getElementById('tempo-chart-title').textContent =
+      'Evolução IET / IES / IR — ' + nomeAtual;
+
+    // Gráfico
+    if (charts.temporal) { charts.temporal.destroy(); charts.temporal = null; }
+    const labels = data.serie.map(r => r.periodo);
+    charts.temporal = new Chart(
+      document.getElementById('chartTemporal').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { id:'iet', label:'IET (Geral)',      data: data.serie.map(r => r.iet_medio), borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,0.08)', tension:.4, fill:true, pointRadius:4 },
+            { id:'ies', label:'IES (Software)',   data: data.serie.map(r => r.ies_medio), borderColor:'#2E5AAC', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
+            { id:'ir',  label:'IR (Resiliência)', data: data.serie.map(r => r.ir_medio),  borderColor:'#1B2A4A', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position:'top', labels:{ font:{ size:11 } } } },
+          scales: { y: { grid:{ color:'#EEE' } }, x: { grid:{ display:false } } }
+        }
+      }
+    );
+    applyTemporalMetrica();
+
+    // Listas de tendência
+    renderTrendList('tempo-list-subidas', data.tendencias.subidas, 'up');
+    renderTrendList('tempo-list-quedas',  data.tendencias.quedas,  'down');
+
+  } catch (err) {
+    console.error('Erro ao carregar evolução temporal:', err);
+    showApiError('tempo', loadTemporalChart);
+  }
+}
+
+function applyTemporalMetrica() {
+  if (!charts.temporal) return;
+  const metrica = document.getElementById('tempo-f-metrica').value;
+  charts.temporal.data.datasets.forEach(ds => {
+    ds.hidden = metrica !== 'todas' && ds.id !== metrica;
   });
+  charts.temporal.update();
+}
+
+function renderTrendList(listId, items, dir) {
+  const ul = document.getElementById(listId);
+  if (!items.length) {
+    ul.innerHTML = '<li style="padding:8px 4px;color:var(--muted);font-size:12px">Sem dados suficientes (necessário ≥ 2 avaliações por sistema)</li>';
+    return;
+  }
+  ul.innerHTML = items.map((t, i) => {
+    const sign  = t.delta > 0 ? '+' : '';
+    const fmtD  = `${sign}${t.delta.toFixed(1)} pts`;
+    const fmtDate = dt => dt ? new Date(dt).toLocaleDateString('pt-BR') : '—';
+    const statusCls = s => s === 'Excelente' ? 'exc' : s === 'Bom' ? 'bom' : s === 'Atenção' ? 'atc' : 'crit';
+    const miniCard = (av, label) => `
+      <div class="av-mini-card">
+        <div class="av-mini-label">${label}</div>
+        <div class="av-mini-date">📅 ${fmtDate(av.data_avaliacao)}</div>
+        <div class="av-mini-scores">
+          <div class="av-mini-score">IET <strong>${av.iet ?? '—'}</strong></div>
+          <div class="av-mini-score">IES <strong>${av.ies ?? '—'}</strong></div>
+          <div class="av-mini-score">IR <strong>${av.ir ?? '—'}</strong></div>
+        </div>
+        <span class="badge ${statusCls(av.status)}">${av.status || '—'}</span>
+        <button class="av-mini-btn" onclick="event.stopPropagation(); openAvaliacaoDetail(${av.id})">Ver Avaliação →</button>
+      </div>`;
+    return `<li>
+      <div class="trend-item-header" onclick="toggleTrendItem(this)" id="trend-hdr-${listId}-${i}">
+        <span style="flex:1;font-weight:500">${t.sistema_nome}</span>
+        <span class="delta ${dir}">${fmtD}</span>
+        <span class="trend-chevron">▼</span>
+      </div>
+      <div class="trend-compare" id="trend-cmp-${listId}-${i}">
+        ${miniCard(t.anterior, 'Avaliação anterior')}
+        <div class="trend-compare-arrow">${dir === 'up' ? '↗' : '↘'}</div>
+        ${miniCard(t.atual, 'Avaliação atual')}
+      </div>
+    </li>`;
+  }).join('');
+}
+
+function toggleTrendItem(hdr) {
+  hdr.classList.toggle('open');
+  const cmp = hdr.nextElementSibling;
+  cmp.classList.toggle('open');
 }
 
 // ============================================================
@@ -2333,7 +2436,6 @@ function buildDetailModal(av) {
 window.onload = function() {
   loadExecDashboard();
   initCohCharts();
-  initTemporalChart();
   updateRadar();
   buildAssessmentForm();
 };
