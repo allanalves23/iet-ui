@@ -28,7 +28,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .topbar .btn-new:hover { background:var(--blue-light); }
 
 /* LAYOUT */
-.layout { display:flex; height:calc(100vh - 84px); overflow:hidden; }
+.layout { display:flex; height:calc(100vh - 52px); overflow:hidden; }
 .main { flex:1; padding:20px; overflow-y:auto; min-width:0; }
 /* Hamburger button (mobile only) */
 .hamburger { display:none; background:none; border:none; cursor:pointer; padding:8px; color:#fff; }
@@ -40,11 +40,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 @media (max-width: 768px) {
   .hamburger { display:flex; align-items:center; }
   .sidebar {
-    position:fixed; top:84px; left:-224px; height:calc(100vh - 84px);
+    position:fixed; top:52px; left:-224px; height:calc(100vh - 52px);
     z-index:50; transition:left .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
   }
   .sidebar.open { left:0; }
-  .layout { height:calc(100vh - 84px); }
+  .layout { height:calc(100vh - 52px); }
   .main { padding:14px; }
   .kpi-row { grid-template-columns:repeat(2,1fr) !important; }
   .grid-2, .grid-3, .grid-23 { grid-template-columns:1fr !important; }
@@ -484,22 +484,10 @@ tr:hover td { background:#F8FAFF; }
 <div class="topbar">
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="logo"><span>⚡</span> IET — Excelência Tecnológica</div>
-  <div class="version">v4.0 · Portfólio</div>
   <div class="spacer"></div>
   <button class="btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
 </div>
 
-<!-- API CONFIG BAR -->
-<div class="api-config">
-  <label>🔌 API URL:</label>
-  <input id="api-url" type="text" value="https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io" placeholder="http://seu-servidor:3000" />
-  <!-- <input id="api-url" type="text" value="http://localhost:3000" placeholder="http://seu-servidor:3000" /> -->
-  <button onclick="checkApiHealth()" style="padding:4px 12px;border:1px solid var(--border);border-radius:4px;font-size:12px;cursor:pointer;background:var(--white);font-weight:600">Testar conexão</button>
-  <div class="api-status">
-    <div class="api-dot" id="api-dot"></div>
-    <span id="api-status-text" style="color:var(--muted)">Não testado</span>
-  </div>
-</div>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-wrap" id="toast-wrap"></div>
@@ -510,7 +498,7 @@ tr:hover td { background:#F8FAFF; }
   <div class="sidebar">
     <div class="sidebar-brand">
       <div class="brand-title">⚡ IET Dashboard</div>
-      <div class="brand-sub">Excelência Tecnológica · v4.0</div>
+      <div class="brand-sub">Excelência Tecnológica</div>
     </div>
 
     <div class="sidebar-section">
@@ -1908,7 +1896,8 @@ function resetForm() {
 // ============================================================
 
 function getApiUrl() {
-  return (document.getElementById('api-url').value || 'http://localhost:3000').replace(/\/$/, '');
+  return 'https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io';
+  // return 'http://localhost:3000'
 }
 
 function showToast(msg, type = 'success', duration = 4000) {
@@ -1922,33 +1911,6 @@ function showToast(msg, type = 'success', duration = 4000) {
   return t;
 }
 
-async function checkApiHealth() {
-  const dot = document.getElementById('api-dot');
-  const txt = document.getElementById('api-status-text');
-  dot.className = 'api-dot checking';
-  txt.textContent = 'Verificando...';
-  txt.style.color = 'var(--gold)';
-  try {
-    const ctrl1 = new AbortController();
-    const t1 = setTimeout(() => ctrl1.abort(), 5000);
-    const res = await fetch(getApiUrl() + '/api/health', { signal: ctrl1.signal });
-    clearTimeout(t1);
-    const data = await res.json();
-    if (res.ok && data.status === 'ok') {
-      dot.className = 'api-dot ok';
-      txt.textContent = 'Conectado ✓';
-      txt.style.color = 'var(--green)';
-      showToast('API conectada com sucesso!', 'success', 3000);
-    } else {
-      throw new Error(data.db || 'Resposta inesperada');
-    }
-  } catch (err) {
-    dot.className = 'api-dot err';
-    txt.textContent = 'Falha — ' + err.message;
-    txt.style.color = 'var(--red)';
-    showToast('Não foi possível conectar: ' + err.message, 'error', 5000);
-  }
-}
 
 async function saveAvaliacao() {
   // Validações
