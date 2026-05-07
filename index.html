@@ -176,6 +176,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .badge.bom { background:#E8F5E9; color:#2E7D32; }
 .badge.atc { background:#FEF9E7; color:#7D6608; }
 .badge.crit { background:#FDEDEC; color:#922B21; }
+.badge.manual { background:#EEF2FF; color:#3730A3; }
+.badge.integracao { background:#FFF7ED; color:#C2410C; }
 .badge.risk { background:#FDFEFE; color:#7D3C98; border:1px solid #A569BD; }
 .badge.danger { background:#FDEDEC; color:#922B21; border:1px solid #E74C3C; }
 
@@ -1896,8 +1898,8 @@ function resetForm() {
 // ============================================================
 
 function getApiUrl() {
-  return 'https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io';
-  // return 'http://localhost:3000'
+  // return 'https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io';
+  return 'http://localhost:3000'
 }
 
 function showToast(msg, type = 'success', duration = 4000) {
@@ -1958,6 +1960,7 @@ async function saveAvaliacao() {
     ies:           isNaN(ies) ? null : ies,
     ir,
     iet,
+    tipo_cadastro: 'manual',
     respostas,
     componentes,
   };
@@ -2032,13 +2035,15 @@ async function loadHistorico() {
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>#</th><th>Sistema</th><th>Responsável</th><th>Data</th><th>IES</th><th>IR</th><th>IET</th><th>Status</th>';
+    html += '<th>#</th><th>Sistema</th><th>Responsável</th><th>Data</th><th>IES</th><th>IR</th><th>IET</th><th>Status</th><th>Origem</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
       const st = getStatus(av.iet);
       const color = getBarColor(av.iet);
       const dateStr = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
+      const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
+      const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
         <td style="color:var(--muted)">#${av.id}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
@@ -2048,6 +2053,7 @@ async function loadHistorico() {
         <td>${av.ir ?? '—'}</td>
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
       </tr>`;
     });
 
@@ -2300,6 +2306,7 @@ function buildDetailModal(av) {
           📅 Avaliação: ${dataFmt} &nbsp;·&nbsp;
           🕐 Criado em: ${criadoFmt}
           ${av.unidade_negocio ? `&nbsp;·&nbsp; 🏢 ${av.unidade_negocio}` : ''}
+          &nbsp;·&nbsp; <span class="badge ${av.tipo_cadastro === 'integração' ? 'integracao' : 'manual'}" style="margin-top:0;vertical-align:middle">${av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual'}</span>
         </p>
       </div>
       <button class="det-close" onclick="closeAvaliacaoDetail()">✕</button>
