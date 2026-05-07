@@ -717,8 +717,8 @@ tr:hover td { background:#F8FAFF; }
         </div>
         <div class="score-box">
           <div class="s-label">IR — Resiliência</div>
-          <div class="s-val green">76.1</div>
-          <div class="badge bom" style="margin-top:6px">Bom</div>
+          <div class="s-val green" id="live-ir">—</div>
+          <div id="live-ir-badge" style="margin-top:6px"></div>
           <div style="font-size:10px;color:var(--muted);margin-top:4px">Via Componentes Infra</div>
         </div>
         <div class="score-box">
@@ -1736,14 +1736,18 @@ async function saveAvaliacao() {
     return { questao_id: q.id, pilar: q.pName, opcoes_selecionadas: opcoes, score };
   }).filter(r => r.opcoes_selecionadas.length > 0);
 
+  const componentes = getComponentesData();
+  const ir = calcIrFromComponentes(componentes);
+
   const payload = {
-    sistema_nome: sistema,
-    responsavel: responsavel || null,
+    sistema_nome:  sistema,
+    responsavel:   responsavel || null,
     data_avaliacao: data || new Date().toISOString().split('T')[0],
-    ies: isNaN(ies) ? null : ies,
-    ir: 76.1,
+    ies:           isNaN(ies) ? null : ies,
+    ir,
     iet,
     respostas,
+    componentes,
   };
 
   // Salva
@@ -1858,7 +1862,7 @@ const COMP_OPTS = {
   sla:         ['< 99,5%','99,5% – 99,9%','99,9% – 99,99%','> 99,99%'],
   redundancia: ['Nenhuma (SPOF)','Ativo/Passivo','Ativo/Ativo (mesma zona)','Multi-AZ','Multi-Region ativo/ativo'],
   tolerancia:  ['Nenhuma','Restart manual','Auto-restart','Auto-repair automático','Sistema distribuído com failover'],
-  backup:      ['Sem backup','Manual/esporádico (RPO > 24h)','Frequente (RPO 4h–24h)','Contínuo (RPO < 1h)','RPO ≤ 15 min'],
+  backup_rpo:  ['Sem backup','Manual/esporádico (RPO > 24h)','Frequente (RPO 4h–24h)','Contínuo (RPO < 1h)','RPO ≤ 15 min'],
   dr:          ['Sem DR','DR manual (RTO > 24h)','DR < 4h','DR < 1h','Failover automático (RTO < 15 min)'],
   monit:       ['Nenhum','Métricas básicas','Alertas estruturados','Dashboards + alertas','Runbooks automatizados + SLO'],
   depend:      ['Acoplamento total (sem alternativa)','Baixo acoplamento','Algumas alternativas','Totalmente desacoplado'],
@@ -1888,7 +1892,7 @@ function buildCompCard(cid) {
       <div class="comp-field"><label>F · Disponibilidade / SLA</label>${s('sla')}</div>
       <div class="comp-field"><label>G · Redundância</label>${s('redundancia')}</div>
       <div class="comp-field"><label>H · Tolerância a Falhas</label>${s('tolerancia')}</div>
-      <div class="comp-field"><label>I · Backup / RPO</label>${s('backup')}</div>
+      <div class="comp-field"><label>I · Backup / RPO</label>${s('backup_rpo')}</div>
       <div class="comp-field"><label>J · DR / RTO</label>${s('dr')}</div>
       <div class="comp-field"><label>K · Monitoramento</label>${s('monit')}</div>
       <div class="comp-field"><label>L · Dependências</label>${s('depend')}</div>
@@ -1924,6 +1928,7 @@ function removeComp(cid) {
     const list = document.getElementById('componentes-list');
     list.innerHTML = '<div id="comp-empty" class="comp-empty">Nenhum componente adicionado. Clique em "+ Adicionar Componente" para começar.</div>';
   }
+  updateLiveIr();
 }
 
 function calcComp(cid) {
@@ -1933,7 +1938,7 @@ function calcComp(cid) {
   };
 
   // P — Score Resil. (1–5): média de G,H,I,J (índice 0–4 → score 1–5)
-  const pRaw = ((g('redundancia') + g('tolerancia') + g('backup') + g('dr')) / 4) + 1;
+  const pRaw = ((g('redundancia') + g('tolerancia') + g('backup_rpo') + g('dr')) / 4) + 1;
   const p    = Math.round(pRaw * 10) / 10;
 
   // Q — Score 0–100
@@ -1972,27 +1977,63 @@ function calcComp(cid) {
   document.getElementById(`c${cid}-t`).textContent = pesoImp.toFixed(1);
   document.getElementById(`c${cid}-u`).textContent = pesoU.toFixed(1);
   document.getElementById(`c${cid}-v`).textContent = pesoV.toFixed(1);
+
+  updateLiveIr();
+}
+
+function updateLiveIr() {
+  const comps = getComponentesData();
+  const ir    = calcIrFromComponentes(comps);
+  const irEl  = document.getElementById('live-ir');
+  const badge = document.getElementById('live-ir-badge');
+  if (!irEl) return;
+  if (ir === null) {
+    irEl.textContent  = '—';
+    badge.innerHTML   = '';
+  } else {
+    irEl.textContent  = ir.toFixed(1);
+    const st          = getStatus(ir);
+    badge.innerHTML   = `<span class="badge ${st.cls}">${st.label}</span>`;
+  }
 }
 
 function getComponentesData() {
   return [...document.querySelectorAll('.comp-card')].map(card => {
     const cid = card.id.replace('comp-card-', '');
-    const g = (key) => document.getElementById(`c${cid}-${key}`)?.value || '';
+    const g   = (key) => document.getElementById(`c${cid}-${key}`)?.value || '';
+    const num = (id)  => parseFloat(document.getElementById(`c${cid}-${id}`)?.textContent) || null;
     return {
-      nome:        document.getElementById(`c${cid}-nome`)?.value || '',
-      tipo:        g('tipo'), provedor:    g('provedor'),
-      impacto:     g('impacto'), sla:         g('sla'),
-      redundancia: g('redundancia'), tolerancia:  g('tolerancia'),
-      backup:      g('backup'), dr:          g('dr'),
-      monit:       g('monit'), depend:      g('depend'),
-      happy:       g('happy'), contorno:    g('contorno'),
-      caminho:     g('caminho'),
-      score_resil: parseFloat(document.getElementById(`c${cid}-p`)?.textContent) || null,
-      score_100:   parseInt(document.getElementById(`c${cid}-q`)?.textContent)   || null,
-      score_risco: parseInt(document.getElementById(`c${cid}-r`)?.textContent)   || null,
-      class_risco: document.getElementById(`c${cid}-s`)?.textContent || '',
+      nome:             document.getElementById(`c${cid}-nome`)?.value || '',
+      tipo:             g('tipo'),
+      provedor:         g('provedor'),
+      impacto:          g('impacto'),
+      sla:              g('sla'),
+      redundancia:      g('redundancia'),
+      tolerancia:       g('tolerancia'),
+      backup_rpo:       g('backup_rpo'),
+      dr:               g('dr'),
+      monitoramento:    g('monit'),
+      dependencias:     g('depend'),
+      happy_socks:      g('happy'),
+      contorno:         g('contorno'),
+      caminho_critico:  g('caminho'),
+      score_resil:      num('p'),
+      score_100:        num('q'),
+      score_risco:      num('r'),
+      class_risco:      document.getElementById(`c${cid}-s`)?.textContent || '',
+      peso_imp:         num('t'),
+      peso_crit:        num('u'),
+      peso_caminho:     num('v'),
     };
   });
+}
+
+function calcIrFromComponentes(componentes) {
+  if (!componentes.length) return null;
+  const totalPeso = componentes.reduce((s, c) => s + (c.peso_crit || 0), 0);
+  if (totalPeso === 0) return null;
+  const soma = componentes.reduce((s, c) => s + (c.score_100 || 0) * (c.peso_crit || 0), 0);
+  return Math.round((soma / totalPeso) * 100) / 100;
 }
 
 // ============================================================
