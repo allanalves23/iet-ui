@@ -374,6 +374,76 @@ tr:hover td { background:#F8FAFF; }
 .toast.loading { background:#2E5AAC; }
 @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 
+/* MODAL DETALHE AVALIAÇÃO */
+.det-overlay {
+  position:fixed; inset:0; background:rgba(10,20,50,0.45);
+  z-index:1000; display:flex; align-items:flex-start; justify-content:center;
+  padding:32px 16px; overflow-y:auto;
+  animation: fadeOverlay .18s ease;
+}
+@keyframes fadeOverlay { from{opacity:0} to{opacity:1} }
+.det-modal {
+  background:#fff; border-radius:14px; width:100%; max-width:860px;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+  animation: slideDown .2s ease;
+  margin:auto;
+}
+@keyframes slideDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+.det-header {
+  background:var(--navy); color:#fff; padding:20px 24px;
+  border-radius:14px 14px 0 0;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+}
+.det-header-info h2 { font-size:20px; font-weight:700; margin:0 0 4px; }
+.det-header-info p  { font-size:13px; opacity:.7; margin:0; }
+.det-close {
+  background:rgba(255,255,255,.15); border:none; color:#fff;
+  border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer; line-height:1;
+  flex-shrink:0; transition:background .15s;
+}
+.det-close:hover { background:rgba(255,255,255,.28); }
+.det-scores {
+  display:flex; flex-wrap:wrap; gap:0;
+  border-bottom:1px solid var(--border);
+}
+.det-score-box {
+  flex:1; min-width:100px; padding:14px 16px; text-align:center;
+  border-right:1px solid var(--border);
+}
+.det-score-box:last-child { border-right:none; }
+.det-score-box .ds-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+.det-score-box .ds-val   { font-size:26px; font-weight:800; color:var(--navy); }
+.det-body { padding:24px; }
+.det-section { margin-bottom:28px; }
+.det-section h3 {
+  font-size:14px; font-weight:700; color:var(--navy);
+  margin:0 0 14px; padding-bottom:8px;
+  border-bottom:2px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+}
+.det-pilar-group { margin-bottom:16px; }
+.det-pilar-label {
+  font-size:11px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;
+}
+.det-resp-card {
+  background:#F8FAFF; border:1px solid var(--border);
+  border-radius:8px; padding:10px 14px; margin-bottom:6px;
+  display:flex; align-items:flex-start; gap:12px;
+}
+.det-resp-card .dr-qid   { font-size:10px; font-weight:700; color:var(--blue); background:#EAF1FB; border-radius:4px; padding:2px 7px; white-space:nowrap; margin-top:1px; flex-shrink:0; }
+.det-resp-card .dr-title { font-size:12.5px; color:var(--navy); flex:1; line-height:1.4; }
+.det-resp-card .dr-opts  { font-size:11px; color:var(--muted); margin-top:3px; }
+.det-resp-card .dr-score { font-size:13px; font-weight:700; flex-shrink:0; }
+.det-empty { text-align:center; padding:28px; color:var(--muted); font-size:13px; }
+.det-comp-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+.det-comp-table th { background:#F8FAFF; color:var(--muted); font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px; padding:8px 10px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
+.det-comp-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.det-comp-table tr:last-child td { border-bottom:none; }
+.det-comp-table tr:hover td { background:#F8FAFF; }
+.hist-row-click { cursor:pointer; transition:background .12s; }
+.hist-row-click:hover td { background:#F0F4FF; }
+
 /* API CONFIG BAR */
 .api-config { background:#EAF1FB; border-bottom:1px solid var(--border); padding:6px 24px; display:flex; align-items:center; gap:10px; font-size:12px; }
 .api-config label { color:var(--muted); font-weight:600; white-space:nowrap; }
@@ -1727,13 +1797,13 @@ async function saveAvaliacao() {
     const sels = answers[q.id] || [];
     const score = sels.length > 0 ? sels.reduce((a,b)=>a+b,0)/sels.length : null;
     // Descobre letras selecionadas
-    const opcoes = q.options
-      .filter(opt => {
-        const cb = document.querySelector(`input[data-qid="${q.id}"][value="${opt.s}"]`);
-        return cb && cb.checked;
-      })
-      .map(opt => opt.l);
-    return { questao_id: q.id, pilar: q.pName, opcoes_selecionadas: opcoes, score };
+    const selecionadas = q.options.filter(opt => {
+      const cb = document.querySelector(`input[data-qid="${q.id}"][value="${opt.s}"]`);
+      return cb && cb.checked;
+    });
+    const opcoes = selecionadas.map(opt => opt.l);
+    const textos = selecionadas.map(opt => opt.t);
+    return { questao_id: q.id, pilar: q.pName, opcoes_selecionadas: opcoes, opcoes_texto: textos, score };
   }).filter(r => r.opcoes_selecionadas.length > 0);
 
   const componentes = getComponentesData();
@@ -1827,7 +1897,7 @@ async function loadHistorico() {
       const st = getStatus(av.iet);
       const color = getBarColor(av.iet);
       const dateStr = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
-      html += `<tr>
+      html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
         <td style="color:var(--muted)">#${av.id}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
         <td>${av.responsavel || '—'}</td>
@@ -2034,6 +2104,150 @@ function calcIrFromComponentes(componentes) {
   if (totalPeso === 0) return null;
   const soma = componentes.reduce((s, c) => s + (c.score_100 || 0) * (c.peso_crit || 0), 0);
   return Math.round((soma / totalPeso) * 100) / 100;
+}
+
+// ============================================================
+// MODAL DETALHE DE AVALIAÇÃO
+// ============================================================
+async function openAvaliacaoDetail(id) {
+  // Overlay com loading
+  const overlay = document.createElement('div');
+  overlay.className = 'det-overlay';
+  overlay.id = 'det-overlay';
+  overlay.innerHTML = `<div class="det-modal" style="padding:48px;text-align:center;color:var(--muted)">⏳ Carregando detalhe...</div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeAvaliacaoDetail(); });
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', _detEscHandler);
+
+  try {
+    const res = await fetch(getApiUrl() + '/api/avaliacoes/' + id);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const av = await res.json();
+    overlay.innerHTML = buildDetailModal(av);
+  } catch (err) {
+    overlay.innerHTML = `<div class="det-modal" style="padding:48px;text-align:center;color:var(--red)">
+      ❌ Não foi possível carregar o detalhe: <strong>${err.message}</strong><br>
+      <button onclick="closeAvaliacaoDetail()" style="margin-top:16px;padding:8px 20px;background:var(--navy);color:#fff;border:none;border-radius:7px;cursor:pointer;">Fechar</button>
+    </div>`;
+  }
+}
+
+function closeAvaliacaoDetail() {
+  document.getElementById('det-overlay')?.remove();
+  document.removeEventListener('keydown', _detEscHandler);
+}
+
+function _detEscHandler(e) { if (e.key === 'Escape') closeAvaliacaoDetail(); }
+
+function buildDetailModal(av) {
+  const st       = getStatus(av.iet);
+  const color    = getBarColor(av.iet);
+  const dataFmt  = av.data_avaliacao  ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR')  : '—';
+  const criadoFmt = av.criado_em
+    ? new Date(av.criado_em).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })
+    : '—';
+
+  // ── Header ──
+  let html = `
+  <div class="det-modal">
+    <div class="det-header">
+      <div class="det-header-info">
+        <h2>${av.sistema_nome} <span style="font-size:14px;opacity:.6;font-weight:400">#${av.id}</span></h2>
+        <p>
+          ${av.responsavel ? `👤 ${av.responsavel} &nbsp;·&nbsp; ` : ''}
+          📅 Avaliação: ${dataFmt} &nbsp;·&nbsp;
+          🕐 Criado em: ${criadoFmt}
+          ${av.unidade_negocio ? `&nbsp;·&nbsp; 🏢 ${av.unidade_negocio}` : ''}
+        </p>
+      </div>
+      <button class="det-close" onclick="closeAvaliacaoDetail()">✕</button>
+    </div>`;
+
+  // ── Scores ──
+  html += `<div class="det-scores">
+    <div class="det-score-box"><div class="ds-label">IES — Software</div><div class="ds-val" style="color:var(--gold)">${av.ies ?? '—'}</div></div>
+    <div class="det-score-box"><div class="ds-label">IR — Resiliência</div><div class="ds-val" style="color:var(--green)">${av.ir ?? '—'}</div></div>
+    <div class="det-score-box"><div class="ds-label">IET — Geral</div><div class="ds-val" style="color:${color}">${av.iet}</div></div>
+    <div class="det-score-box"><div class="ds-label">Coerência</div><div class="ds-val" style="color:var(--navy)">${av.coerencia ?? '—'}</div></div>
+    <div class="det-score-box"><div class="ds-label">Status</div><div class="ds-val" style="font-size:16px;margin-top:6px"><span class="badge ${st.cls}">${st.label}</span></div></div>
+  </div>`;
+
+  html += `<div class="det-body">`;
+
+  // ── Respostas ──
+  const respostas = av.respostas || [];
+  html += `<div class="det-section">
+    <h3>📋 Respostas <span style="font-weight:400;font-size:12px;color:var(--muted)">${respostas.length} questão(ões) respondida(s)</span></h3>`;
+
+  if (!respostas.length) {
+    html += `<div class="det-empty">Nenhuma resposta registrada nesta avaliação.</div>`;
+  } else {
+    // Agrupar por pilar
+    const byPilar = {};
+    respostas.forEach(r => {
+      const p = r.pilar || 'Sem pilar';
+      if (!byPilar[p]) byPilar[p] = [];
+      byPilar[p].push(r);
+    });
+
+    Object.entries(byPilar).forEach(([pilar, itens]) => {
+      html += `<div class="det-pilar-group"><div class="det-pilar-label">${pilar}</div>`;
+      itens.forEach(r => {
+        const qDef   = QUESTIONS.find(q => q.id === r.questao_id);
+        const titulo = qDef?.title || r.questao_id;
+        const letras = (r.opcoes_selecionadas || []).join(', ') || '—';
+        const textos = (r.opcoes_texto || []);
+        const scoreColor = r.score != null ? getBarColor(r.score * 10) : 'var(--muted)';
+        html += `<div class="det-resp-card">
+          <span class="dr-qid">${r.questao_id}</span>
+          <div style="flex:1">
+            <div class="dr-title">${titulo}</div>
+            ${textos.length
+              ? textos.map(t => `<div class="dr-opts" style="margin-top:4px">▸ ${t}</div>`).join('')
+              : `<div class="dr-opts">Opção: <strong>${letras}</strong></div>`}
+          </div>
+          <div class="dr-score" style="color:${scoreColor}">${r.score != null ? r.score.toFixed(1) : '—'}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Componentes ──
+  const comps = av.componentes || [];
+  html += `<div class="det-section">
+    <h3>🖥️ Componentes de Infraestrutura <span style="font-weight:400;font-size:12px;color:var(--muted)">${comps.length} componente(s)</span></h3>`;
+
+  if (!comps.length) {
+    html += `<div class="det-empty">Nenhum componente de infraestrutura registrado nesta avaliação.</div>`;
+  } else {
+    html += `<div style="overflow-x:auto"><table class="det-comp-table">
+      <thead><tr>
+        <th>Componente</th><th>Tipo</th><th>Provedor</th><th>Impacto</th><th>Caminho</th>
+        <th>P · Resil.</th><th>Q · Score</th><th>S · Risco</th>
+      </tr></thead><tbody>`;
+
+    comps.forEach(c => {
+      const riscoCls = c.class_risco === 'Verde' ? 'cs-verde' : c.class_risco === 'Amarelo' ? 'cs-amarelo' : 'cs-vermelho';
+      const scoreColor = c.score_100 != null ? getBarColor(c.score_100) : 'var(--muted)';
+      html += `<tr>
+        <td><strong>${c.nome || '—'}</strong>${c.sla ? `<br><small style="color:var(--muted)">SLA: ${c.sla}</small>` : ''}</td>
+        <td>${c.tipo || '—'}</td>
+        <td>${c.provedor || '—'}</td>
+        <td>${c.impacto || '—'}</td>
+        <td>${c.caminho_critico || '—'}</td>
+        <td style="text-align:center;font-weight:700">${c.score_resil ?? '—'}</td>
+        <td style="text-align:center;font-weight:700;color:${scoreColor}">${c.score_100 ?? '—'}</td>
+        <td style="text-align:center"><span class="${riscoCls}" style="font-weight:700">${c.class_risco || '—'}</span></td>
+      </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+  }
+
+  html += `</div></div></div>`;
+  return html;
 }
 
 // ============================================================
