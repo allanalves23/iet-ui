@@ -288,6 +288,39 @@ tr:hover td { background:#F8FAFF; }
 .option-score-badge { flex-shrink:0; background:var(--gray2); color:var(--navy); padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700; }
 .option-item.selected .option-score-badge { background:var(--blue); color:#fff; }
 
+/* SISTEMAS */
+.sist-filter-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+.sist-search { flex:1; min-width:180px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--navy); background:#fff; }
+.sist-search:focus { outline:none; border-color:var(--blue); }
+
+.hs-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; white-space:nowrap; }
+.hs-verde    { background:#EAFAF1; color:#1E8449; }
+.hs-amarelo  { background:#FEF9E7; color:#B7950B; }
+.hs-laranja  { background:#FEF0E6; color:#BA4A00; }
+.hs-vermelho { background:#FDEDEC; color:#C0392B; }
+
+
+
+.sist-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
+.sist-modal-overlay.open { display:flex; }
+.sist-modal { background:#fff; border-radius:12px; width:580px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,.2); }
+.sist-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:1; }
+.sist-modal-head h2 { font-size:16px; font-weight:700; color:var(--navy); margin:0; }
+.sist-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted); padding:2px 6px; line-height:1; border-radius:4px; }
+.sist-modal-close:hover { background:var(--gray2); }
+.sist-modal-body { padding:22px; display:flex; flex-direction:column; gap:18px; }
+.sist-modal-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:520px){ .sist-modal-row { grid-template-columns:1fr; } }
+.sist-f { display:flex; flex-direction:column; gap:6px; }
+.sist-f label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+.sist-f input, .sist-f select { padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--navy); background:#fff; width:100%; box-sizing:border-box; }
+.sist-f input:focus, .sist-f select:focus { outline:none; border-color:var(--blue); }
+.sist-f input.err { border-color:var(--red); }
+.sist-modal-foot { display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--border); background:#fff; position:sticky; bottom:0; }
+
+.sist-act { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; color:var(--navy); transition:background .15s; white-space:nowrap; }
+.sist-act:hover { background:var(--gray2); }
+
 /* COHERENCE */
 .coh-metric-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px; }
 .coh-metric { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px; }
@@ -523,6 +556,7 @@ tr:hover td { background:#F8FAFF; }
 
     <div class="sidebar-section">
       <div class="sidebar-label">Avaliação</div>
+      <div class="nav-item" id="nav-sist" onclick="showPage('sist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M5 6h14M5 18h10"/><circle cx="19" cy="18" r="3"/><path d="M19 15v3l2 1"/></svg> Sistemas</div>
       <div class="nav-item" id="nav-assess" onclick="showPage('assess')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Nova Avaliação</div>
       <div class="nav-item" id="nav-hist" onclick="showPage('hist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Histórico</div>
     </div>
@@ -557,20 +591,20 @@ tr:hover td { background:#F8FAFF; }
           </select>
         </div>
         <div class="filter">
-          <label>Unidade de Negócio</label>
-          <select id="f-unidade" onchange="loadExecDashboard()">
-            <option value="Todas">Todas</option>
+          <label>Portfólio</label>
+          <select id="f-portfolio" onchange="loadExecDashboard()">
+            <option value="Todos">Todos</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label>Cadeia de Valor</label>
+          <select id="f-cadeia" onchange="loadExecDashboard()">
+            <option value="Todos">Todos</option>
           </select>
         </div>
         <div class="filter">
           <label>Provedor de Nuvem</label>
           <select id="f-provedor" onchange="loadExecDashboard()">
-            <option value="Todos">Todos</option>
-          </select>
-        </div>
-        <div class="filter">
-          <label>Caminho Crítico</label>
-          <select id="f-caminho" onchange="loadExecDashboard()">
             <option value="Todos">Todos</option>
           </select>
         </div>
@@ -708,7 +742,7 @@ tr:hover td { background:#F8FAFF; }
         <div class="filter"><label>Sistema</label><select id="infra-f-sistema" onchange="loadInfraCharts()"><option>Todos</option></select></div>
         <div class="filter"><label>Provedor</label><select id="infra-f-provedor" onchange="loadInfraCharts()"><option>Todos</option></select></div>
         <div class="filter"><label>Tipo</label><select id="infra-f-tipo" onchange="loadInfraCharts()"><option>Todos</option></select></div>
-        <div class="filter"><label>Caminho</label><select id="infra-f-caminho" onchange="loadInfraCharts()"><option>Todos</option></select></div>
+        <div class="filter"><label>Tipo Solução</label><select id="infra-f-caminho" onchange="loadInfraCharts()"><option>Todos</option></select></div>
       </div>
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-label">Componentes Avaliados</div><div class="kpi-val navy" id="infra-kpi-total">—</div><div class="kpi-sub" id="infra-kpi-sub-total">—</div></div>
@@ -731,7 +765,7 @@ tr:hover td { background:#F8FAFF; }
         <h3>Top 10 Componentes Mais Críticos do Portfólio</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Caminho</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
+            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
             <tbody id="infra-table"></tbody>
           </table>
         </div>
@@ -832,6 +866,62 @@ tr:hover td { background:#F8FAFF; }
     </div>
 
 
+    <!-- ========== SISTEMAS ========== -->
+    <div class="page" id="page-sist">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1>⚙️ Gestão de Sistemas</h1>
+          <div class="sub">Cadastre e mantenha os sistemas avaliados pelo IET</div>
+        </div>
+        <button class="btn-save" style="margin-top:4px" onclick="openSistemaModal()">+ Novo Sistema</button>
+      </div>
+
+      <div class="sist-filter-bar">
+        <input class="sist-search" id="sist-f-search" type="text" placeholder="🔍 Buscar por nome..." oninput="renderSistemas()">
+        <div class="filter">
+          <label>Portfólio</label>
+          <select id="sist-f-portfolio" onchange="renderSistemas()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter">
+          <label>Cadeia de Valor</label>
+          <select id="sist-f-cadeia" onchange="renderSistemas()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter">
+          <label>Criticidade</label>
+          <select id="sist-f-crit" onchange="renderSistemas()">
+            <option value="">Todas</option>
+            <option>Verde</option>
+            <option>Amarelo</option>
+            <option>Laranja</option>
+            <option>Vermelho</option>
+          </select>
+        </div>
+        <span id="sist-count" style="font-size:12px;color:var(--muted);margin-left:4px"></span>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sistema</th>
+                <th>Criticidade</th>
+                <th>Portfólio</th>
+                <th>Cadeia de Valor</th>
+                <th>Provedor</th>
+                <th>Último IET</th>
+                <th>Avaliações</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="sist-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">Carregando sistemas...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ========== HISTÓRICO ========== -->
     <div class="page" id="page-hist">
       <div class="page-header">
@@ -852,6 +942,71 @@ tr:hover td { background:#F8FAFF; }
   </div><!-- end main -->
 </div><!-- end layout -->
 </div><!-- end layout -->
+
+<!-- ========== MODAL SISTEMA ========== -->
+<div class="sist-modal-overlay" id="sist-modal-overlay" onclick="if(event.target===this)closeSistemaModal()">
+  <div class="sist-modal">
+    <div class="sist-modal-head">
+      <h2 id="sist-modal-title">Novo Sistema</h2>
+      <button class="sist-modal-close" onclick="closeSistemaModal()">✕</button>
+    </div>
+    <div class="sist-modal-body">
+      <input type="hidden" id="sist-id">
+
+      <div class="sist-f">
+        <label>Nome do Sistema *</label>
+        <input type="text" id="sist-nome" placeholder="Ex: Atlas, NRTC, Pegasus...">
+      </div>
+
+      <div class="sist-modal-row">
+        <div class="sist-f">
+          <label>Criticidade (Happy Socks)</label>
+          <select id="sist-crit">
+            <option value="">Não definida</option>
+            <option value="Verde">🟢 Verde — Baixa</option>
+            <option value="Amarelo">🟡 Amarelo — Moderada</option>
+            <option value="Laranja">🟠 Laranja — Alta</option>
+            <option value="Vermelho">🔴 Vermelho — Crítica</option>
+          </select>
+        </div>
+        <div class="sist-f">
+          <label>Provedor de Nuvem</label>
+          <select id="sist-provedor">
+            <option value="">Não definido</option>
+            <option>Azure</option>
+            <option>AWS</option>
+            <option>GCP</option>
+            <option>On-Premise</option>
+            <option>Híbrido</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sist-modal-row">
+        <div class="sist-f">
+          <label>Portfólio</label>
+          <input type="text" id="sist-portfolio" list="dl-portfolio"
+                 placeholder="Ex: Listados, Balcão..." autocomplete="off"
+                 onblur="normalizeTitleCase(this)">
+          <datalist id="dl-portfolio"></datalist>
+        </div>
+        <div class="sist-f">
+          <label>Cadeia de Valor</label>
+          <input type="text" id="sist-cadeia" list="dl-cadeia"
+                 placeholder="Ex: Clearing, Risco..." autocomplete="off"
+                 onblur="normalizeTitleCase(this)">
+          <datalist id="dl-cadeia"></datalist>
+        </div>
+      </div>
+
+      <div id="sist-modal-err" style="display:none;color:var(--red);font-size:12px;font-weight:600;padding:8px 12px;background:#FDEDEC;border-radius:6px"></div>
+    </div>
+    <div class="sist-modal-foot">
+      <button class="sist-act" onclick="closeSistemaModal()">Cancelar</button>
+      <button class="btn-save" id="sist-save-btn" onclick="saveSistema()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -1127,8 +1282,9 @@ function showPage(id) {
   if (id === 'coh')   { loadCohCharts(); }
   if (id === 'infra') { loadInfraCharts(); }
   if (id === 'tempo') { loadTemporalChart(); }
+  if (id === 'sist')  { loadSistemas(); }
   if (window.innerWidth <= 768) closeSidebar();
-  if (id === 'hist') { loadHistorico(); }
+  if (id === 'hist')  { loadHistorico(); }
 }
 
 // ============================================================
@@ -1172,10 +1328,10 @@ async function loadExecDashboard() {
   kpiRow.classList.add('exec-loading');
 
   const params = new URLSearchParams({
-    periodo:         document.getElementById('f-periodo').value,
-    unidade_negocio: document.getElementById('f-unidade').value,
-    provedor_nuvem:  document.getElementById('f-provedor').value,
-    caminho_critico: document.getElementById('f-caminho').value,
+    periodo:        document.getElementById('f-periodo').value,
+    portfolio:      document.getElementById('f-portfolio').value,
+    cadeia_valor:   document.getElementById('f-cadeia').value,
+    provedor_nuvem: document.getElementById('f-provedor').value,
   });
 
   try {
@@ -1280,7 +1436,7 @@ function renderExecDashboard(data) {
   rankDiv.innerHTML = ranking_sistemas.map(sys => {
     const st    = getStatus(sys.iet);
     const color = getBarColor(sys.iet);
-    const sub   = [sys.provedor_nuvem, sys.caminho_critico].filter(Boolean).join(' · ');
+    const sub   = [sys.portfolio, sys.cadeia_valor].filter(Boolean).join(' · ');
     return `<div class="rank-bar-wrap">
       <div class="rank-name" title="${sys.nome}">${sys.nome}${sub ? `<br><span style="font-size:10px;color:var(--muted);font-weight:400">${sub}</span>` : ''}</div>
       <div class="rank-bar"><div class="fill" style="width:${sys.iet}%;background:${color}">
@@ -1295,15 +1451,16 @@ function renderExecDashboard(data) {
 function populateExecFilters(filtros) {
   function fill(selId, items, allLabel) {
     const sel = document.getElementById(selId);
-    const cur = sel.value;
+    if (!sel) return;
+    const cur   = sel.value;
     const extra = items.map(v => `<option value="${v}">${v}</option>`).join('');
     sel.innerHTML = `<option value="${allLabel}">${allLabel}</option>${extra}`;
     if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
   }
-  fill('f-periodo',  filtros.periodos          || [], 'Todos');
-  fill('f-unidade',  filtros.unidades_negocio  || [], 'Todas');
-  fill('f-provedor', filtros.provedores         || [], 'Todos');
-  fill('f-caminho',  filtros.caminhos           || [], 'Todos');
+  fill('f-periodo',   filtros.periodos   || [], 'Todos');
+  fill('f-portfolio', filtros.portfolios || [], 'Todos');
+  fill('f-cadeia',    filtros.cadeias    || [], 'Todos');
+  fill('f-provedor',  filtros.provedores || [], 'Todos');
 }
 
 // ============================================================
@@ -1963,8 +2120,8 @@ function resetForm() {
 // ============================================================
 
 function getApiUrl() {
-  return 'https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io';
-  // return 'http://localhost:3000'
+  // return 'https://iet-backend.livelysand-77ff5716.brazilsouth.azurecontainerapps.io';
+  return 'http://localhost:3000'
 }
 
 function showToast(msg, type = 'success', duration = 4000) {
@@ -2151,11 +2308,15 @@ const COMP_OPTS = {
   depend:      ['Acoplamento total (sem alternativa)','Baixo acoplamento','Algumas alternativas','Totalmente desacoplado'],
   happy:       ['Verde','Amarelo','Vermelho'],
   contorno:    ['Não — sem contorno possível','Sim — possui contorno'],
-  caminho:     ['Satélite — sistema auxiliar','Core — caminho crítico'],
+  caminho:     [{value:'Satélite', label:'Satélite — sistema auxiliar'},{value:'Core', label:'Core — caminho crítico'}],
 };
 
 function makeSelect(key, cid) {
-  const opts = COMP_OPTS[key].map(o => `<option>${o}</option>`).join('');
+  const opts = COMP_OPTS[key].map(o =>
+    typeof o === 'string'
+      ? `<option>${o}</option>`
+      : `<option value="${o.value}">${o.label}</option>`
+  ).join('');
   return `<select id="c${cid}-${key}" onchange="calcComp(${cid})">${opts}</select>`;
 }
 
@@ -2181,7 +2342,7 @@ function buildCompCard(cid) {
       <div class="comp-field"><label>L · Dependências</label>${s('depend')}</div>
       <div class="comp-field"><label>M · Happy Socks (Risco Visual)</label>${s('happy')}</div>
       <div class="comp-field"><label>N · Contorno</label>${s('contorno')}</div>
-      <div class="comp-field"><label>O · Caminho Crítico</label>${s('caminho')}</div>
+      <div class="comp-field"><label>O · Tipo Solução</label>${s('caminho')}</div>
     </div>
     <div class="comp-flags">
       <div class="comp-flags-title">Capacidades de Resiliência (usadas na Coerência SW × Infra)</div>
@@ -2201,7 +2362,7 @@ function buildCompCard(cid) {
       <div class="comp-score-item"><div class="cs-label">S · Class. Risco</div><div class="cs-val cs-badge" id="c${cid}-s">—</div></div>
       <div class="comp-score-item"><div class="cs-label">T · Peso Imp.</div><div class="cs-val" id="c${cid}-t">—</div></div>
       <div class="comp-score-item"><div class="cs-label">U · Peso Crit.</div><div class="cs-val" id="c${cid}-u">—</div></div>
-      <div class="comp-score-item"><div class="cs-label">V · Peso Caminho</div><div class="cs-val" id="c${cid}-v">—</div></div>
+      <div class="comp-score-item"><div class="cs-label">V · Peso Tipo Sol.</div><div class="cs-val" id="c${cid}-v">—</div></div>
     </div>
   </div>`;
 }
@@ -2256,7 +2417,7 @@ function calcComp(cid) {
   const isCore = g('caminho') === 1;
   const pesoU  = isCore ? pesoCritCore[g('impacto')] : pesoCritSat[g('impacto')];
 
-  // V — Peso Caminho
+  // V — Peso Tipo Solução
   const pesoV = isCore ? 1.5 : 0.5;
 
   // Render
@@ -2455,7 +2616,7 @@ function buildDetailModal(av) {
   } else {
     html += `<div style="overflow-x:auto"><table class="det-comp-table">
       <thead><tr>
-        <th>Componente</th><th>Tipo</th><th>Provedor</th><th>Impacto</th><th>Caminho</th>
+        <th>Componente</th><th>Tipo</th><th>Provedor</th><th>Impacto</th><th>Tipo Solução</th>
         <th>P · Resil.</th><th>Q · Score</th><th>S · Risco</th>
       </tr></thead><tbody>`;
 
@@ -2479,6 +2640,199 @@ function buildDetailModal(av) {
 
   html += `</div></div></div>`;
   return html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// ============================================================
+// GESTÃO DE SISTEMAS
+// ============================================================
+let _sistemas = [];
+
+function normalizeTitleCase(el) {
+  if (!el || !el.value.trim()) return;
+  el.value = el.value.trim()
+    .split(/\s+/)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function hsBadge(crit) {
+  if (!crit) return '<span style="color:var(--muted);font-size:11px">—</span>';
+  const icon = { Verde:'🟢', Amarelo:'🟡', Laranja:'🟠', Vermelho:'🔴' }[crit] || '';
+  return `<span class="hs-badge hs-${crit.toLowerCase()}">${icon} ${crit}</span>`;
+}
+
+function hsIetColor(v) {
+  return v >= 75 ? 'var(--green)' : v >= 60 ? 'var(--gold)' : 'var(--red)';
+}
+
+async function loadSistemas() {
+  clearApiError('sist');
+  const tbody = document.getElementById('sist-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Carregando...</td></tr>';
+
+  try {
+    const res = await fetch(getApiUrl() + '/api/sistemas');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _sistemas = await res.json();
+  } catch (err) {
+    console.error('Erro ao carregar sistemas:', err);
+    showApiError('sist', loadSistemas);
+    return;
+  }
+
+  _populateSistFilters();
+  renderSistemas();
+}
+
+function _populateSistFilters() {
+  const portfolios = [...new Set(_sistemas.map(s => s.portfolio).filter(Boolean))].sort();
+  const cadeias    = [...new Set(_sistemas.map(s => s.cadeia_valor).filter(Boolean))].sort();
+
+  const fp = document.getElementById('sist-f-portfolio');
+  const fc = document.getElementById('sist-f-cadeia');
+  if (fp) {
+    const cur = fp.value;
+    fp.innerHTML = '<option value="">Todos</option>' + portfolios.map(v => `<option${v===cur?' selected':''}>${v}</option>`).join('');
+  }
+  if (fc) {
+    const cur = fc.value;
+    fc.innerHTML = '<option value="">Todos</option>' + cadeias.map(v => `<option${v===cur?' selected':''}>${v}</option>`).join('');
+  }
+}
+
+function renderSistemas() {
+  const tbody = document.getElementById('sist-tbody');
+  if (!tbody) return;
+
+  const search  = (document.getElementById('sist-f-search')?.value    || '').toLowerCase();
+  const fPort   =  document.getElementById('sist-f-portfolio')?.value  || '';
+  const fCadeia =  document.getElementById('sist-f-cadeia')?.value     || '';
+  const fCrit   =  document.getElementById('sist-f-crit')?.value       || '';
+
+  const list = _sistemas.filter(s => {
+    if (search  && !s.nome.toLowerCase().includes(search))                return false;
+    if (fPort   && fPort   !== 'Todos' && s.portfolio    !== fPort)      return false;
+    if (fCadeia && fCadeia !== 'Todos' && s.cadeia_valor !== fCadeia)    return false;
+    if (fCrit   && fCrit   !== 'Todas' && s.criticidade  !== fCrit)      return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('sist-count');
+  if (countEl) countEl.textContent = `${list.length} de ${_sistemas.length} sistema${_sistemas.length !== 1 ? 's' : ''}`;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--muted)">Nenhum sistema encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    const iet = s.ultimo_iet != null
+      ? `<strong style="color:${hsIetColor(parseFloat(s.ultimo_iet))}">${parseFloat(s.ultimo_iet).toFixed(1)}</strong>`
+      : '<span style="color:var(--muted)">—</span>';
+    return `<tr>
+      <td><strong>${s.nome}</strong></td>
+      <td>${hsBadge(s.criticidade)}</td>
+      <td style="font-size:13px">${s.portfolio    || '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="font-size:13px">${s.cadeia_valor || '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="font-size:13px">${s.provedor_nuvem || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${iet}</td>
+      <td style="font-size:13px;color:var(--muted);text-align:center">${s.total_avaliacoes}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="sist-act" onclick="openSistemaModal(${s.id})">✏️ Editar</button>
+          <button class="sist-act" onclick="showPage('hist');loadHistorico()" title="Ver avaliações">📋</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openSistemaModal(id = null) {
+  document.getElementById('sist-modal-overlay').classList.add('open');
+  document.getElementById('sist-modal-title').textContent  = id ? 'Editar Sistema' : 'Novo Sistema';
+  document.getElementById('sist-id').value                 = id || '';
+  document.getElementById('sist-modal-err').style.display  = 'none';
+  document.getElementById('sist-nome').classList.remove('err');
+
+  // Datalists com valores já cadastrados
+  const portfolios = [...new Set(_sistemas.map(s => s.portfolio).filter(Boolean))].sort();
+  const cadeias    = [...new Set(_sistemas.map(s => s.cadeia_valor).filter(Boolean))].sort();
+  document.getElementById('dl-portfolio').innerHTML = portfolios.map(v => `<option value="${v}">`).join('');
+  document.getElementById('dl-cadeia').innerHTML    = cadeias.map(v => `<option value="${v}">`).join('');
+
+  if (id) {
+    const s = _sistemas.find(x => x.id === id);
+    if (s) {
+      document.getElementById('sist-nome').value      = s.nome              || '';
+      document.getElementById('sist-crit').value      = s.criticidade       || '';
+      document.getElementById('sist-portfolio').value = s.portfolio         || '';
+      document.getElementById('sist-cadeia').value    = s.cadeia_valor      || '';
+      document.getElementById('sist-provedor').value  = s.provedor_nuvem    || '';
+    }
+  } else {
+    ['sist-nome','sist-portfolio','sist-cadeia'].forEach(fid => {
+      const el = document.getElementById(fid); if (el) el.value = '';
+    });
+    document.getElementById('sist-crit').value     = '';
+    document.getElementById('sist-provedor').value = '';
+  }
+}
+
+function closeSistemaModal() {
+  document.getElementById('sist-modal-overlay').classList.remove('open');
+}
+
+async function saveSistema() {
+  const btn    = document.getElementById('sist-save-btn');
+  const errDiv = document.getElementById('sist-modal-err');
+  const id     = document.getElementById('sist-id').value;
+  const nome   = document.getElementById('sist-nome').value.trim();
+
+  errDiv.style.display = 'none';
+  document.getElementById('sist-nome').classList.remove('err');
+
+  if (!nome) {
+    document.getElementById('sist-nome').classList.add('err');
+    document.getElementById('sist-nome').focus();
+    return;
+  }
+
+  const payload = {
+    nome,
+    criticidade:     document.getElementById('sist-crit').value              || null,
+    portfolio:       document.getElementById('sist-portfolio').value.trim()  || null,
+    cadeia_valor:    document.getElementById('sist-cadeia').value.trim()     || null,
+    provedor_nuvem:  document.getElementById('sist-provedor').value          || null,
+  };
+
+  btn.disabled    = true;
+  btn.textContent = '⏳ Salvando...';
+
+  try {
+    const url    = id ? `${getApiUrl()}/api/sistemas/${id}` : `${getApiUrl()}/api/sistemas`;
+    const method = id ? 'PUT' : 'POST';
+    const res    = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    closeSistemaModal();
+    await loadSistemas();
+  } catch (err) {
+    errDiv.textContent   = `Erro ao salvar: ${err.message}`;
+    errDiv.style.display = 'block';
+    console.error('saveSistema:', err);
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '💾 Salvar';
+  }
 }
 
 // ============================================================
