@@ -252,6 +252,12 @@ tr:hover td { background:#F8FAFF; }
 .comp-field label { display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
 .comp-field select { width:100%; padding:7px 9px; border:1px solid var(--border); border-radius:6px; font-size:12.5px; color:var(--navy); background:#fff; cursor:pointer; }
 .comp-field select:focus { outline:none; border-color:var(--blue); }
+.comp-flags { margin:0; padding:10px 14px; background:#F8FAFC; border-top:1px dashed var(--border); }
+.comp-flags-title { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:8px; }
+.comp-flags-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px 14px; }
+.comp-flags-grid label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--navy); cursor:pointer; }
+.comp-flags-grid input[type=checkbox] { accent-color:var(--navy); width:14px; height:14px; flex-shrink:0; }
+@media(max-width:900px){ .comp-flags-grid { grid-template-columns:repeat(2,1fr); } }
 .comp-scores { display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--border); }
 .comp-score-item { flex:1; min-width:90px; padding:10px 12px; border-right:1px solid var(--border); text-align:center; }
 .comp-score-item:last-child { border-right:none; }
@@ -541,7 +547,7 @@ tr:hover td { background:#F8FAFF; }
       <div class="nav-item active" id="nav-exec" onclick="showPage('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0"/></svg> Visão Executiva</div>
       <div class="nav-item" id="nav-comp" onclick="showPage('comp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Comparação Sistemas</div>
       <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
-      <div class="nav-item disabled" id="nav-coh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra<span class="nav-soon">Em breve</span></div>
+      <div class="nav-item" id="nav-coh" onclick="showPage('coh')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra</div>
       <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
       <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
     </div>
@@ -699,11 +705,11 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Onde a arquitetura declarada não casa com a infra. Risco oculto.</div>
       </div>
       <div class="coh-metric-row">
-        <div class="coh-metric"><div class="cm-label">Coerência Média</div><div class="cm-val" style="color:var(--gold)">71.5%</div><div class="badge atc" style="margin-top:6px">Aceitável</div></div>
-        <div class="coh-metric"><div class="cm-label">Regras Coerentes</div><div class="cm-val" style="color:var(--green)">120</div><div class="cm-sub">de 168 totais (12 sistemas × 14 regras)</div></div>
-        <div class="coh-metric"><div class="cm-label">Inconsistências</div><div class="cm-val" style="color:var(--red)">38</div><div class="cm-sub">"SW Sim, Infra abaixo"</div></div>
-        <div class="coh-metric"><div class="cm-label">Atenções</div><div class="cm-val" style="color:var(--navy)">10</div><div class="cm-sub">"SW Não, Infra acima"</div></div>
-        <div class="coh-metric"><div class="cm-label">Penalidade Total</div><div class="cm-val" style="color:var(--red)">−12.4</div><div class="cm-sub">pts deduções no IET</div></div>
+        <div class="coh-metric"><div class="cm-label">Coerência Média</div><div class="cm-val" id="coh-kpi-media" style="color:var(--gold)">—</div><div id="coh-kpi-media-badge" style="margin-top:6px"></div></div>
+        <div class="coh-metric"><div class="cm-label">Regras Coerentes</div><div class="cm-val" id="coh-kpi-coer" style="color:var(--green)">—</div><div class="cm-sub" id="coh-kpi-coer-sub">—</div></div>
+        <div class="coh-metric"><div class="cm-label">Inconsistências</div><div class="cm-val" id="coh-kpi-incon" style="color:var(--red)">—</div><div class="cm-sub">"SW Sim, Infra abaixo"</div></div>
+        <div class="coh-metric"><div class="cm-label">Atenções</div><div class="cm-val" id="coh-kpi-atenc" style="color:var(--navy)">—</div><div class="cm-sub">"SW Não, Infra acima"</div></div>
+        <div class="coh-metric"><div class="cm-label">Penalidade Total</div><div class="cm-val" id="coh-kpi-penal" style="color:var(--red)">—</div><div class="cm-sub">pts deduções no IET</div></div>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -719,7 +725,7 @@ tr:hover td { background:#F8FAFF; }
         <h3>Detalhe — Inconsistências Críticas</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Sistema</th><th>QID</th><th>Regra</th><th>Score SW</th><th>Valor Infra</th><th>Threshold</th><th>Status</th></tr></thead>
+            <thead><tr><th>Sistema</th><th>QID</th><th>Regra</th><th>Score SW</th><th>Infra</th><th>Threshold</th><th>Status</th></tr></thead>
             <tbody id="coh-detail-table"></tbody>
           </table>
         </div>
@@ -2338,6 +2344,17 @@ function buildCompCard(cid) {
       <div class="comp-field"><label>N · Contorno</label>${s('contorno')}</div>
       <div class="comp-field"><label>O · Tipo Solução</label>${s('caminho')}</div>
     </div>
+    <div class="comp-flags">
+      <div class="comp-flags-title">Capacidades de Resiliência (usadas na Coerência SW × Infra)</div>
+      <div class="comp-flags-grid">
+        <label><input type="checkbox" id="c${cid}-possui_multi_az"> Multi-AZ ativo/ativo</label>
+        <label><input type="checkbox" id="c${cid}-possui_failover_auto"> Failover automático</label>
+        <label><input type="checkbox" id="c${cid}-possui_dr_testado"> DR testado anualmente</label>
+        <label><input type="checkbox" id="c${cid}-possui_backup_auto"> Backup automático validado</label>
+        <label><input type="checkbox" id="c${cid}-possui_telemetria"> Telemetria correlacionada</label>
+        <label><input type="checkbox" id="c${cid}-possui_slo_monit"> SLO monitorado</label>
+      </div>
+    </div>
     <div class="comp-scores">
       <div class="comp-score-item"><div class="cs-label">P · Score Resil. (1–5)</div><div class="cs-val" id="c${cid}-p">—</div></div>
       <div class="comp-score-item"><div class="cs-label">Q · Score (0–100)</div><div class="cs-val" id="c${cid}-q">—</div></div>
@@ -2455,13 +2472,19 @@ function getComponentesData() {
       happy_socks:      g('happy'),
       contorno:         g('contorno'),
       caminho_critico:  g('caminho'),
-      score_resil:      num('p'),
-      score_100:        num('q'),
-      score_risco:      num('r'),
-      class_risco:      document.getElementById(`c${cid}-s`)?.textContent || '',
-      peso_imp:         num('t'),
-      peso_crit:        num('u'),
-      peso_caminho:     num('v'),
+      score_resil:           num('p'),
+      score_100:             num('q'),
+      score_risco:           num('r'),
+      class_risco:           document.getElementById(`c${cid}-s`)?.textContent || '',
+      peso_imp:              num('t'),
+      peso_crit:             num('u'),
+      peso_caminho:          num('v'),
+      possui_multi_az:       document.getElementById(`c${cid}-possui_multi_az`)?.checked ? 1 : 0,
+      possui_failover_auto:  document.getElementById(`c${cid}-possui_failover_auto`)?.checked ? 1 : 0,
+      possui_dr_testado:     document.getElementById(`c${cid}-possui_dr_testado`)?.checked ? 1 : 0,
+      possui_backup_auto:    document.getElementById(`c${cid}-possui_backup_auto`)?.checked ? 1 : 0,
+      possui_telemetria:     document.getElementById(`c${cid}-possui_telemetria`)?.checked ? 1 : 0,
+      possui_slo_monit:      document.getElementById(`c${cid}-possui_slo_monit`)?.checked ? 1 : 0,
     };
   });
 }
