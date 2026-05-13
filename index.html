@@ -252,12 +252,16 @@ tr:hover td { background:#F8FAFF; }
 .comp-field label { display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
 .comp-field select { width:100%; padding:7px 9px; border:1px solid var(--border); border-radius:6px; font-size:12.5px; color:var(--navy); background:#fff; cursor:pointer; }
 .comp-field select:focus { outline:none; border-color:var(--blue); }
-.comp-flags { margin:0; padding:10px 14px; background:#F8FAFC; border-top:1px dashed var(--border); }
+.comp-flags { display:none; }
 .comp-flags-title { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:8px; }
 .comp-flags-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px 14px; }
 .comp-flags-grid label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--navy); cursor:pointer; }
 .comp-flags-grid input[type=checkbox] { accent-color:var(--navy); width:14px; height:14px; flex-shrink:0; }
 @media(max-width:900px){ .comp-flags-grid { grid-template-columns:repeat(2,1fr); } }
+.comp-adequacao { padding:12px 14px; border-top:1px solid var(--border); background:#FAFBFC; }
+.comp-adequacao-label { display:block; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+.comp-adequacao-text { width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:13px; color:var(--navy); resize:vertical; font-family:inherit; background:#fff; }
+.comp-adequacao-text:focus { outline:none; border-color:var(--navy); }
 .comp-scores { display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--border); }
 .comp-score-item { flex:1; min-width:90px; padding:10px 12px; border-right:1px solid var(--border); text-align:center; }
 .comp-score-item:last-child { border-right:none; }
@@ -547,7 +551,7 @@ tr:hover td { background:#F8FAFF; }
       <div class="nav-item active" id="nav-exec" onclick="showPage('exec')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 3.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0"/></svg> Visão Executiva</div>
       <div class="nav-item" id="nav-comp" onclick="showPage('comp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Comparação Sistemas</div>
       <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
-      <div class="nav-item" id="nav-coh" onclick="showPage('coh')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra</div>
+      <div class="nav-item disabled" id="nav-coh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra<span class="nav-soon">EM BREVE</span></div>
       <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
       <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
     </div>
@@ -2355,6 +2359,10 @@ function buildCompCard(cid) {
         <label><input type="checkbox" id="c${cid}-possui_slo_monit"> SLO monitorado</label>
       </div>
     </div>
+    <div class="comp-adequacao">
+      <label class="comp-adequacao-label">Solução para Adequação</label>
+      <textarea id="c${cid}-adequacao" class="comp-adequacao-text" rows="3" placeholder="Descreva o que seria necessário para melhorar o score deste componente..."></textarea>
+    </div>
     <div class="comp-scores">
       <div class="comp-score-item"><div class="cs-label">P · Score Resil. (1–5)</div><div class="cs-val" id="c${cid}-p">—</div></div>
       <div class="comp-score-item"><div class="cs-label">Q · Score (0–100)</div><div class="cs-val" id="c${cid}-q">—</div></div>
@@ -2485,6 +2493,7 @@ function getComponentesData() {
       possui_backup_auto:    document.getElementById(`c${cid}-possui_backup_auto`)?.checked ? 1 : 0,
       possui_telemetria:     document.getElementById(`c${cid}-possui_telemetria`)?.checked ? 1 : 0,
       possui_slo_monit:      document.getElementById(`c${cid}-possui_slo_monit`)?.checked ? 1 : 0,
+      solucao_adequacao:     document.getElementById(`c${cid}-adequacao`)?.value || null,
     };
   });
 }
@@ -2636,6 +2645,18 @@ function buildDetailModal(av) {
     });
 
     html += `</tbody></table></div>`;
+
+    const compsComSolucao = comps.filter(c => c.solucao_adequacao);
+    if (compsComSolucao.length) {
+      html += `<div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">`;
+      compsComSolucao.forEach(c => {
+        html += `<div style="background:#FAFBFC;border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Solução para Adequação — ${c.nome || 'Componente'}</div>
+          <div style="font-size:13px;color:var(--navy);white-space:pre-wrap">${c.solucao_adequacao}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
   }
 
   html += `</div></div></div>`;
