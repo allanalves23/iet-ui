@@ -882,16 +882,16 @@ tr:hover td { background:#F8FAFF; }
         <div class="filter"><label>Métrica</label><select id="tempo-f-metrica" onchange="applyTemporalMetrica()"><option value="todas">Todos os Índices</option><option value="iet">Índice de Excelência Tecnológica (IET)</option><option value="ies">Índice de Excelência de Software (IES)</option><option value="ir">Índice de Resiliência (IR)</option></select></div>
       </div>
       <div class="card">
-        <h3 id="tempo-chart-title">Evolução dos Índices — Média do Portfólio</h3>
+        <h3 id="tempo-chart-title"><span id="tempo-chart-title-text">Evolução dos Índices — Média do Portfólio</span><span class="kpi-info" data-tip="Série temporal dos três índices (Índice de Excelência Tecnológica, Índice de Excelência de Software e Índice de Resiliência) agrupados pela granularidade selecionada (Trimestre ou Semestre). Quando filtrado por sistema, mostra a evolução individual; sem filtro, mostra a média do portfólio. Linhas descendentes indicam regressão de maturidade tecnológica."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <canvas id="chartTemporal" style="max-height:300px;"></canvas>
       </div>
       <div class="trend-row">
         <div class="card">
-          <h3>Maiores Subidas (delta entre últimas 2 avaliações)</h3>
+          <h3>Maiores Subidas (delta entre últimas 2 avaliações)<span class="kpi-info" data-tip="Sistemas que apresentaram a maior melhoria no Índice de Excelência Tecnológica (IET) entre as duas avaliações mais recentes de cada um. O delta é a diferença em pontos entre a avaliação atual e a anterior. Use para identificar quais sistemas estão evoluindo bem e replicar boas práticas no portfólio."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
           <ul class="trend-list" id="tempo-list-subidas"></ul>
         </div>
         <div class="card">
-          <h3>Maiores Quedas (regressões)</h3>
+          <h3>Maiores Quedas (regressões)<span class="kpi-info" data-tip="Sistemas que regrediram no Índice de Excelência Tecnológica (IET) entre as duas avaliações mais recentes — quanto maior o delta negativo, maior a deterioração. Exigem governança especial: investigue causas (mudanças de arquitetura, dívidas técnicas acumuladas, perda de práticas) e priorize plano de recuperação."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
           <ul class="trend-list" id="tempo-list-quedas"></ul>
         </div>
       </div>
@@ -2275,7 +2275,7 @@ async function loadTemporalChart() {
     const nomeAtual = sistemaId
       ? (data.sistemas.find(s => String(s.id) === sistemaId)?.nome || 'Sistema')
       : 'Média do Portfólio';
-    document.getElementById('tempo-chart-title').textContent =
+    document.getElementById('tempo-chart-title-text').textContent =
       'Evolução dos Índices — ' + nomeAtual;
 
     // Gráfico
@@ -2323,7 +2323,10 @@ function applyTemporalMetrica() {
 function renderTrendList(listId, items, dir) {
   const ul = document.getElementById(listId);
   if (!items.length) {
-    ul.innerHTML = '<li style="padding:8px 4px;color:var(--muted);font-size:12px">Sem dados suficientes (necessário ≥ 2 avaliações por sistema)</li>';
+    ul.innerHTML = '<li style="padding:14px 8px;color:var(--muted);font-size:12px;line-height:1.5">' +
+      'Nenhum sistema cadastrado possui mais de uma avaliação ainda.<br>' +
+      '<span style="font-size:11px;opacity:.75">Para identificar tendências é necessário pelo menos duas avaliações por sistema.</span>' +
+      '</li>';
     return;
   }
   ul.innerHTML = items.map((t, i) => {
