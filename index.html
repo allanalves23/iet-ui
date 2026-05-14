@@ -733,6 +733,21 @@ tr:hover td { background:#F8FAFF; }
         <h1>🆚 Comparação entre Sistemas</h1>
         <div class="sub">Confronto lado a lado de até 3 sistemas selecionados</div>
       </div>
+
+      <!-- Empty state — quando não há sistemas com avaliação -->
+      <div id="comp-empty" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;line-height:1">📭</div>
+        <h2 style="font-size:18px;color:var(--navy);margin:0 0 8px;">Nenhum sistema com avaliação disponível</h2>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5;">
+          Para comparar sistemas é preciso ter pelo menos uma avaliação registrada.<br>
+          Cadastre uma nova avaliação para começar a usar esta visão.
+        </p>
+        <button onclick="showPage('assess')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          ＋ Nova Avaliação
+        </button>
+      </div>
+
+      <div id="comp-content">
       <div class="filter-bar">
         <div class="filter"><label>Sistema A</label><select id="selA" onchange="updateRadar()"></select></div>
         <div class="filter"><label>Sistema B</label><select id="selB" onchange="updateRadar()"></select></div>
@@ -753,6 +768,7 @@ tr:hover td { background:#F8FAFF; }
         </div>
         <div id="heatmap-table" class="table-wrap"></div>
       </div>
+      </div><!-- end comp-content -->
     </div>
 
     <!-- ========== P3: ANÁLISE POR PILAR ========== -->
@@ -761,6 +777,21 @@ tr:hover td { background:#F8FAFF; }
         <h1>🎯 Análise por Pilar</h1>
         <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
       </div>
+
+      <!-- Empty state — quando não há avaliações registradas -->
+      <div id="pilar-empty" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;line-height:1">📭</div>
+        <h2 style="font-size:18px;color:var(--navy);margin:0 0 8px;">Nenhuma avaliação disponível para análise</h2>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5;">
+          A análise por pilar depende de respostas registradas nas avaliações.<br>
+          Cadastre uma nova avaliação para identificar os gaps do portfólio.
+        </p>
+        <button onclick="showPage('assess')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          ＋ Nova Avaliação
+        </button>
+      </div>
+
+      <div id="pilar-content">
       <div class="filter-bar">
         <div class="filter"><label>Portfólio</label><select id="pilar-f-portfolio" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
         <div class="filter"><label>Cadeia de Valor</label><select id="pilar-f-cadeia" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
@@ -791,6 +822,7 @@ tr:hover td { background:#F8FAFF; }
           </table>
         </div>
       </div>
+      </div><!-- end pilar-content -->
     </div>
 
     <!-- ========== P4: COERÊNCIA SW × INFRA ========== -->
@@ -1691,6 +1723,12 @@ async function loadComparacao() {
       pillars: PILLAR_NAMES.map(p => s.pilares[p] ?? 0),
     }));
 
+    // Empty state: nenhum sistema com avaliação
+    const empty = compSistemas.length === 0;
+    document.getElementById('comp-empty').style.display   = empty ? 'block' : 'none';
+    document.getElementById('comp-content').style.display = empty ? 'none'  : '';
+    if (empty) return;
+
     ['selA', 'selB', 'selC'].forEach((id, idx) => {
       const sel = document.getElementById(id);
       sel.innerHTML = compSistemas.map(s =>
@@ -1798,6 +1836,12 @@ async function loadPilarCharts() {
     const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar' + qs);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    // Empty state: sem dados de avaliação para análise
+    const empty = !data.score_por_pilar || data.score_por_pilar.length === 0;
+    document.getElementById('pilar-empty').style.display   = empty ? 'block' : 'none';
+    document.getElementById('pilar-content').style.display = empty ? 'none'  : '';
+    if (empty) return;
 
     // Popula filtros de portfólio e cadeia (mantém seleção)
     function fillSel(id, items, allLabel, cur) {
