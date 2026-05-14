@@ -731,11 +731,11 @@ tr:hover td { background:#F8FAFF; }
       </div>
       <div class="grid-3" id="comp-kpis"></div>
       <div class="card" style="margin-bottom:14px">
-        <h3>Comparação por Pilar (Radar)</h3>
+        <h3>Comparação por Pilar (Radar)<span class="kpi-info" data-tip="Cada eixo representa uma das 6 dimensões avaliadas. Quanto maior a área coberta pelo polígono de cada sistema, melhor sua maturidade geral. Use para identificar em quais dimensões um sistema é mais forte ou mais fraco em relação aos demais."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <canvas id="chartRadar" style="max-height:360px;"></canvas>
       </div>
       <div class="card">
-        <h3>Matriz Heatmap — Pilar × Sistema</h3>
+        <h3>Matriz Heatmap — Pilar × Sistema<span class="kpi-info" data-tip="Cada célula cruza um sistema com uma dimensão e exibe a pontuação obtida. A cor indica o nível: verde (Excelente ≥90), verde-claro (Bom 75–89), amarelo (Atenção 60–74) e vermelho (Crítico &lt;60). Leia as colunas para identificar dimensões problemáticas em todos os sistemas; leia as linhas para entender o perfil individual de cada um."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <div class="legend">
           <div class="legend-item"><div class="legend-dot" style="background:#27AE60"></div> ≥ 90 Excelente</div>
           <div class="legend-item"><div class="legend-dot" style="background:#7CB342"></div> 75-89 Bom</div>
@@ -1650,6 +1650,7 @@ async function loadComparacao() {
 
     compSistemas = data.sistemas.map(s => ({
       name:    s.nome,
+      av_id:   s.av_id,
       iet:     s.iet,
       ies:     s.ies,
       ir:      s.ir,
@@ -1683,14 +1684,31 @@ function updateRadar() {
     const st = getStatus(sys.iet);
     kpiDiv.innerHTML = '';
   });
+  const _ic = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
   kpiDiv.innerHTML = [sA,sB,sC].map(sys => {
     const st = getStatus(sys.iet);
     const color = getBarColor(sys.iet);
     return `<div class="kpi-card">
-      <div class="kpi-label">${sys.name} · IET</div>
+      <div class="kpi-label-wrap">
+        <span class="kpi-label">${sys.name} — Nota Geral</span>
+        <span class="kpi-info" data-tip="Nota geral de excelência tecnológica do sistema. Combina a maturidade da arquitetura de software (avaliada em 6 dimensões: Topologia, Dados, Operabilidade, Arquitetura Evolutiva, Observabilidade e Segurança) com a resiliência dos componentes de infraestrutura. Escala de 0 a 100.">${_ic}</span>
+      </div>
       <div class="kpi-val" style="color:${color}">${sys.iet}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">IES ${sys.ies} · IR ${sys.ir} · Coer. ${sys.coh}%</div>
-      <span class="badge ${st.cls}">${st.label}</span>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;display:flex;flex-direction:column;gap:3px">
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Excelência de Software — maturidade da arquitetura avaliada nas 6 dimensões de qualidade e resiliência de software. Escala 0–100.">${_ic}</span>
+          Excelência de Software: <strong>${sys.ies}</strong>
+        </span>
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Resiliência — capacidade dos componentes de infraestrutura de se recuperar de falhas sem interromper o serviço. Considera redundância, tolerância a falhas, frequência de backup (RPO) e tempo de recuperação (RTO). Escala 0–100.">${_ic}</span>
+          Resiliência: <strong>${sys.ir}</strong>
+        </span>
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Coerência — percentual de regras em que a arquitetura de software declarada é consistente com a infraestrutura real dos componentes. 100% significa total alinhamento entre o que o software promete e o que a infraestrutura entrega.">${_ic}</span>
+          Coerência: <strong>${sys.coh}%</strong>
+        </span>
+      </div>
+      <span class="badge ${st.cls}" style="margin-top:8px">${st.label}</span>
     </div>`;
   }).join('');
 
@@ -1716,10 +1734,13 @@ function updateRadar() {
   html += `<div class="hm-cell head">Sistema</div>`;
   PILLAR_DISPLAY_NAMES.forEach((p, i) => html += `<div class="hm-cell head" title="${PILLAR_TOOLTIPS[i]}">${p}</div>`);
   [sA,sB,sC].forEach(sys => {
-    html += `<div class="hm-row-label">${sys.name}</div>`;
+    const clickAttr = sys.av_id
+      ? `style="cursor:pointer" title="Ver avaliação de ${sys.name}" onclick="openAvaliacaoDetail(${sys.av_id})"`
+      : '';
+    html += `<div class="hm-row-label" ${clickAttr}>${sys.name}${sys.av_id ? ' <span style="font-size:9px;opacity:.5">↗</span>' : ''}</div>`;
     sys.pillars.forEach(v => {
       const st = getStatus(v);
-      html += `<div class="hm-cell ${st.cls}">${v}</div>`;
+      html += `<div class="hm-cell ${st.cls}" ${clickAttr}>${v}</div>`;
     });
   });
   html += '</div>';
