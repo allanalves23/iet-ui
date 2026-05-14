@@ -210,6 +210,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:0; }
 .card h3 { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
 .card h3 .kpi-info { margin-left:2px; }
+th .kpi-info::after { bottom:auto; top:calc(100% + 6px); }
 .chart-sub { font-size:11px; color:var(--muted); margin:-6px 0 10px; font-weight:400; }
 .card .card-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
 canvas { max-height:260px; }
@@ -463,6 +464,12 @@ tr:hover td { background:#F8FAFF; }
 .ct-op { background:#F3F4F6; color:#374151; }
 
 .scrolltop { position:fixed; bottom:24px; right:24px; background:var(--blue); color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:18px; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+/* PAGINAÇÃO */
+.pagination { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 0 4px; }
+.pagination button { background:var(--navy); color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+.pagination button:disabled { opacity:.35; cursor:default; }
+.pagination button:not(:disabled):hover { opacity:.85; }
+.pagination .pg-info { font-size:12px; color:var(--muted); min-width:100px; text-align:center; }
 /* TOAST */
 .toast-wrap { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
 .toast { padding:12px 22px; border-radius:8px; font-size:13px; font-weight:600; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.2); pointer-events:all; display:flex; align-items:center; gap:10px; animation: slideUp .25s ease; min-width:280px; }
@@ -755,23 +762,31 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
       </div>
       <div class="filter-bar">
+        <div class="filter"><label>Portfólio</label><select id="pilar-f-portfolio" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
+        <div class="filter"><label>Cadeia de Valor</label><select id="pilar-f-cadeia" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
         <div class="filter"><label>Sistema</label><select id="pilar-f-sistema" onchange="loadPilarCharts()"><option value="">Todos os sistemas</option></select></div>
       </div>
       <div class="grid-2">
         <div class="card">
-          <h3>Score Médio por Pilar</h3>
+          <h3>Índice de Excelência de Software por Pilar<span class="kpi-info" data-tip="Decomposição do Índice de Excelência de Software (IES) nas 6 dimensões que o compõem. Para cada pilar, é calculada a média aritmética dos scores das respostas registradas nas perguntas daquele pilar, considerando a última avaliação de cada sistema. Escala 0–100. Barras abaixo de 60 indicam que essa dimensão está na faixa Crítica e merece atenção prioritária."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="pilar-score-sub" style="margin-bottom:8px"></p>
           <canvas id="chartPilarScore"></canvas>
         </div>
-        <div class="card">
-          <h3 id="pilar-status-title">Distribuição por Status de Pilar — Portfólio</h3>
+        <div class="card" id="card-pilar-status">
+          <h3 id="pilar-status-title"><span id="pilar-status-title-text">Distribuição por Status de Pilar — Portfólio</span><span class="kpi-info" data-tip="Para cada dimensão avaliada, mostra quantos sistemas estão em cada faixa de maturidade: Excelente (≥90) · Bom (75–89) · Atenção (60–74) · Crítico (&lt;60). A altura total de cada barra é a contagem absoluta de sistemas — barras mais altas em vermelho indicam onde o risco está mais concentrado. Clique em qualquer segmento para ver os sistemas envolvidos."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="pilar-status-sub" style="margin-bottom:8px"><span id="pilar-status-sub-text"></span></p>
           <canvas id="chartPilarStatus"></canvas>
+          <div id="pilar-status-single" style="display:none;text-align:center;padding:30px;color:var(--muted);font-size:13px;">
+            Selecione "Todos os sistemas" para ver a distribuição do portfólio.
+          </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <h3>Top 10 Perguntas com Menores Scores</h3>
+        <h3>Top 10 Perguntas com Menores Scores<span class="kpi-info" data-tip="As 10 perguntas com menor score médio no portfólio, considerando a última avaliação de cada sistema. Identifica os gaps mais recorrentes e transversais — onde a maioria dos sistemas falha ao mesmo tempo. Use para priorizar iniciativas de melhoria que gerem maior impacto no Índice de Excelência Tecnológica. Clique em qualquer linha para ver quais sistemas contribuíram para aquele score."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+        <p class="chart-sub" id="worst-q-sub" style="margin-bottom:8px"></p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Pilar</th><th>Pergunta</th><th>Score Médio</th><th># Sistemas</th><th>Status</th></tr></thead>
+            <thead><tr><th>Pilar</th><th>Pergunta</th><th>Score Médio <span class="kpi-info" data-tip="Média das respostas nessa pergunta na escala original de 0 a 10. Faixas de status: ≥ 9 Excelente · ≥ 7,5 Bom · ≥ 6 Atenção · &lt; 6 Crítico."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></th><th>Qtd. Sistemas</th><th>Status</th></tr></thead>
             <tbody id="worst-questions-table"></tbody>
           </table>
         </div>
@@ -1008,13 +1023,26 @@ tr:hover td { background:#F8FAFF; }
         <h1>🗂️ Histórico de Avaliações</h1>
         <div class="sub">Avaliações salvas no banco · carregadas via API</div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
-        <button onclick="loadHistorico()" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">↻ Recarregar</button>
-        <span id="hist-count" style="font-size:12px;color:var(--muted)"></span>
+      <div class="filter-bar" style="margin-bottom:16px;">
+        <div class="filter">
+          <label>Sistema</label>
+          <select id="hist-f-sistema" onchange="applyHistFiltros()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter">
+          <label>Responsável</label>
+          <select id="hist-f-responsavel" onchange="applyHistFiltros()"><option value="">Todos</option></select>
+        </div>
+        <button onclick="loadHistorico()" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;align-self:flex-end;">↻ Recarregar</button>
+        <span id="hist-count" style="font-size:12px;color:var(--muted);align-self:center"></span>
       </div>
       <div class="card">
         <div id="hist-content">
           <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Clique em "Recarregar" para buscar as avaliações salvas.</div>
+        </div>
+        <div class="pagination" id="hist-pagination" style="display:none">
+          <button id="hist-pg-prev" onclick="changeHistPage(-1)">← Anterior</button>
+          <span class="pg-info" id="hist-pg-info"></span>
+          <button id="hist-pg-next" onclick="changeHistPage(1)">Próxima →</button>
         </div>
       </div>
     </div>
@@ -1055,7 +1083,6 @@ tr:hover td { background:#F8FAFF; }
             <option value="">Não definido</option>
             <option>Azure</option>
             <option>AWS</option>
-            <option>GCP</option>
             <option>On-Premise</option>
             <option>Híbrido</option>
           </select>
@@ -1757,11 +1784,28 @@ const STATUS_COLORS = { 'Excelente':'#27AE60', 'Bom':'#7CB342', 'Atenção':'#F1
 async function loadPilarCharts() {
   clearApiError('pilar');
   try {
-    const sistemaId = document.getElementById('pilar-f-sistema')?.value || '';
-    const qs = sistemaId ? '?sistema_id=' + sistemaId : '';
+    const sistemaId = document.getElementById('pilar-f-sistema')?.value  || '';
+    const portfolio = document.getElementById('pilar-f-portfolio')?.value || '';
+    const cadeia    = document.getElementById('pilar-f-cadeia')?.value    || '';
+    const params = new URLSearchParams();
+    if (sistemaId) params.set('sistema_id', sistemaId);
+    if (portfolio)  params.set('portfolio',  portfolio);
+    if (cadeia)     params.set('cadeia',     cadeia);
+    const qs = params.toString() ? '?' + params.toString() : '';
     const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar' + qs);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    // Popula filtros de portfólio e cadeia (mantém seleção)
+    function fillSel(id, items, allLabel, cur) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = `<option value="">${allLabel}</option>` +
+        items.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${v}</option>`).join('');
+    }
+    const f = data.filtros_disponiveis || {};
+    fillSel('pilar-f-portfolio', f.portfolios || [], 'Todos', portfolio);
+    fillSel('pilar-f-cadeia',    f.cadeias    || [], 'Todos', cadeia);
 
     // Popula dropdown de sistemas (mantém seleção)
     const sel = document.getElementById('pilar-f-sistema');
@@ -1775,7 +1819,7 @@ async function loadPilarCharts() {
     const nomeSist = sistemaId
       ? ((data.sistemas || []).find(s => String(s.id) === sistemaId)?.nome || 'Sistema')
       : 'Portfólio';
-    document.getElementById('pilar-status-title').textContent =
+    document.getElementById('pilar-status-title-text').textContent =
       'Distribuição por Status de Pilar — ' + nomeSist;
 
     renderPilarCharts(data);
@@ -1790,12 +1834,36 @@ function renderPilarCharts(data) {
   data.score_por_pilar.forEach(r => { scoreMap[r.pilar] = r.score_medio; });
   const scores = PILLAR_NAMES.map(p => scoreMap[p] ?? 0);
 
+  const totalSistScore = data.score_por_pilar.length
+    ? Math.max(...data.score_por_pilar.map(r => r.total_sistemas))
+    : 0;
+  const nomeSistScore  = document.getElementById('pilar-f-sistema').selectedOptions[0]?.text;
+  const isSingleScore  = !!document.getElementById('pilar-f-sistema').value;
+  document.getElementById('pilar-score-sub').textContent = isSingleScore
+    ? nomeSistScore
+    : `${totalSistScore} sistema${totalSistScore !== 1 ? 's' : ''} avaliados`;
+
   if (charts.pilarScore) charts.pilarScore.destroy();
   const ctx1 = document.getElementById('chartPilarScore').getContext('2d');
   charts.pilarScore = new Chart(ctx1, {
-    type:'bar',
-    data:{ labels:PILLAR_DISPLAY_NAMES, datasets:[{ data:scores, backgroundColor:scores.map(s=>getBarColor(s)), borderRadius:4 }] },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100},x:{grid:{display:false}}} }
+    type: 'bar',
+    data: { labels: PILLAR_DISPLAY_NAMES, datasets: [{ data: scores, backgroundColor: scores.map(s => getBarColor(s)), borderRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `IES neste pilar: ${ctx.parsed.y}`,
+            afterLabel: () => 'Média das respostas registradas no pilar',
+            footer: () => 'Escala 0–100 · última avaliação de cada sistema'
+          },
+          footerFont: { weight: 'normal', size: 10 },
+          footerColor: 'rgba(255,255,255,0.7)'
+        }
+      },
+      scales: { y: { min: 0, max: 100 }, x: { grid: { display: false } } }
+    }
   });
 
   // ── Distribuição de status por pilar ──
@@ -1805,32 +1873,108 @@ function renderPilarCharts(data) {
     distMap[r.pilar][r.status_pilar] = r.qtd;
   });
 
-  const statusDatasets = ['Excelente','Bom','Atenção','Crítico'].map(st => ({
-    label: st,
-    backgroundColor: STATUS_COLORS[st],
-    data: PILLAR_NAMES.map(pilar => {
-      const pData = distMap[pilar] || {};
-      const total = Object.values(pData).reduce((a,b) => a+b, 0);
-      return total === 0 ? 0 : Math.round(((pData[st] || 0) / total) * 100);
-    }),
-  }));
-
-  if (charts.pilarStatus) charts.pilarStatus.destroy();
-  const ctx2 = document.getElementById('chartPilarStatus').getContext('2d');
-  charts.pilarStatus = new Chart(ctx2, {
-    type:'bar',
-    data:{ labels:PILLAR_DISPLAY_NAMES, datasets:statusDatasets },
-    options:{ responsive:true, scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,min:0,max:100,ticks:{callback:v=>v+'%'}}}, plugins:{legend:{position:'top',labels:{font:{size:10}}}} }
+  // mapa global para drill-down: pilarDrillMap[pilarName][status] = [{nome, score_pilar, av_id, portfolio}]
+  charts.pilarDrillMap = {};
+  (data.pilar_detail || []).forEach(r => {
+    if (!charts.pilarDrillMap[r.pilar]) charts.pilarDrillMap[r.pilar] = {};
+    if (!charts.pilarDrillMap[r.pilar][r.status_pilar]) charts.pilarDrillMap[r.pilar][r.status_pilar] = [];
+    charts.pilarDrillMap[r.pilar][r.status_pilar].push(r);
   });
 
+  const isSingleSist = !!document.getElementById('pilar-f-sistema').value;
+  const canvas2  = document.getElementById('chartPilarStatus');
+  const msgSingl = document.getElementById('pilar-status-single');
+  const subEl    = document.getElementById('pilar-status-sub-text');
+
+  if (isSingleSist) {
+    if (charts.pilarStatus) { charts.pilarStatus.destroy(); charts.pilarStatus = null; }
+    canvas2.style.display  = 'none';
+    msgSingl.style.display = 'block';
+    subEl.textContent = '';
+  } else {
+    canvas2.style.display  = '';
+    msgSingl.style.display = 'none';
+
+    const maxSist = Math.max(...PILLAR_NAMES.map(p => {
+      const pData = distMap[p] || {};
+      return Object.values(pData).reduce((a,b) => a+b, 0);
+    }), 0);
+    subEl.textContent = `${maxSist} sistema${maxSist !== 1 ? 's' : ''} avaliados — clique numa barra para detalhar`;
+
+    const statusOrder = ['Excelente','Bom','Atenção','Crítico'];
+    const statusDatasets = statusOrder.map(st => ({
+      label: st,
+      backgroundColor: STATUS_COLORS[st],
+      data: PILLAR_NAMES.map(pilar => (distMap[pilar] || {})[st] || 0),
+    }));
+
+    if (charts.pilarStatus) charts.pilarStatus.destroy();
+    const ctx2 = canvas2.getContext('2d');
+    charts.pilarStatus = new Chart(ctx2, {
+      type: 'bar',
+      data: { labels: PILLAR_DISPLAY_NAMES, datasets: statusDatasets },
+      options: {
+        responsive: true,
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          const el = elements[0];
+          openPilarDrill(el.index, statusOrder[el.datasetIndex]);
+        },
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        },
+        plugins: {
+          legend: { position:'top', labels:{ font:{size:10} } },
+          tooltip: {
+            callbacks: {
+              footer: (items) => {
+                const item = items[0];
+                const pilar  = PILLAR_NAMES[item.dataIndex];
+                const status = item.dataset.label;
+                const list   = ((charts.pilarDrillMap[pilar] || {})[status] || []);
+                if (!list.length) return '';
+                const top3 = list.slice(0, 3).map(s => `• ${s.nome} (${s.score_pilar})`).join('\n');
+                return list.length > 3 ? top3 + `\n+ ${list.length - 3} outros` : top3;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { stacked:true, grid:{ display:false }, ticks:{ font:{size:10}, maxRotation:0 } },
+          y: { stacked:true, min:0, ticks:{ stepSize:1, callback: v => Number.isInteger(v) ? v : null },
+               title:{ display:true, text:'Nº de sistemas', font:{size:10}, color:'var(--muted)' } }
+        }
+      }
+    });
+  }
+
   // ── Top piores questões ──
+  const pilarToDisplay = {};
+  PILLAR_NAMES.forEach((name, i) => { pilarToDisplay[name] = PILLAR_DISPLAY_NAMES[i]; });
+
+  // mapa global: questaoDrillMap[questao_id] = [{nome, portfolio, av_id, score}]
+  charts.questaoDrillMap = {};
+  (data.questao_detail || []).forEach(r => {
+    if (!charts.questaoDrillMap[r.questao_id]) charts.questaoDrillMap[r.questao_id] = [];
+    charts.questaoDrillMap[r.questao_id].push(r);
+  });
+
+  const isSingleQ    = !!document.getElementById('pilar-f-sistema').value;
+  const nomeSistQ    = document.getElementById('pilar-f-sistema').selectedOptions[0]?.text;
+  const totalSistQ   = data.piores_questoes.length
+    ? Math.max(...data.piores_questoes.map(q => q.total_sistemas))
+    : 0;
+  document.getElementById('worst-q-sub').textContent = isSingleQ
+    ? `${nomeSistQ} — clique numa linha para ver os sistemas envolvidos`
+    : `${totalSistQ} sistema${totalSistQ !== 1 ? 's' : ''} avaliados — clique numa linha para detalhar`;
+
   const tbody = document.getElementById('worst-questions-table');
   tbody.innerHTML = data.piores_questoes.map(q => {
-    const title = (QUESTIONS.find(x => x.id === q.questao_id)?.title || q.questao_id).slice(0, 70) + '…';
-    const st = getStatus(q.score_medio * 10);
-    const pilarShort = q.pilar ? q.pilar.replace(/^P\d+\s+/, '') : q.pilar;
-    return `<tr>
-      <td>${pilarShort}</td>
+    const title     = QUESTIONS.find(x => x.id === q.questao_id)?.title || q.questao_id;
+    const st        = getStatus(q.score_medio * 10);
+    const pilarFull = pilarToDisplay[q.pilar] || q.pilar || '—';
+    return `<tr style="cursor:pointer" title="Ver sistemas desta pergunta" onclick="openQuestaoDrill('${q.questao_id}')">
+      <td>${pilarFull}</td>
       <td>${title}</td>
       <td><strong>${q.score_medio}</strong></td>
       <td>${q.total_sistemas}</td>
@@ -2452,42 +2596,83 @@ async function saveAvaliacao() {
 // e calcula IPM por componente e por sistema.
 // ============================================================
 
-async function loadHistorico() {
+let histPage = 1;
+
+async function loadHistorico(resetPage = true) {
+  if (resetPage) histPage = 1;
+  await fetchHistorico();
+}
+
+function applyHistFiltros() {
+  histPage = 1;
+  fetchHistorico();
+}
+
+function changeHistPage(delta) {
+  histPage = Math.max(1, histPage + delta);
+  fetchHistorico();
+}
+
+async function fetchHistorico() {
   const container = document.getElementById('hist-content');
-  const count = document.getElementById('hist-count');
+  const count     = document.getElementById('hist-count');
+  const pagination = document.getElementById('hist-pagination');
   container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ Carregando...</div>';
+  pagination.style.display = 'none';
+
+  const fSistema = document.getElementById('hist-f-sistema')?.value    || '';
+  const fResp    = document.getElementById('hist-f-responsavel')?.value || '';
+
+  const params = new URLSearchParams({ page: histPage });
+  if (fSistema) params.set('sistema_nome', fSistema);
+  if (fResp)    params.set('responsavel',  fResp);
 
   try {
-    const ctrl2 = new AbortController();
-    const t2 = setTimeout(() => ctrl2.abort(), 8000);
-    const res = await fetch(getApiUrl() + '/api/avaliacoes', { signal: ctrl2.signal });
-    clearTimeout(t2);
+    const ctrl = new AbortController();
+    const t    = setTimeout(() => ctrl.abort(), 8000);
+    const res  = await fetch(`${getApiUrl()}/api/avaliacoes?${params}`, { signal: ctrl.signal });
+    clearTimeout(t);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    count.textContent = `${data.length} avaliação(ões) encontrada(s)`;
+    const json = await res.json();
+
+    const { data, total, page, total_pages, filtros } = json;
+
+    // Atualiza página real retornada pelo backend (pode ter sido corrigida)
+    histPage = page;
+
+    // Popula selects mantendo seleção
+    function fillHistSel(id, values, cur) {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Todos</option>' +
+        values.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${v}</option>`).join('');
+    }
+    fillHistSel('hist-f-sistema',     filtros.sistemas     || [], fSistema);
+    fillHistSel('hist-f-responsavel', filtros.responsaveis || [], fResp);
+
+    count.textContent = `${total} avaliação(ões) encontrada(s)`;
 
     if (!data.length) {
-      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma avaliação salva ainda.</div>';
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma avaliação encontrada para os filtros selecionados.</div>';
       return;
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>#</th><th>Sistema</th><th>Responsável</th><th>Data</th><th>IES</th><th>IR</th><th>IET</th><th>Status</th><th>Origem</th>';
+    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
-      const st = getStatus(av.iet);
-      const color = getBarColor(av.iet);
-      const dateStr = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
+      const st          = getStatus(av.iet);
+      const color       = getBarColor(av.iet);
+      const dateStr     = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
       const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
       const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
-        <td style="color:var(--muted)">#${av.id}</td>
+        <td>${dateStr}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
         <td>${av.responsavel || '—'}</td>
-        <td>${dateStr}</td>
-        <td>${av.ies ?? '—'}</td>
-        <td>${av.ir ?? '—'}</td>
+        <td><strong style="color:${getBarColor(av.ies)};font-size:16px">${av.ies ?? '—'}</strong></td>
+        <td><strong style="color:${getBarColor(av.ir)};font-size:16px">${av.ir ?? '—'}</strong></td>
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
@@ -2496,6 +2681,13 @@ async function loadHistorico() {
 
     html += '</tbody></table></div>';
     container.innerHTML = html;
+
+    // Paginação
+    document.getElementById('hist-pg-info').textContent = `Página ${page} de ${total_pages}`;
+    document.getElementById('hist-pg-prev').disabled    = page <= 1;
+    document.getElementById('hist-pg-next').disabled    = page >= total_pages;
+    pagination.style.display = total_pages > 1 ? 'flex' : 'none';
+
   } catch (err) {
     container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px;">
       ❌ Não foi possível carregar: <strong>${err.message}</strong><br>
@@ -2513,7 +2705,7 @@ let compIdSeq = 0;
 
 const COMP_OPTS = {
   tipo:        ['IaaS','PaaS','SaaS','FaaS','DBaaS'],
-  provedor:    ['Azure','AWS','GCP','On-Premise','Outro'],
+  provedor:    ['Azure','AWS','On-Premise','Outro'],
   impacto:     ['Baixo','Médio','Alto','Extremo'],
   sla:         ['< 99,5%','99,5% – 99,9%','99,9% – 99,99%','> 99,99%'],
   redundancia: ['Nenhuma (SPOF)','Ativo/Passivo','Ativo/Ativo (mesma zona)','Multi-AZ','Multi-Region ativo/ativo'],
@@ -2805,7 +2997,9 @@ function buildDetailModal(av) {
     });
 
     Object.entries(byPilar).forEach(([pilar, itens]) => {
-      html += `<div class="det-pilar-group"><div class="det-pilar-label">${pilar}</div>`;
+      const pilarIdx   = PILLAR_NAMES.indexOf(pilar);
+      const pilarLabel = pilarIdx >= 0 ? PILLAR_DISPLAY_NAMES[pilarIdx] : pilar;
+      html += `<div class="det-pilar-group"><div class="det-pilar-label">${pilarLabel}</div>`;
       itens.forEach(r => {
         const qDef   = QUESTIONS.find(q => q.id === r.questao_id);
         const titulo = qDef?.title || r.questao_id;
@@ -3060,9 +3254,11 @@ async function saveSistema() {
     }
     closeSistemaModal();
     await loadSistemas();
+    showToast(id ? 'Sistema atualizado com sucesso!' : 'Sistema cadastrado com sucesso!', 'success');
   } catch (err) {
     errDiv.textContent   = `Erro ao salvar: ${err.message}`;
     errDiv.style.display = 'block';
+    showToast(`Erro ao salvar: ${err.message}`, 'error', 6000);
     console.error('saveSistema:', err);
   } finally {
     btn.disabled    = false;
@@ -3205,13 +3401,14 @@ function openStatusDrill(status) {
   document.getElementById('sdrill-dot').style.background  = meta.color || '#999';
   document.getElementById('sdrill-title').textContent =
     `${status} (${meta.range}) — ${systems.length} sistema${systems.length !== 1 ? 's' : ''}`;
+  document.getElementById('sdrill-score-col').textContent = 'IET Geral';
 
   const tbody = document.getElementById('sdrill-list');
   if (!systems.length) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema nesta faixa.</td></tr>';
   } else {
     tbody.innerHTML = systems.map((s, i) => `
-      <tr>
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
         <td class="sdrill-rank">${i + 1}</td>
         <td>
           <strong>${s.nome}</strong>
@@ -3219,6 +3416,59 @@ function openStatusDrill(status) {
         </td>
         <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
         <td class="sdrill-score" style="color:${meta.color}">${s.iet != null ? s.iet : '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('sdrill-overlay').classList.add('open');
+}
+
+function openPilarDrill(pilarIdx, statusLabel) {
+  const pilarName    = PILLAR_NAMES[pilarIdx];
+  const pilarDisplay = PILLAR_DISPLAY_NAMES[pilarIdx];
+  const color        = STATUS_COLORS[statusLabel] || '#999';
+  const systems      = ((charts.pilarDrillMap || {})[pilarName] || {})[statusLabel] || [];
+
+  document.getElementById('sdrill-dot').style.background  = color;
+  document.getElementById('sdrill-title').textContent =
+    `${pilarDisplay} — ${statusLabel} (${systems.length} sistema${systems.length !== 1 ? 's' : ''})`;
+  document.getElementById('sdrill-score-col').textContent = 'Score do Pilar';
+
+  const tbody = document.getElementById('sdrill-list');
+  if (!systems.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema nesta combinação.</td></tr>';
+  } else {
+    tbody.innerHTML = systems.map((s, i) => `
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td><strong>${s.nome}</strong></td>
+        <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
+        <td class="sdrill-score" style="color:${color}">${s.score_pilar != null ? s.score_pilar : '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('sdrill-overlay').classList.add('open');
+}
+
+function openQuestaoDrill(questaoId) {
+  const systems = (charts.questaoDrillMap || {})[questaoId] || [];
+  const title   = QUESTIONS.find(x => x.id === questaoId)?.title || questaoId;
+  const color   = 'var(--blue)';
+
+  document.getElementById('sdrill-dot').style.background  = color;
+  document.getElementById('sdrill-title').textContent =
+    `${systems.length} sistema${systems.length !== 1 ? 's' : ''} — ${title}`;
+  document.getElementById('sdrill-score-col').textContent = 'Score';
+
+  const tbody = document.getElementById('sdrill-list');
+  if (!systems.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema encontrado.</td></tr>';
+  } else {
+    tbody.innerHTML = systems.map((s, i) => `
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td><strong>${s.nome}</strong></td>
+        <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
+        <td class="sdrill-score" style="color:${color}">${s.score != null ? s.score : '—'}</td>
       </tr>`).join('');
   }
 
@@ -3275,7 +3525,7 @@ window.onload = function() {
             <th>#</th>
             <th>Sistema</th>
             <th>Portfólio</th>
-            <th class="r">Pontuação</th>
+            <th class="r" id="sdrill-score-col">Pontuação</th>
           </tr>
         </thead>
         <tbody id="sdrill-list"></tbody>
