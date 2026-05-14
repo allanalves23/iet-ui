@@ -40,10 +40,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 @media (max-width: 768px) {
   .hamburger { display:flex; align-items:center; }
   .sidebar {
-    position:fixed; top:52px; left:-224px; height:calc(100vh - 52px);
-    z-index:50; transition:left .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
+    position:fixed; top:52px; left:0; height:calc(100vh - 52px);
+    z-index:50; transform:translateX(-224px); transition:transform .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
   }
-  .sidebar.open { left:0; }
+  .sidebar.open { transform:translateX(0); }
   .layout { height:calc(100vh - 52px); }
   .main { padding:14px; }
   .kpi-row { grid-template-columns:repeat(2,1fr) !important; }
@@ -53,6 +53,9 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
   .score-live { grid-template-columns:repeat(2,1fr) !important; }
   .assess-header { border-radius:8px !important; }
   .topbar .version { display:none; }
+}
+@media (max-width: 860px) {
+  .grid-2, .grid-23 { grid-template-columns:1fr !important; }
 }
 @media (max-width: 480px) {
   .kpi-row { grid-template-columns:1fr !important; }
@@ -67,6 +70,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
   background:#131E35;
   display:flex; flex-direction:column;
   border-right:none;
+  will-change:transform;
 }
 .sidebar-brand {
   padding:20px 18px 16px;
@@ -166,7 +170,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .filter select { padding:6px 10px; border:1px solid var(--border); border-radius:5px; font-size:13px; background:var(--white); color:var(--text); cursor:pointer; }
 
 /* KPI CARDS */
-.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px; }
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
 .kpi-card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
 .kpi-card .kpi-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:6px; }
 .kpi-card .kpi-val { font-size:30px; font-weight:800; line-height:1; }
@@ -175,6 +179,16 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .kpi-card .kpi-val.red { color:var(--red); }
 .kpi-card .kpi-val.navy { color:var(--navy); }
 .kpi-card .kpi-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+.kpi-card.kpi-clickable { cursor:pointer; transition:box-shadow .15s, border-color .15s; }
+.kpi-card.kpi-clickable:hover { box-shadow:0 4px 16px rgba(192,57,43,.18); border-color:#C0392B; }
+.kpi-label-wrap, .cm-label-wrap { display:flex; align-items:center; gap:4px; margin-bottom:6px; }
+.kpi-label-wrap .kpi-label, .cm-label-wrap .cm-label { margin-bottom:0; }
+.kpi-info { position:relative; display:inline-flex; align-items:center; cursor:default; }
+.kpi-info svg { width:12px; height:12px; color:var(--muted); opacity:.7; }
+.kpi-info::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#1B2A4A; color:#fff; font-size:11px; font-weight:400; text-transform:none; letter-spacing:0; line-height:1.4; white-space:normal; width:220px; padding:7px 10px; border-radius:5px; box-shadow:0 4px 12px rgba(0,0,0,.2); pointer-events:none; opacity:0; transition:opacity .15s; z-index:100; }
+.kpi-info:hover::after { opacity:1; }
+.hm-cell.head[title] { cursor:help; }
+.hm-cell.head[title]:hover { background:#e8edf5; }
 
 /* STATUS BADGE */
 .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.3px; margin-top:6px; }
@@ -194,12 +208,15 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 
 /* CARD */
 .card { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:0; }
-.card h3 { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:10px; }
+.card h3 { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.card h3 .kpi-info { margin-left:2px; }
+th .kpi-info::after { bottom:auto; top:calc(100% + 6px); }
+.chart-sub { font-size:11px; color:var(--muted); margin:-6px 0 10px; font-weight:400; }
 .card .card-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
 canvas { max-height:260px; }
 
 /* TABLE */
-.table-wrap { overflow-x:auto; }
+.table-wrap { overflow-x:auto; will-change:transform; }
 table { width:100%; border-collapse:collapse; font-size:12px; }
 th { background:#F8FAFF; color:var(--muted); font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px; padding:9px 12px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
 td { padding:9px 12px; border-bottom:1px solid var(--gray2); color:var(--text); }
@@ -218,8 +235,10 @@ tr:hover td { background:#F8FAFF; }
 .hm-row-label { background:var(--navy); color:#fff; padding:10px 12px; font-size:12px; font-weight:600; border-radius:3px; }
 
 /* RANKING BAR */
-.rank-bar-wrap { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--gray2); }
+#ranking-bars { will-change:transform; }
+.rank-bar-wrap { display:flex; align-items:center; gap:10px; padding:6px 4px; border-bottom:1px solid var(--gray2); border-radius:4px; transition:background .12s; }
 .rank-bar-wrap:last-child { border-bottom:none; }
+.rank-bar-wrap:hover { background:var(--gray2); }
 .rank-name { width:80px; font-size:12px; font-weight:600; color:var(--navy); flex-shrink:0; }
 .rank-bar { flex:1; background:var(--gray2); border-radius:3px; height:22px; overflow:hidden; position:relative; }
 .rank-bar .fill { height:100%; border-radius:3px; display:flex; align-items:center; padding-left:8px; }
@@ -279,120 +298,6 @@ tr:hover td { background:#F8FAFF; }
 .cs-vermelho{ color:#C0392B; }
 .score-box .s-val.red { color:var(--red); }
 
-/* ───────── Baseline / Modernização — Mockup visual ───────── */
-.comp-baseline-panel { padding:10px 14px; background:#F0F7FF; border-top:1px solid var(--border); display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:12px; }
-.cbp-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-right:6px; }
-.cbp-tag { background:#fff; border:1px solid var(--border); border-radius:14px; padding:3px 10px; font-size:11px; color:var(--navy); font-weight:600; display:inline-flex; align-items:center; gap:6px; }
-.cbp-tag .cbp-amb { font-size:9px; padding:1px 5px; border-radius:3px; background:var(--navy); color:#fff; font-weight:700; letter-spacing:.4px; text-transform:uppercase; }
-.cbp-tag.cbp-good { background:#E8F8EE; border-color:#A8DEBC; color:#1E7A3E; }
-.cbp-tag.cbp-warn { background:#FEF6E0; border-color:#F0D580; color:#7A5500; }
-.cbp-tag.cbp-gain { background:linear-gradient(90deg, #1A5FB4 0%, #15407D 100%); border-color:#15407D; color:#fff; font-weight:700; }
-.cbp-tag.cbp-gain::before { content:'↑'; font-size:13px; line-height:1; }
-
-.det-position { margin-top:16px; padding:14px 16px; background:#FAFBFC; border:1px solid var(--border); border-radius:10px; }
-.det-position-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
-.dp-item { display:grid; grid-template-columns:200px 1fr 90px; gap:14px; align-items:center; padding:10px 0; border-bottom:1px dashed #E0E5EB; }
-.dp-item:last-child { border-bottom:none; }
-.dp-name { font-weight:700; color:var(--navy); font-size:13px; }
-.dp-name .dp-amb { display:block; font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
-.dp-bars { display:flex; flex-direction:column; gap:5px; }
-.dp-bar-row { display:grid; grid-template-columns:140px 1fr 50px; gap:8px; align-items:center; font-size:11px; }
-.dp-bar-label { color:var(--muted); }
-.dp-bar-track { background:#EAEEF2; height:8px; border-radius:4px; overflow:hidden; position:relative; }
-.dp-bar-fill { height:100%; border-radius:4px; transition:width .3s; }
-.dp-bar-fill.atual    { background:linear-gradient(90deg, #1A5FB4, #15407D); }
-.dp-bar-fill.tipico   { background:#9FB4C9; }
-.dp-bar-fill.aspirac  { background:linear-gradient(90deg, #27AE60, #1E7A3E); }
-.dp-bar-val { font-weight:700; color:var(--navy); text-align:right; font-size:11px; }
-.dp-ipm { text-align:center; padding:8px 6px; border-radius:8px; }
-.dp-ipm .dp-ipm-val { font-size:20px; font-weight:800; line-height:1; }
-.dp-ipm .dp-ipm-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; opacity:.7; margin-top:2px; }
-.dp-ipm.alta  { background:#E8F8EE; color:#1E7A3E; }
-.dp-ipm.media { background:#FEF6E0; color:#7A5500; }
-.dp-ipm.baixa { background:#EAEEF2; color:var(--muted); }
-
-/* Página Modernização */
-#page-mod .mod-banner { background:#F0F7FF; border:1px dashed #A8C5E5; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#15407D; }
-.mod-kpi-row { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-bottom:18px; }
-.mod-kpi-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-.mod-kpi-card .mk-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
-.mod-kpi-card .mk-val { font-size:26px; font-weight:800; color:var(--navy); line-height:1; }
-.mod-kpi-card .mk-val.green { color:#1E7A3E; }
-.mod-kpi-card .mk-val.gold { color:var(--gold); }
-.mod-kpi-card .mk-sub { font-size:11px; color:var(--muted); margin-top:4px; }
-.mod-rank-bar { display:grid; grid-template-columns:240px 1fr 80px; gap:14px; align-items:center; padding:9px 0; border-bottom:1px dashed #E0E5EB; }
-.mod-rank-bar:last-child { border:none; }
-.mod-rank-sys { font-weight:700; color:var(--navy); font-size:13px; }
-.mod-rank-sys .mrs-sub { display:block; font-size:10px; color:var(--muted); font-weight:500; margin-top:2px; }
-.mod-rank-track { background:#EAEEF2; height:14px; border-radius:7px; overflow:hidden; position:relative; }
-.mod-rank-fill { height:100%; background:linear-gradient(90deg, #27AE60, #1A5FB4); border-radius:7px; transition:width .4s; }
-.mod-rank-fill.med { background:linear-gradient(90deg, #F1C232, #E0972A); }
-.mod-rank-fill.bx  { background:#9FB4C9; }
-.mod-rank-val { font-weight:800; color:var(--navy); text-align:right; }
-.mod-rank-val .mrv-unit { font-size:10px; font-weight:600; color:var(--muted); }
-.mod-comp-table { width:100%; border-collapse:collapse; font-size:13px; }
-.mod-comp-table th { background:#F8FAFC; padding:10px 12px; text-align:left; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--border); }
-.mod-comp-table td { padding:10px 12px; border-bottom:1px solid #EEF2F6; color:var(--navy); }
-.mod-comp-table tr:hover td { background:#FAFBFC; }
-.mod-amb-tag { display:inline-block; font-size:9px; font-weight:700; padding:3px 7px; border-radius:3px; text-transform:uppercase; letter-spacing:.4px; }
-.mod-amb-tag.onprem { background:#FEF6E0; color:#7A5500; }
-.mod-amb-tag.iaas   { background:#E5EEFA; color:#15407D; }
-.mod-amb-tag.paas   { background:#E8F8EE; color:#1E7A3E; }
-.mod-ipm-cell { font-weight:800; }
-.mod-ipm-cell.alta  { color:#1E7A3E; }
-.mod-ipm-cell.media { color:#7A5500; }
-.mod-ipm-cell.baixa { color:var(--muted); }
-@media (max-width:900px) {
-  .mod-kpi-row { grid-template-columns:repeat(2, 1fr); }
-  .dp-item, .mod-rank-bar { grid-template-columns:1fr; }
-}
-
-/* ───────── Página Baselines de Comparação ───────── */
-#page-base .base-amb-row { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:20px; }
-.base-amb-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; gap:10px; }
-.base-amb-card.onprem { border-top:4px solid #B89B5E; }
-.base-amb-card.iaas   { border-top:4px solid #5A8FCD; }
-.base-amb-card.paas   { border-top:4px solid #4FA76B; }
-.bac-icon { font-size:28px; line-height:1; }
-.bac-title { font-size:15px; font-weight:800; color:var(--navy); }
-.bac-desc { font-size:12px; color:var(--muted); line-height:1.5; }
-.bac-scores { display:flex; gap:12px; padding:10px 0; border-top:1px solid #EEF2F6; border-bottom:1px solid #EEF2F6; }
-.bac-score { flex:1; text-align:center; }
-.bac-score-val { font-size:22px; font-weight:800; color:var(--navy); line-height:1; }
-.bac-score-label { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:3px; }
-.bac-features { list-style:none; padding:0; margin:0; font-size:12px; color:var(--navy); display:flex; flex-direction:column; gap:4px; }
-.bac-features li::before { content:'✓'; color:#1E7A3E; font-weight:700; margin-right:6px; }
-
-.base-matrix { width:100%; border-collapse:collapse; font-size:13px; }
-.base-matrix th, .base-matrix td { padding:10px 12px; border-bottom:1px solid #EEF2F6; text-align:left; vertical-align:top; }
-.base-matrix th { background:#F8FAFC; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
-.base-matrix td.dim-name { font-weight:700; color:var(--navy); white-space:nowrap; }
-.base-matrix .cell-score { font-size:10px; color:var(--muted); display:inline-block; background:#EEF2F6; padding:2px 7px; border-radius:3px; margin-left:6px; font-weight:700; }
-
-.base-dim-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:12px; }
-.base-dim-head { margin-bottom:10px; }
-.base-dim-name { font-size:14px; font-weight:800; color:var(--navy); display:inline-block; }
-.base-dim-desc { font-size:12px; color:var(--muted); margin-left:8px; }
-.base-dim-why { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
-.bdw-block { background:#FAFBFC; border-left:3px solid var(--border); padding:10px 12px; border-radius:6px; }
-.bdw-block.onprem { border-left-color:#B89B5E; }
-.bdw-block.iaas   { border-left-color:#5A8FCD; }
-.bdw-block.paas   { border-left-color:#4FA76B; }
-.bdw-amb { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
-.bdw-val { font-size:13px; font-weight:700; color:var(--navy); margin:4px 0; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.bdw-val .bdw-score { font-size:10px; font-weight:700; color:var(--muted); background:#EEF2F6; padding:2px 6px; border-radius:3px; }
-.bdw-why { font-size:11.5px; color:var(--navy); line-height:1.55; opacity:.85; }
-
-.base-fontes ul { list-style:none; padding:0; margin:0; }
-.base-fontes li { padding:9px 0; border-bottom:1px dashed #E0E5EB; font-size:13px; color:var(--navy); display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
-.base-fontes li:last-child { border:none; }
-.base-fontes li a { color:#1A5FB4; text-decoration:none; font-weight:600; }
-.base-fontes li a:hover { text-decoration:underline; }
-.base-fontes li .fonte-url { color:var(--muted); font-size:11px; }
-
-@media (max-width:900px) {
-  #page-base .base-amb-row, .base-dim-why { grid-template-columns:1fr; }
-}
 
 .pillar-block { background:var(--white); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden; }
 .pillar-header { background:#F0F4FF; padding:12px 18px; display:flex; align-items:center; gap:10px; cursor:pointer; border-bottom:1px solid var(--border); }
@@ -425,6 +330,46 @@ tr:hover td { background:#F8FAFF; }
 .hs-vermelho { background:#FDEDEC; color:#C0392B; }
 
 
+
+/* ── Status-drill modal ── */
+.sdrill-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease, visibility .18s; }
+.sdrill-overlay.open { opacity:1; visibility:visible; pointer-events:auto; }
+.sdrill-overlay.open .sdrill-modal { animation:slideDown .2s ease; }
+.sdrill-modal { background:#fff; border-radius:12px; width:580px; max-width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,.22); }
+.sdrill-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; border-radius:12px 12px 0 0; z-index:1; }
+.sdrill-head h2 { font-size:15px; font-weight:700; color:var(--navy); margin:0; display:flex; align-items:center; gap:8px; }
+.sdrill-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.sdrill-close { background:none; border:none; font-size:20px; cursor:pointer; color:var(--muted); padding:2px 8px; border-radius:4px; }
+.sdrill-close:hover { background:var(--gray2); }
+.sdrill-body { overflow-y:auto; }
+.sdrill-table { width:100%; border-collapse:collapse; font-size:13px; }
+.sdrill-table th { padding:8px 16px; text-align:left; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); background:var(--gray2); }
+.sdrill-table th.r { text-align:right; }
+.sdrill-table td { padding:10px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.sdrill-table tr:last-child td { border-bottom:none; }
+.sdrill-table tr:hover td { background:#F8F9FE; }
+.sdrill-rank { font-weight:700; color:var(--muted); font-size:12px; width:28px; }
+.sdrill-score { text-align:right; font-weight:700; font-size:15px; }
+.crit-row { cursor:pointer; }
+.crit-row td:first-child .crit-arrow { display:inline-block; font-size:9px; margin-right:6px; transition:transform .2s; color:var(--muted); }
+.crit-row.open td:first-child .crit-arrow { transform:rotate(90deg); }
+.crit-detail-row { display:none; }
+.crit-detail-row.open { display:table-row; }
+.crit-detail-row > td { background:#FAFAFA; padding:12px 16px 16px; border-bottom:2px solid var(--border); }
+.crit-indices { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; padding-bottom:14px; border-bottom:2px solid var(--border); }
+.crit-idx-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:3px; }
+.crit-idx-val { font-size:24px; font-weight:800; display:block; line-height:1; }
+.crit-pilar-group { margin-bottom:14px; }
+.crit-pilar-group:last-child { margin-bottom:0; }
+.crit-pilar-header { font-size:11px; font-weight:700; color:var(--navy); text-transform:uppercase; letter-spacing:.5px; padding:0 0 5px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.crit-qa-table { width:100%; border-collapse:collapse; font-size:12px; }
+.crit-qa-table th { padding:4px 6px; text-align:left; font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--border); background:var(--gray2); }
+.crit-qa-table th:last-child { text-align:right; }
+.crit-qa-table td { padding:5px 6px; vertical-align:top; line-height:1.35; }
+.crit-qa-title { color:var(--navy); width:46%; }
+.crit-qa-answer { color:#555; font-style:italic; width:46%; }
+.crit-qa-score { font-weight:700; text-align:right; width:8%; white-space:nowrap; }
+.crit-qa-table tr:hover td { background:rgba(0,0,0,.03); }
 
 .sist-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
 .sist-modal-overlay.open { display:flex; }
@@ -500,7 +445,8 @@ tr:hover td { background:#F8FAFF; }
 @media(max-width:900px) { .kpi-row { grid-template-columns:repeat(2,1fr); } .coh-metric-row { grid-template-columns:repeat(2,1fr); } }
 
 /* EXEC SKELETON */
-.exec-skeleton { position:relative; overflow:hidden; }
+.exec-skeleton { position:relative; }
+.exec-loading .exec-skeleton { overflow:hidden; }
 .exec-loading .exec-skeleton::after {
   content:''; position:absolute; inset:0;
   background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.6) 50%,transparent 100%);
@@ -518,6 +464,12 @@ tr:hover td { background:#F8FAFF; }
 .ct-op { background:#F3F4F6; color:#374151; }
 
 .scrolltop { position:fixed; bottom:24px; right:24px; background:var(--blue); color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:18px; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+/* PAGINAÇÃO */
+.pagination { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 0 4px; }
+.pagination button { background:var(--navy); color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+.pagination button:disabled { opacity:.35; cursor:default; }
+.pagination button:not(:disabled):hover { opacity:.85; }
+.pagination .pg-info { font-size:12px; color:var(--muted); min-width:100px; text-align:center; }
 /* TOAST */
 .toast-wrap { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
 .toast { padding:12px 22px; border-radius:8px; font-size:13px; font-weight:600; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.2); pointer-events:all; display:flex; align-items:center; gap:10px; animation: slideUp .25s ease; min-width:280px; }
@@ -674,7 +626,6 @@ tr:hover td { background:#F8FAFF; }
       <div class="nav-item" id="nav-pilar" onclick="showPage('pilar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Análise por Pilar</div>
       <div class="nav-item disabled" id="nav-coh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 6h16M4 18h16"/></svg> Coerência SW × Infra<span class="nav-soon">EM BREVE</span></div>
       <div class="nav-item" id="nav-infra" onclick="showPage('infra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg> Componentes & Riscos</div>
-      <div class="nav-item" id="nav-mod" onclick="showPage('mod')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zm0 0v7"/></svg> Modernização<span class="nav-new">NOVO</span></div>
       <div class="nav-item" id="nav-tempo" onclick="showPage('tempo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Evolução Temporal</div>
     </div>
 
@@ -690,8 +641,6 @@ tr:hover td { background:#F8FAFF; }
     <div class="sidebar-divider"></div>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Referenciais</div>
-      <div class="nav-item" id="nav-base" onclick="showPage('base')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Baselines de Comparação<span class="nav-new">NOVO</span></div>
     </div>
 
     <div class="sidebar-footer">
@@ -745,29 +694,31 @@ tr:hover td { background:#F8FAFF; }
 
       <!-- KPI SKELETON / REAL -->
       <div class="kpi-row" id="exec-kpis">
-        <div class="kpi-card exec-skeleton"><div class="kpi-label">IET Médio Portfólio</div><div class="kpi-val gold" id="kpi-iet">—</div><div id="kpi-iet-badge"></div></div>
-        <div class="kpi-card exec-skeleton"><div class="kpi-label">IES — Software Médio</div><div class="kpi-val navy" id="kpi-ies">—</div><div id="kpi-ies-badge"></div></div>
-        <div class="kpi-card exec-skeleton"><div class="kpi-label">IR — Resiliência Média</div><div class="kpi-val green" id="kpi-ir">—</div><div id="kpi-ir-badge"></div></div>
-        <div class="kpi-card exec-skeleton"><div class="kpi-label">Coerência Média</div><div class="kpi-val navy" id="kpi-coh">—</div></div>
-        <div class="kpi-card exec-skeleton"><div class="kpi-label">Sistemas Críticos</div><div class="kpi-val red" id="kpi-criticos">—</div><div id="kpi-criticos-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label-wrap"><span class="kpi-label">Índice de Excelência Tecnológica</span><span class="kpi-info" data-tip="Nota geral de saúde tecnológica do portfólio — combina a maturidade da arquitetura de software com a resiliência da infraestrutura. Quanto mais próximo de 100, melhor posicionado o sistema está para suportar o negócio com qualidade e continuidade."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val gold" id="kpi-iet">—</div><div id="kpi-iet-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label-wrap"><span class="kpi-label">Índice de Excelência de Software</span><span class="kpi-info" data-tip="Nota de maturidade da arquitetura de software, avaliada em 6 dimensões: capacidade de eliminar Pontos Únicos de Falha, gestão de dados, facilidade de operação, capacidade de evolução, visibilidade do sistema e segurança. Escala 0–100."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val navy" id="kpi-ies">—</div><div id="kpi-ies-badge"></div></div>
+        <div class="kpi-card exec-skeleton"><div class="kpi-label-wrap"><span class="kpi-label">Índice de Resiliência</span><span class="kpi-info" data-tip="Nota média de resiliência dos componentes de infraestrutura — mede o quanto cada componente consegue se recuperar de falhas sem interromper o serviço. Considera redundância, tolerância a falhas, frequência de backup (RPO) e tempo de recuperação (RTO). Escala 0–100."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val green" id="kpi-ir">—</div><div id="kpi-ir-badge"></div></div>
+        <div class="kpi-card exec-skeleton" id="kpi-criticos-card"><div class="kpi-label-wrap"><span class="kpi-label">Sistemas Críticos</span><span class="kpi-info" data-tip="Quantidade de sistemas com nota geral abaixo de 60 na última avaliação — classificados como Críticos. Exigem atenção imediata e plano de melhoria prioritário."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val red" id="kpi-criticos">—</div><div id="kpi-criticos-badge"></div></div>
       </div>
 
       <!-- CHARTS -->
       <div class="grid-2">
         <div class="card">
-          <h3>Distribuição por Status (Portfólio)</h3>
+          <h3>IET — Sistemas por Status<span class="kpi-info" data-tip="Proporção dos sistemas por faixa de nota geral: Excelente (≥90), Bom (75–89), Atenção (60–74) e Crítico (&lt;60). Mostra rapidamente onde está concentrado o risco tecnológico no portfólio."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="exec-donut-sub"></p>
           <div id="exec-donut-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px;">Sem dados</div>
           <canvas id="chartDonut"></canvas>
         </div>
         <div class="card">
-          <h3>IET Médio por Pilar</h3>
+          <h3>IET Médio por Pilar<span class="kpi-info" data-tip="Nota média do portfólio em cada uma das 6 dimensões avaliadas: Topologia, Dados, Operabilidade, Arquitetura Evolutiva, Observabilidade e Segurança. Barras abaixo de 60 indicam uma fragilidade generalizada nessa área entre os sistemas."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="exec-pilar-sub"></p>
           <div id="exec-pilar-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px;">Sem respostas por pilar ainda</div>
           <canvas id="chartPilarBar"></canvas>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px">
-        <h3>Ranking de Sistemas — IET Geral</h3>
+        <h3>Ranking de Sistemas — IET Geral<span class="kpi-info" data-tip="Classificação de todos os sistemas pela nota geral de excelência tecnológica da última avaliação. Quanto mais alto, melhor o sistema está posicionado em maturidade de software e resiliência de infraestrutura. Use para identificar quais sistemas precisam de maior atenção e para priorizar investimentos de melhoria."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+        <p class="chart-sub" id="exec-ranking-sub"></p>
         <div id="ranking-bars" style="margin-top:12px;">
           <div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">Carregando...</div>
         </div>
@@ -782,6 +733,21 @@ tr:hover td { background:#F8FAFF; }
         <h1>🆚 Comparação entre Sistemas</h1>
         <div class="sub">Confronto lado a lado de até 3 sistemas selecionados</div>
       </div>
+
+      <!-- Empty state — quando não há sistemas com avaliação -->
+      <div id="comp-empty" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;line-height:1">📭</div>
+        <h2 style="font-size:18px;color:var(--navy);margin:0 0 8px;">Nenhum sistema com avaliação disponível</h2>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5;">
+          Para comparar sistemas é preciso ter pelo menos uma avaliação registrada.<br>
+          Cadastre uma nova avaliação para começar a usar esta visão.
+        </p>
+        <button onclick="showPage('assess')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          ＋ Nova Avaliação
+        </button>
+      </div>
+
+      <div id="comp-content">
       <div class="filter-bar">
         <div class="filter"><label>Sistema A</label><select id="selA" onchange="updateRadar()"></select></div>
         <div class="filter"><label>Sistema B</label><select id="selB" onchange="updateRadar()"></select></div>
@@ -789,11 +755,11 @@ tr:hover td { background:#F8FAFF; }
       </div>
       <div class="grid-3" id="comp-kpis"></div>
       <div class="card" style="margin-bottom:14px">
-        <h3>Comparação por Pilar (Radar)</h3>
+        <h3>Comparação por Pilar (Radar)<span class="kpi-info" data-tip="Cada eixo representa uma das 6 dimensões avaliadas. Quanto maior a área coberta pelo polígono de cada sistema, melhor sua maturidade geral. Use para identificar em quais dimensões um sistema é mais forte ou mais fraco em relação aos demais."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <canvas id="chartRadar" style="max-height:360px;"></canvas>
       </div>
       <div class="card">
-        <h3>Matriz Heatmap — Pilar × Sistema</h3>
+        <h3>Matriz Heatmap — Pilar × Sistema<span class="kpi-info" data-tip="Cada célula cruza um sistema com uma dimensão e exibe a pontuação obtida. A cor indica o nível: verde (Excelente ≥90), verde-claro (Bom 75–89), amarelo (Atenção 60–74) e vermelho (Crítico &lt;60). Leia as colunas para identificar dimensões problemáticas em todos os sistemas; leia as linhas para entender o perfil individual de cada um."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <div class="legend">
           <div class="legend-item"><div class="legend-dot" style="background:#27AE60"></div> ≥ 90 Excelente</div>
           <div class="legend-item"><div class="legend-dot" style="background:#7CB342"></div> 75-89 Bom</div>
@@ -802,6 +768,7 @@ tr:hover td { background:#F8FAFF; }
         </div>
         <div id="heatmap-table" class="table-wrap"></div>
       </div>
+      </div><!-- end comp-content -->
     </div>
 
     <!-- ========== P3: ANÁLISE POR PILAR ========== -->
@@ -810,25 +777,52 @@ tr:hover td { background:#F8FAFF; }
         <h1>🎯 Análise por Pilar</h1>
         <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
       </div>
+
+      <!-- Empty state — quando não há avaliações registradas -->
+      <div id="pilar-empty" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;line-height:1">📭</div>
+        <h2 style="font-size:18px;color:var(--navy);margin:0 0 8px;">Nenhuma avaliação disponível para análise</h2>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5;">
+          A análise por pilar depende de respostas registradas nas avaliações.<br>
+          Cadastre uma nova avaliação para identificar os gaps do portfólio.
+        </p>
+        <button onclick="showPage('assess')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          ＋ Nova Avaliação
+        </button>
+      </div>
+
+      <div id="pilar-content">
+      <div class="filter-bar">
+        <div class="filter"><label>Portfólio</label><select id="pilar-f-portfolio" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
+        <div class="filter"><label>Cadeia de Valor</label><select id="pilar-f-cadeia" onchange="loadPilarCharts()"><option value="">Todos</option></select></div>
+        <div class="filter"><label>Sistema</label><select id="pilar-f-sistema" onchange="loadPilarCharts()"><option value="">Todos os sistemas</option></select></div>
+      </div>
       <div class="grid-2">
         <div class="card">
-          <h3>Score Médio por Pilar (Portfólio)</h3>
+          <h3>Índice de Excelência de Software por Pilar<span class="kpi-info" data-tip="Decomposição do Índice de Excelência de Software (IES) nas 6 dimensões que o compõem. Para cada pilar, é calculada a média aritmética dos scores das respostas registradas nas perguntas daquele pilar, considerando a última avaliação de cada sistema. Escala 0–100. Barras abaixo de 60 indicam que essa dimensão está na faixa Crítica e merece atenção prioritária."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="pilar-score-sub" style="margin-bottom:8px"></p>
           <canvas id="chartPilarScore"></canvas>
         </div>
-        <div class="card">
-          <h3>% de Sistemas em Cada Status, por Pilar</h3>
+        <div class="card" id="card-pilar-status">
+          <h3 id="pilar-status-title"><span id="pilar-status-title-text">Distribuição por Status de Pilar — Portfólio</span><span class="kpi-info" data-tip="Para cada dimensão avaliada, mostra quantos sistemas estão em cada faixa de maturidade: Excelente (≥90) · Bom (75–89) · Atenção (60–74) · Crítico (&lt;60). A altura total de cada barra é a contagem absoluta de sistemas — barras mais altas em vermelho indicam onde o risco está mais concentrado. Clique em qualquer segmento para ver os sistemas envolvidos."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="pilar-status-sub" style="margin-bottom:8px"><span id="pilar-status-sub-text"></span></p>
           <canvas id="chartPilarStatus"></canvas>
+          <div id="pilar-status-single" style="display:none;text-align:center;padding:30px;color:var(--muted);font-size:13px;">
+            Selecione "Todos os sistemas" para ver a distribuição do portfólio.
+          </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <h3>Top 10 Perguntas com Menores Scores no Portfólio</h3>
+        <h3>Top 10 Perguntas com Menores Scores<span class="kpi-info" data-tip="As 10 perguntas com menor score médio no portfólio, considerando a última avaliação de cada sistema. Identifica os gaps mais recorrentes e transversais — onde a maioria dos sistemas falha ao mesmo tempo. Use para priorizar iniciativas de melhoria que gerem maior impacto no Índice de Excelência Tecnológica. Clique em qualquer linha para ver quais sistemas contribuíram para aquele score."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+        <p class="chart-sub" id="worst-q-sub" style="margin-bottom:8px"></p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>QID</th><th>Pilar</th><th>Pergunta</th><th>Score Médio</th><th># Sistemas</th><th>Status</th></tr></thead>
+            <thead><tr><th>Pilar</th><th>Pergunta</th><th>Score Médio <span class="kpi-info" data-tip="Média das respostas nessa pergunta na escala original de 0 a 10. Faixas de status: ≥ 9 Excelente · ≥ 7,5 Bom · ≥ 6 Atenção · &lt; 6 Crítico."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></th><th>Qtd. Sistemas</th><th>Status</th></tr></thead>
             <tbody id="worst-questions-table"></tbody>
           </table>
         </div>
       </div>
+      </div><!-- end pilar-content -->
     </div>
 
     <!-- ========== P4: COERÊNCIA SW × INFRA ========== -->
@@ -838,11 +832,11 @@ tr:hover td { background:#F8FAFF; }
         <div class="sub">Onde a arquitetura declarada não casa com a infra. Risco oculto.</div>
       </div>
       <div class="coh-metric-row">
-        <div class="coh-metric"><div class="cm-label">Coerência Média</div><div class="cm-val" id="coh-kpi-media" style="color:var(--gold)">—</div><div id="coh-kpi-media-badge" style="margin-top:6px"></div></div>
-        <div class="coh-metric"><div class="cm-label">Regras Coerentes</div><div class="cm-val" id="coh-kpi-coer" style="color:var(--green)">—</div><div class="cm-sub" id="coh-kpi-coer-sub">—</div></div>
-        <div class="coh-metric"><div class="cm-label">Inconsistências</div><div class="cm-val" id="coh-kpi-incon" style="color:var(--red)">—</div><div class="cm-sub">"SW Sim, Infra abaixo"</div></div>
-        <div class="coh-metric"><div class="cm-label">Atenções</div><div class="cm-val" id="coh-kpi-atenc" style="color:var(--navy)">—</div><div class="cm-sub">"SW Não, Infra acima"</div></div>
-        <div class="coh-metric"><div class="cm-label">Penalidade Total</div><div class="cm-val" id="coh-kpi-penal" style="color:var(--red)">—</div><div class="cm-sub">pts deduções no IET</div></div>
+        <div class="coh-metric"><div class="cm-label-wrap"><span class="cm-label">Coerência Média</span><span class="kpi-info" data-tip="Percentual de regras de coerência aprovadas no portfólio — mede quanto a arquitetura de software declarada é consistente com a infraestrutura real dos componentes. 100% = totalmente coerente."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="cm-val" id="coh-kpi-media" style="color:var(--gold)">—</div><div id="coh-kpi-media-badge" style="margin-top:6px"></div></div>
+        <div class="coh-metric"><div class="cm-label-wrap"><span class="cm-label">Regras Coerentes</span><span class="kpi-info" data-tip="Número de regras em que o software declara uma capacidade (ex: alta disponibilidade) e a infraestrutura efetivamente a suporta. Quanto maior, melhor."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="cm-val" id="coh-kpi-coer" style="color:var(--green)">—</div><div class="cm-sub" id="coh-kpi-coer-sub">—</div></div>
+        <div class="coh-metric"><div class="cm-label-wrap"><span class="cm-label">Inconsistências</span><span class="kpi-info" data-tip="Casos em que o software declara uma capacidade mas a infraestrutura não a suporta (ex: SW diz 'alta disponibilidade', mas não há Multi-AZ). Cada inconsistência gera penalidade no IET."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="cm-val" id="coh-kpi-incon" style="color:var(--red)">—</div><div class="cm-sub">"SW Sim, Infra abaixo"</div></div>
+        <div class="coh-metric"><div class="cm-label-wrap"><span class="cm-label">Atenções</span><span class="kpi-info" data-tip="Casos em que a infraestrutura supera o que o software declara — pode indicar subutilização de recursos ou documentação desatualizada. Não geram penalidade, mas merecem revisão."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="cm-val" id="coh-kpi-atenc" style="color:var(--navy)">—</div><div class="cm-sub">"SW Não, Infra acima"</div></div>
+        <div class="coh-metric"><div class="cm-label-wrap"><span class="cm-label">Penalidade Total</span><span class="kpi-info" data-tip="Soma dos pontos deduzidos do IET por inconsistências críticas. Calculada pelo peso de cada regra multiplicado pela gravidade da inconsistência encontrada."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="cm-val" id="coh-kpi-penal" style="color:var(--red)">—</div><div class="cm-sub">pts deduções no IET</div></div>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -877,141 +871,34 @@ tr:hover td { background:#F8FAFF; }
         <div class="filter"><label>Tipo</label><select id="infra-f-tipo" onchange="loadInfraCharts()"><option>Todos</option></select></div>
         <div class="filter"><label>Tipo Solução</label><select id="infra-f-caminho" onchange="loadInfraCharts()"><option>Todos</option></select></div>
       </div>
-      <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-label">Componentes Avaliados</div><div class="kpi-val navy" id="infra-kpi-total">—</div><div class="kpi-sub" id="infra-kpi-sub-total">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Risco Alto+</div><div class="kpi-val red" id="infra-kpi-alto">—</div><div class="kpi-sub" id="infra-kpi-sub-alto">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Risco Muito Baixo</div><div class="kpi-val green" id="infra-kpi-baixo">—</div><div class="kpi-sub" id="infra-kpi-sub-baixo">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Score Resil. Médio</div><div class="kpi-val gold" id="infra-kpi-resil">—</div><div class="kpi-sub" id="infra-kpi-sub-resil">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Top Provedor</div><div class="kpi-val" style="color:var(--blue)" id="infra-kpi-prov">—</div><div class="kpi-sub" id="infra-kpi-sub-prov">—</div></div>
+      <div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi-card"><div class="kpi-label-wrap"><span class="kpi-label">Componentes Avaliados</span><span class="kpi-info" data-tip="Total de componentes de infraestrutura cadastrados e avaliados na última versão dos sistemas filtrados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val navy" id="infra-kpi-total">—</div><div class="kpi-sub" id="infra-kpi-sub-total">—</div></div>
+        <div class="kpi-card" id="infra-kpi-alto-card"><div class="kpi-label-wrap"><span class="kpi-label">Risco Alto ou Muito Alto</span><span class="kpi-info" data-tip="Componentes com Score de Risco ≥ 60 — combinação de alto impacto de negócio e criticidade operacional elevada. Clique para ver a lista."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val red" id="infra-kpi-alto">—</div><div class="kpi-sub" id="infra-kpi-sub-alto">—</div></div>
+        <div class="kpi-card"><div class="kpi-label-wrap"><span class="kpi-label">Risco Muito Baixo</span><span class="kpi-info" data-tip="Componentes com Score de Risco < 30 — baixo impacto de negócio e criticidade controlada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val green" id="infra-kpi-baixo">—</div><div class="kpi-sub" id="infra-kpi-sub-baixo">—</div></div>
+        <div class="kpi-card"><div class="kpi-label-wrap"><span class="kpi-label">Score Resiliência Médio</span><span class="kpi-info" data-tip="Média do Score de Resiliência (escala 1–5) de todos os componentes — avalia redundância, tolerância a falhas, backup (RPO) e recuperação de desastres (RTO)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val gold" id="infra-kpi-resil">—</div><div class="kpi-sub" id="infra-kpi-sub-resil">—</div></div>
+        <div class="kpi-card"><div class="kpi-label-wrap"><span class="kpi-label">Top Provedor</span><span class="kpi-info" data-tip="Provedor de infraestrutura com maior concentração de componentes no portfólio filtrado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></div><div class="kpi-val" style="color:var(--blue)" id="infra-kpi-prov">—</div><div class="kpi-sub" id="infra-kpi-sub-prov">—</div></div>
       </div>
       <div class="grid-2">
         <div class="card">
-          <h3>Distribuição por Tipo de Serviço</h3>
+          <h3>Distribuição por Tipo de Serviço<span class="kpi-info" data-tip="Distribuição dos componentes de infraestrutura por categoria de serviço (IaaS, PaaS, SaaS, FaaS, DBaaS, etc.). Mostra o perfil de consumo de nuvem do portfólio — predominância de SaaS sugere maior abstração e menor esforço operacional; concentração em IaaS indica responsabilidade operacional mais elevada sobre patches, escala e disponibilidade."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="infra-type-sub" style="margin-bottom:8px"></p>
           <canvas id="chartInfraType"></canvas>
         </div>
         <div class="card">
-          <h3>Componentes por Score de Risco</h3>
+          <h3>Componentes por Score de Risco<span class="kpi-info" data-tip="Quantidade de componentes em cada faixa de Score de Risco — combinação do impacto de negócio com a criticidade operacional do componente. Faixas: Muito Baixo (&lt;20), Baixo (20–39), Médio (40–59), Alto (60–79) e Muito Alto (≥80). Concentração nas faixas Alto/Muito Alto sinaliza necessidade de plano de mitigação ou redundância."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+          <p class="chart-sub" id="infra-risk-sub" style="margin-bottom:8px"></p>
           <canvas id="chartInfraRisk"></canvas>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <h3>Top 10 Componentes Mais Críticos do Portfólio</h3>
+        <h3>Top 10 Componentes Mais Críticos do Portfólio<span class="kpi-info" data-tip="Os 10 componentes de infraestrutura com maior Score de Risco entre os filtros aplicados. Use esta lista para priorizar ações de redundância, backup, substituição ou plano de contingência. Cada linha representa um componente específico de um sistema, ordenado do mais ao menos crítico."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
+        <p class="chart-sub" id="infra-top-sub" style="margin-bottom:8px"></p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
             <tbody id="infra-table"></tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- ========== MODERNIZAÇÃO (mockup visual) ========== -->
-    <div class="page" id="page-mod">
-      <div class="page-header">
-        <h1>🚀 Modernização e Adequação</h1>
-        <div class="sub">Quanto cada sistema ganharia em score se modernizasse seus componentes para Cloud PaaS/SaaS. O <strong>IPM (Índice de Potencial de Modernização)</strong> = score aspiracional Cloud − score atual.</div>
-      </div>
-
-      <div class="mod-banner">
-        🧪 <strong>Protótipo visual</strong> — dados ilustrativos baseados em baseline de mercado (Gartner, AWS WAR, Azure WAF). Após validação, será conectado ao banco de baseline configurável pelo time B3.
-      </div>
-
-      <div class="mod-kpi-row">
-        <div class="mod-kpi-card">
-          <div class="mk-label">Potencial Médio de Evolução</div>
-          <div class="mk-val gold" id="mod-kpi-ipm">—</div>
-          <div class="mk-sub" id="mod-kpi-ipm-sub">pts médios de ganho até o teto Cloud PaaS</div>
-        </div>
-        <div class="mod-kpi-card">
-          <div class="mk-label">Sistemas Prioritários</div>
-          <div class="mk-val green" id="mod-kpi-altos">—</div>
-          <div class="mk-sub">com ganho potencial &gt; 30 pts</div>
-        </div>
-        <div class="mod-kpi-card">
-          <div class="mk-label">🚀 Candidatos a Modernizar</div>
-          <div class="mk-val" id="mod-kpi-onprem">—</div>
-          <div class="mk-sub" id="mod-kpi-onprem-sub">componentes On-Prem / IaaS</div>
-        </div>
-        <div class="mod-kpi-card">
-          <div class="mk-label">🔧 Ganho Médio ao Migrar</div>
-          <div class="mk-val green" id="mod-kpi-ganho-op">—</div>
-          <div class="mk-sub">pts médios em On-Prem/IaaS se migrados</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Ranking de Sistemas por IPM (Top 10)</h3>
-        <p class="card-sub" style="margin:-6px 0 14px 0;font-size:12px;color:var(--muted)">Sistemas com maior potencial de ganho ao modernizar componentes On-Prem para Cloud PaaS/SaaS.</p>
-        <div id="mod-rank-list"></div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h3>Componentes Candidatos a Modernização</h3>
-        <p class="card-sub" style="margin:-6px 0 14px 0;font-size:12px;color:var(--muted)">Componentes On-Prem ordenados por IPM. Use a "Solução para Adequação" do componente como brief de modernização.</p>
-        <div style="overflow-x:auto">
-          <table class="mod-comp-table">
-            <thead>
-              <tr>
-                <th>Sistema</th>
-                <th>Componente</th>
-                <th>Ambiente Atual</th>
-                <th style="text-align:center">Score Atual</th>
-                <th style="text-align:center">Aspiracional Cloud</th>
-                <th>Ação Sugerida</th>
-                <th style="text-align:center">Ganho (pts)</th>
-              </tr>
-            </thead>
-            <tbody id="mod-comp-rows"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div style="background:#FEF9E7; border:1px solid var(--gold); border-radius:8px; padding:10px 14px; margin-top:16px; font-size:12px; color:#7a5500;">
-        💡 <strong>Como interpretar:</strong> componentes com <strong>IPM alto</strong> (&gt; 30) são onde a modernização gera o maior salto de score. Componentes já em PaaS/SaaS com IPM baixo (&lt; 10) estão próximos do teto — foco de governança, não migração.
-      </div>
-    </div>
-
-    <!-- ========== BASELINE DE MERCADO (referência) ========== -->
-    <div class="page" id="page-base">
-      <div class="page-header">
-        <h1>📚 Baselines de Comparação</h1>
-        <div class="sub">Referência típica de cada característica por tipo de ambiente. Esses valores compõem o cálculo do <strong>IPM</strong> (Modernização) e os badges contextuais nos componentes.</div>
-      </div>
-
-      <div class="base-amb-row"></div>
-
-      <div class="card">
-        <h3>🔎 Matriz Comparativa</h3>
-        <p style="font-size:12px;color:var(--muted);margin:-6px 0 14px 0">Valor típico esperado em cada dimensão, por tipo de ambiente. O badge cinza ao lado é o score equivalente (0–100) que esse valor representa.</p>
-        <div style="overflow-x:auto">
-          <table class="base-matrix">
-            <thead>
-              <tr>
-                <th style="width:200px">Dimensão</th>
-                <th>🏢 On-Premises</th>
-                <th>☁️ Cloud IaaS</th>
-                <th>⚡ Cloud PaaS/SaaS</th>
-              </tr>
-            </thead>
-            <tbody id="base-matrix-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h3>💭 Por que cada ambiente é assim?</h3>
-        <p style="font-size:12px;color:var(--muted);margin:-6px 0 14px 0">Racional por dimensão, explicando o que justifica o valor típico de cada ambiente. Use para defender decisões de arquitetura e priorizar modernizações.</p>
-        <div id="base-dim-cards"></div>
-      </div>
-
-      <div class="card base-fontes" style="margin-top:16px">
-        <h3>📖 Fontes de Referência</h3>
-        <p style="font-size:12px;color:var(--muted);margin:-6px 0 14px 0">O baseline foi construído a partir de frameworks públicos de mercado combinados com padrões internos da B3.</p>
-        <ul id="base-fontes-list"></ul>
-      </div>
-
-      <div style="background:#FEF9E7; border:1px solid var(--gold); border-radius:8px; padding:10px 14px; margin-top:16px; font-size:12px; color:#7a5500;">
-        💡 <strong>Versionamento:</strong> esta tela mostra o baseline atual (mockup visual). Após a Fase 5 (UI de manutenção), o time da B3 poderá editar valores e racional diretamente; as alterações refletirão aqui automaticamente.
       </div>
     </div>
 
@@ -1024,19 +911,19 @@ tr:hover td { background:#F8FAFF; }
       <div class="filter-bar">
         <div class="filter"><label>Granularidade</label><select id="tempo-f-gran" onchange="loadTemporalChart()"><option value="T">Trimestre</option><option value="S">Semestre</option></select></div>
         <div class="filter"><label>Sistema</label><select id="tempo-f-sistema" onchange="loadTemporalChart()"><option value="">Todos (média)</option></select></div>
-        <div class="filter"><label>Métrica</label><select id="tempo-f-metrica" onchange="applyTemporalMetrica()"><option value="todas">IET + IES + IR</option><option value="iet">IET</option><option value="ies">IES</option><option value="ir">IR</option></select></div>
+        <div class="filter"><label>Métrica</label><select id="tempo-f-metrica" onchange="applyTemporalMetrica()"><option value="todas">Todos os Índices</option><option value="iet">Índice de Excelência Tecnológica (IET)</option><option value="ies">Índice de Excelência de Software (IES)</option><option value="ir">Índice de Resiliência (IR)</option></select></div>
       </div>
       <div class="card">
-        <h3 id="tempo-chart-title">Evolução IET / IES / IR — Média do Portfólio</h3>
+        <h3 id="tempo-chart-title"><span id="tempo-chart-title-text">Evolução dos Índices — Média do Portfólio</span><span class="kpi-info" data-tip="Série temporal dos três índices (Índice de Excelência Tecnológica, Índice de Excelência de Software e Índice de Resiliência) agrupados pela granularidade selecionada (Trimestre ou Semestre). Quando filtrado por sistema, mostra a evolução individual; sem filtro, mostra a média do portfólio. Linhas descendentes indicam regressão de maturidade tecnológica."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
         <canvas id="chartTemporal" style="max-height:300px;"></canvas>
       </div>
       <div class="trend-row">
         <div class="card">
-          <h3>Maiores Subidas (delta entre últimas 2 avaliações)</h3>
+          <h3>Maiores Subidas (delta entre últimas 2 avaliações)<span class="kpi-info" data-tip="Sistemas que apresentaram a maior melhoria no Índice de Excelência Tecnológica (IET) entre as duas avaliações mais recentes de cada um. O delta é a diferença em pontos entre a avaliação atual e a anterior. Use para identificar quais sistemas estão evoluindo bem e replicar boas práticas no portfólio."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
           <ul class="trend-list" id="tempo-list-subidas"></ul>
         </div>
         <div class="card">
-          <h3>Maiores Quedas (regressões)</h3>
+          <h3>Maiores Quedas (regressões)<span class="kpi-info" data-tip="Sistemas que regrediram no Índice de Excelência Tecnológica (IET) entre as duas avaliações mais recentes — quanto maior o delta negativo, maior a deterioração. Exigem governança especial: investigue causas (mudanças de arquitetura, dívidas técnicas acumuladas, perda de práticas) e priorize plano de recuperação."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span></h3>
           <ul class="trend-list" id="tempo-list-quedas"></ul>
         </div>
       </div>
@@ -1171,13 +1058,26 @@ tr:hover td { background:#F8FAFF; }
         <h1>🗂️ Histórico de Avaliações</h1>
         <div class="sub">Avaliações salvas no banco · carregadas via API</div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
-        <button onclick="loadHistorico()" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">↻ Recarregar</button>
-        <span id="hist-count" style="font-size:12px;color:var(--muted)"></span>
+      <div class="filter-bar" style="margin-bottom:16px;">
+        <div class="filter">
+          <label>Sistema</label>
+          <select id="hist-f-sistema" onchange="applyHistFiltros()"><option value="">Todos</option></select>
+        </div>
+        <div class="filter">
+          <label>Responsável</label>
+          <select id="hist-f-responsavel" onchange="applyHistFiltros()"><option value="">Todos</option></select>
+        </div>
+        <button onclick="loadHistorico()" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;align-self:flex-end;">↻ Recarregar</button>
+        <span id="hist-count" style="font-size:12px;color:var(--muted);align-self:center"></span>
       </div>
       <div class="card">
         <div id="hist-content">
           <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Clique em "Recarregar" para buscar as avaliações salvas.</div>
+        </div>
+        <div class="pagination" id="hist-pagination" style="display:none">
+          <button id="hist-pg-prev" onclick="changeHistPage(-1)">← Anterior</button>
+          <span class="pg-info" id="hist-pg-info"></span>
+          <button id="hist-pg-next" onclick="changeHistPage(1)">Próxima →</button>
         </div>
       </div>
     </div>
@@ -1218,7 +1118,6 @@ tr:hover td { background:#F8FAFF; }
             <option value="">Não definido</option>
             <option>Azure</option>
             <option>AWS</option>
-            <option>GCP</option>
             <option>On-Premise</option>
             <option>Híbrido</option>
           </select>
@@ -1269,6 +1168,15 @@ const SYSTEMS = [
 ];
 
 const PILLAR_NAMES = ['P1 Topologia', 'P2 Dados', 'P3 Operab.', 'P4 Arq.Evo', 'P5 Observ.', 'P6 Seg.'];
+const PILLAR_DISPLAY_NAMES = ['Topologia & Ponto Único de Falha', 'Dados Distribuídos', 'Operabilidade', 'Arquitetura Evolutiva', 'Observabilidade', 'Segurança'];
+const PILLAR_TOOLTIPS = [
+  'Redundância, eliminação de ponto único de falha (SPOF) e capacidade de failover',
+  'Acoplamento de dados, consistência distribuída e escalabilidade de armazenamento',
+  'Automação operacional, resposta a incidentes e gestão de SLO / error budget',
+  'Documentação de decisões, modularidade, testes de arquitetura e cobertura de testes',
+  'Telemetria, rastreabilidade de fluxos e correlação com KPIs de negócio',
+  'Gestão de identidades, criptografia, controles de acesso e segurança em profundidade',
+];
 const PILLAR_WEIGHTS = [0.30, 0.25, 0.15, 0.10, 0.10, 0.10];
 
 const QUESTIONS = [
@@ -1526,8 +1434,6 @@ function showPage(id) {
   if (id === 'infra') { loadInfraCharts(); }
   if (id === 'tempo') { loadTemporalChart(); }
   if (id === 'sist')  { loadSistemas(); }
-  if (id === 'mod')   { loadModernizacao(); }
-  if (id === 'base')  { renderBaseline(); }
   if (window.innerWidth <= 768) closeSidebar();
   if (id === 'hist')  { loadHistorico(); }
 }
@@ -1604,6 +1510,24 @@ function renderExecDashboard(data) {
   document.getElementById('exec-subtitle').textContent =
     `Excelência tecnológica consolidada · Última avaliação: ${dtStr} · ${kpis.total_sistemas} sistema(s)`;
 
+  // Subtítulo dos gráficos: "N sistemas · <filtros ativos>"
+  (function() {
+    const total = kpis.total_sistemas || 0;
+    const periodo   = document.getElementById('f-periodo').value;
+    const portfolio = document.getElementById('f-portfolio').value;
+    const cadeia    = document.getElementById('f-cadeia').value;
+    const provedor  = document.getElementById('f-provedor').value;
+    const parts = [];
+    if (periodo   && periodo   !== 'Todos') parts.push(`Período: ${periodo}`);
+    if (portfolio && portfolio !== 'Todos') parts.push(`Portfólio: ${portfolio}`);
+    if (cadeia    && cadeia    !== 'Todos') parts.push(`Cadeia: ${cadeia}`);
+    if (provedor  && provedor  !== 'Todos') parts.push(`Provedor: ${provedor}`);
+    const sub = `${total} sistema${total !== 1 ? 's' : ''} · ${parts.length ? parts.join(' · ') : 'todos os portfólios'}`;
+    document.getElementById('exec-donut-sub').textContent = sub;
+    document.getElementById('exec-pilar-sub').textContent = sub;
+    document.getElementById('exec-ranking-sub').textContent = sub;
+  })();
+
   // ── KPIs ──
   function setKpi(elId, badgeId, value, suffix, colorClass) {
     const el = document.getElementById(elId);
@@ -1619,7 +1543,6 @@ function renderExecDashboard(data) {
   setKpi('kpi-iet',      'kpi-iet-badge',      kpis.iet_medio,       '', 'gold');
   setKpi('kpi-ies',      'kpi-ies-badge',      kpis.ies_medio,       '', 'navy');
   setKpi('kpi-ir',       'kpi-ir-badge',       kpis.ir_medio,        '', 'green');
-  setKpi('kpi-coh',      null,                 kpis.coerencia_media, '%','navy');
 
   const critEl    = document.getElementById('kpi-criticos');
   const critBadge = document.getElementById('kpi-criticos-badge');
@@ -1629,6 +1552,15 @@ function renderExecDashboard(data) {
     ? `<span class="badge danger">Ação imediata</span>`
     : `<span class="badge exc">Nenhum</span>`;
 
+  const critCard = document.getElementById('kpi-criticos-card');
+  if (kpis.sistemas_criticos > 0) {
+    critCard.classList.add('kpi-clickable');
+    critCard.onclick = openCritModal;
+  } else {
+    critCard.classList.remove('kpi-clickable');
+    critCard.onclick = null;
+  }
+
   // ── Donut ──
   const dist   = distribuicao_status;
   const dTotal = Object.values(dist).reduce((a,b)=>a+b,0);
@@ -1636,6 +1568,13 @@ function renderExecDashboard(data) {
   document.getElementById('exec-donut-empty').style.display = dTotal === 0 ? 'block' : 'none';
   document.getElementById('chartDonut').style.display       = dTotal === 0 ? 'none'  : 'block';
   if (dTotal > 0) {
+    // Group full system objects by status (for tooltip preview and drill modal)
+    const donutStatusOrder = ['Excelente', 'Bom', 'Atenção', 'Crítico'];
+    charts.donutSystems = { Excelente: [], Bom: [], 'Atenção': [], 'Crítico': [] };
+    (ranking_sistemas || []).forEach(s => {
+      if (charts.donutSystems[s.status]) charts.donutSystems[s.status].push(s);
+    });
+
     const ctxD = document.getElementById('chartDonut').getContext('2d');
     charts.donut = new Chart(ctxD, {
       type: 'doughnut',
@@ -1644,8 +1583,40 @@ function renderExecDashboard(data) {
         datasets: [{ data: [dist['Excelente']||0, dist['Bom']||0, dist['Atenção']||0, dist['Crítico']||0],
           backgroundColor: ['#27AE60','#7CB342','#F1C232','#C0392B'], borderWidth: 2 }]
       },
-      options: { responsive:true, plugins:{ legend:{ position:'right', labels:{font:{size:11}, boxWidth:12} } }, cutout:'60%' }
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.6,
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          openStatusDrill(donutStatusOrder[elements[0].index]);
+        },
+        plugins: {
+          legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:12, padding:12 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const n = ctx.parsed;
+                return ` ${n} sistema${n !== 1 ? 's' : ''}`;
+              },
+              footer: items => {
+                const st = donutStatusOrder[items[0].dataIndex];
+                const top3 = (charts.donutSystems[st] || []).slice(0, 3);
+                if (!top3.length) return [];
+                const lines = ['Sistemas:'];
+                top3.forEach(s => lines.push('  · ' + s.nome));
+                const total = (charts.donutSystems[st] || []).length;
+                if (total > 3) lines.push(`  + ${total - 3} outro(s)`);
+                return lines;
+              }
+            }
+          }
+        },
+        cutout: '60%'
+      }
     });
+
+    document.getElementById('chartDonut').style.cursor = 'pointer';
   }
 
   // ── Pilar Bar ──
@@ -1658,7 +1629,15 @@ function renderExecDashboard(data) {
   } else {
     pilarEmpty.style.display = 'none';
     pilarCanvas.style.display = 'block';
-    const pilarLabels = score_por_pilar.map(p => p.pilar);
+    const pilarSuffixToDisplay = {};
+    PILLAR_NAMES.forEach((name, i) => {
+      pilarSuffixToDisplay[name.replace(/^P\d+\s+/, '')] = PILLAR_DISPLAY_NAMES[i];
+    });
+    // Split labels at ' & ' so Chart.js renders them on two lines natively
+    const pilarLabels = score_por_pilar.map(p => {
+      const name = pilarSuffixToDisplay[p.pilar] || p.pilar;
+      return name.includes(' & ') ? name.split(' & ') : name;
+    });
     const pilarScores = score_por_pilar.map(p => p.score_medio);
     const ctxP = pilarCanvas.getContext('2d');
     charts.pilarBar = new Chart(ctxP, {
@@ -1667,8 +1646,16 @@ function renderExecDashboard(data) {
         labels: pilarLabels,
         datasets: [{ data: pilarScores, backgroundColor: pilarScores.map(s => getBarColor(s)), borderRadius: 4 }]
       },
-      options: { responsive:true, plugins:{legend:{display:false}},
-        scales:{ y:{min:0,max:100,grid:{color:'#EEE'}}, x:{grid:{display:false}} } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.6,
+        plugins: { legend:{ display:false } },
+        scales: {
+          y: { min:0, max:100, grid:{ color:'#EEE' } },
+          x: { grid:{ display:false }, ticks:{ font:{ size:10 }, maxRotation:0 } }
+        }
+      }
     });
   }
 
@@ -1682,7 +1669,7 @@ function renderExecDashboard(data) {
     const st    = getStatus(sys.iet);
     const color = getBarColor(sys.iet);
     const sub   = [sys.portfolio, sys.cadeia_valor].filter(Boolean).join(' · ');
-    return `<div class="rank-bar-wrap">
+    return `<div class="rank-bar-wrap" style="cursor:pointer" title="Ver avaliação de ${sys.nome}" onclick="openAvaliacaoDetail(${sys.av_id})">
       <div class="rank-name" title="${sys.nome}">${sys.nome}${sub ? `<br><span style="font-size:10px;color:var(--muted);font-weight:400">${sub}</span>` : ''}</div>
       <div class="rank-bar"><div class="fill" style="width:${sys.iet}%;background:${color}">
         <span>${sys.iet}</span>
@@ -1727,6 +1714,7 @@ async function loadComparacao() {
 
     compSistemas = data.sistemas.map(s => ({
       name:    s.nome,
+      av_id:   s.av_id,
       iet:     s.iet,
       ies:     s.ies,
       ir:      s.ir,
@@ -1734,6 +1722,12 @@ async function loadComparacao() {
       status:  s.status,
       pillars: PILLAR_NAMES.map(p => s.pilares[p] ?? 0),
     }));
+
+    // Empty state: nenhum sistema com avaliação
+    const empty = compSistemas.length === 0;
+    document.getElementById('comp-empty').style.display   = empty ? 'block' : 'none';
+    document.getElementById('comp-content').style.display = empty ? 'none'  : '';
+    if (empty) return;
 
     ['selA', 'selB', 'selC'].forEach((id, idx) => {
       const sel = document.getElementById(id);
@@ -1760,14 +1754,31 @@ function updateRadar() {
     const st = getStatus(sys.iet);
     kpiDiv.innerHTML = '';
   });
+  const _ic = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
   kpiDiv.innerHTML = [sA,sB,sC].map(sys => {
     const st = getStatus(sys.iet);
     const color = getBarColor(sys.iet);
     return `<div class="kpi-card">
-      <div class="kpi-label">${sys.name} · IET</div>
+      <div class="kpi-label-wrap">
+        <span class="kpi-label">${sys.name} — Nota Geral</span>
+        <span class="kpi-info" data-tip="Nota geral de excelência tecnológica do sistema. Combina a maturidade da arquitetura de software (avaliada em 6 dimensões: Topologia, Dados, Operabilidade, Arquitetura Evolutiva, Observabilidade e Segurança) com a resiliência dos componentes de infraestrutura. Escala de 0 a 100.">${_ic}</span>
+      </div>
       <div class="kpi-val" style="color:${color}">${sys.iet}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">IES ${sys.ies} · IR ${sys.ir} · Coer. ${sys.coh}%</div>
-      <span class="badge ${st.cls}">${st.label}</span>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;display:flex;flex-direction:column;gap:3px">
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Excelência de Software — maturidade da arquitetura avaliada nas 6 dimensões de qualidade e resiliência de software. Escala 0–100.">${_ic}</span>
+          Excelência de Software: <strong>${sys.ies}</strong>
+        </span>
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Resiliência — capacidade dos componentes de infraestrutura de se recuperar de falhas sem interromper o serviço. Considera redundância, tolerância a falhas, frequência de backup (RPO) e tempo de recuperação (RTO). Escala 0–100.">${_ic}</span>
+          Resiliência: <strong>${sys.ir}</strong>
+        </span>
+        <span>
+          <span class="kpi-info" style="vertical-align:middle" data-tip="Coerência — percentual de regras em que a arquitetura de software declarada é consistente com a infraestrutura real dos componentes. 100% significa total alinhamento entre o que o software promete e o que a infraestrutura entrega.">${_ic}</span>
+          Coerência: <strong>${sys.coh}%</strong>
+        </span>
+      </div>
+      <span class="badge ${st.cls}" style="margin-top:8px">${st.label}</span>
     </div>`;
   }).join('');
 
@@ -1777,7 +1788,7 @@ function updateRadar() {
   radarChart = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: PILLAR_NAMES,
+      labels: PILLAR_DISPLAY_NAMES,
       datasets: [
         { label:sA.name, data:sA.pillars, borderColor:'#2E5AAC', backgroundColor:'rgba(46,90,172,0.1)', pointBackgroundColor:'#2E5AAC' },
         { label:sB.name, data:sB.pillars, borderColor:'#27AE60', backgroundColor:'rgba(39,174,96,0.1)', pointBackgroundColor:'#27AE60' },
@@ -1791,12 +1802,15 @@ function updateRadar() {
   const hm = document.getElementById('heatmap-table');
   let html = `<div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:2px;">`;
   html += `<div class="hm-cell head">Sistema</div>`;
-  PILLAR_NAMES.forEach(p => html += `<div class="hm-cell head">${p}</div>`);
+  PILLAR_DISPLAY_NAMES.forEach((p, i) => html += `<div class="hm-cell head" title="${PILLAR_TOOLTIPS[i]}">${p}</div>`);
   [sA,sB,sC].forEach(sys => {
-    html += `<div class="hm-row-label">${sys.name}</div>`;
+    const clickAttr = sys.av_id
+      ? `style="cursor:pointer" title="Ver avaliação de ${sys.name}" onclick="openAvaliacaoDetail(${sys.av_id})"`
+      : '';
+    html += `<div class="hm-row-label" ${clickAttr}>${sys.name}${sys.av_id ? ' <span style="font-size:9px;opacity:.5">↗</span>' : ''}</div>`;
     sys.pillars.forEach(v => {
       const st = getStatus(v);
-      html += `<div class="hm-cell ${st.cls}">${v}</div>`;
+      html += `<div class="hm-cell ${st.cls}" ${clickAttr}>${v}</div>`;
     });
   });
   html += '</div>';
@@ -1811,9 +1825,50 @@ const STATUS_COLORS = { 'Excelente':'#27AE60', 'Bom':'#7CB342', 'Atenção':'#F1
 async function loadPilarCharts() {
   clearApiError('pilar');
   try {
-    const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar');
+    const sistemaId = document.getElementById('pilar-f-sistema')?.value  || '';
+    const portfolio = document.getElementById('pilar-f-portfolio')?.value || '';
+    const cadeia    = document.getElementById('pilar-f-cadeia')?.value    || '';
+    const params = new URLSearchParams();
+    if (sistemaId) params.set('sistema_id', sistemaId);
+    if (portfolio)  params.set('portfolio',  portfolio);
+    if (cadeia)     params.set('cadeia',     cadeia);
+    const qs = params.toString() ? '?' + params.toString() : '';
+    const res = await fetch(getApiUrl() + '/api/dashboard/analise-pilar' + qs);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    // Empty state: sem dados de avaliação para análise
+    const empty = !data.score_por_pilar || data.score_por_pilar.length === 0;
+    document.getElementById('pilar-empty').style.display   = empty ? 'block' : 'none';
+    document.getElementById('pilar-content').style.display = empty ? 'none'  : '';
+    if (empty) return;
+
+    // Popula filtros de portfólio e cadeia (mantém seleção)
+    function fillSel(id, items, allLabel, cur) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = `<option value="">${allLabel}</option>` +
+        items.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${v}</option>`).join('');
+    }
+    const f = data.filtros_disponiveis || {};
+    fillSel('pilar-f-portfolio', f.portfolios || [], 'Todos', portfolio);
+    fillSel('pilar-f-cadeia',    f.cadeias    || [], 'Todos', cadeia);
+
+    // Popula dropdown de sistemas (mantém seleção)
+    const sel = document.getElementById('pilar-f-sistema');
+    if (sel) {
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Todos os sistemas</option>' +
+        (data.sistemas || []).map(s => `<option value="${s.id}"${String(s.id) === prev ? ' selected' : ''}>${s.nome}</option>`).join('');
+    }
+
+    // Título dinâmico do gráfico de status
+    const nomeSist = sistemaId
+      ? ((data.sistemas || []).find(s => String(s.id) === sistemaId)?.nome || 'Sistema')
+      : 'Portfólio';
+    document.getElementById('pilar-status-title-text').textContent =
+      'Distribuição por Status de Pilar — ' + nomeSist;
+
     renderPilarCharts(data);
   } catch (err) {
     showApiError('pilar', loadPilarCharts);
@@ -1826,12 +1881,36 @@ function renderPilarCharts(data) {
   data.score_por_pilar.forEach(r => { scoreMap[r.pilar] = r.score_medio; });
   const scores = PILLAR_NAMES.map(p => scoreMap[p] ?? 0);
 
+  const totalSistScore = data.score_por_pilar.length
+    ? Math.max(...data.score_por_pilar.map(r => r.total_sistemas))
+    : 0;
+  const nomeSistScore  = document.getElementById('pilar-f-sistema').selectedOptions[0]?.text;
+  const isSingleScore  = !!document.getElementById('pilar-f-sistema').value;
+  document.getElementById('pilar-score-sub').textContent = isSingleScore
+    ? nomeSistScore
+    : `${totalSistScore} sistema${totalSistScore !== 1 ? 's' : ''} avaliados`;
+
   if (charts.pilarScore) charts.pilarScore.destroy();
   const ctx1 = document.getElementById('chartPilarScore').getContext('2d');
   charts.pilarScore = new Chart(ctx1, {
-    type:'bar',
-    data:{ labels:PILLAR_NAMES, datasets:[{ data:scores, backgroundColor:scores.map(s=>getBarColor(s)), borderRadius:4 }] },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100},x:{grid:{display:false}}} }
+    type: 'bar',
+    data: { labels: PILLAR_DISPLAY_NAMES, datasets: [{ data: scores, backgroundColor: scores.map(s => getBarColor(s)), borderRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `IES neste pilar: ${ctx.parsed.y}`,
+            afterLabel: () => 'Média das respostas registradas no pilar',
+            footer: () => 'Escala 0–100 · última avaliação de cada sistema'
+          },
+          footerFont: { weight: 'normal', size: 10 },
+          footerColor: 'rgba(255,255,255,0.7)'
+        }
+      },
+      scales: { y: { min: 0, max: 100 }, x: { grid: { display: false } } }
+    }
   });
 
   // ── Distribuição de status por pilar ──
@@ -1841,32 +1920,108 @@ function renderPilarCharts(data) {
     distMap[r.pilar][r.status_pilar] = r.qtd;
   });
 
-  const statusDatasets = ['Excelente','Bom','Atenção','Crítico'].map(st => ({
-    label: st,
-    backgroundColor: STATUS_COLORS[st],
-    data: PILLAR_NAMES.map(pilar => {
-      const pData = distMap[pilar] || {};
-      const total = Object.values(pData).reduce((a,b) => a+b, 0);
-      return total === 0 ? 0 : Math.round(((pData[st] || 0) / total) * 100);
-    }),
-  }));
-
-  if (charts.pilarStatus) charts.pilarStatus.destroy();
-  const ctx2 = document.getElementById('chartPilarStatus').getContext('2d');
-  charts.pilarStatus = new Chart(ctx2, {
-    type:'bar',
-    data:{ labels:PILLAR_NAMES, datasets:statusDatasets },
-    options:{ responsive:true, scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,min:0,max:100}}, plugins:{legend:{position:'top',labels:{font:{size:10}}}} }
+  // mapa global para drill-down: pilarDrillMap[pilarName][status] = [{nome, score_pilar, av_id, portfolio}]
+  charts.pilarDrillMap = {};
+  (data.pilar_detail || []).forEach(r => {
+    if (!charts.pilarDrillMap[r.pilar]) charts.pilarDrillMap[r.pilar] = {};
+    if (!charts.pilarDrillMap[r.pilar][r.status_pilar]) charts.pilarDrillMap[r.pilar][r.status_pilar] = [];
+    charts.pilarDrillMap[r.pilar][r.status_pilar].push(r);
   });
 
+  const isSingleSist = !!document.getElementById('pilar-f-sistema').value;
+  const canvas2  = document.getElementById('chartPilarStatus');
+  const msgSingl = document.getElementById('pilar-status-single');
+  const subEl    = document.getElementById('pilar-status-sub-text');
+
+  if (isSingleSist) {
+    if (charts.pilarStatus) { charts.pilarStatus.destroy(); charts.pilarStatus = null; }
+    canvas2.style.display  = 'none';
+    msgSingl.style.display = 'block';
+    subEl.textContent = '';
+  } else {
+    canvas2.style.display  = '';
+    msgSingl.style.display = 'none';
+
+    const maxSist = Math.max(...PILLAR_NAMES.map(p => {
+      const pData = distMap[p] || {};
+      return Object.values(pData).reduce((a,b) => a+b, 0);
+    }), 0);
+    subEl.textContent = `${maxSist} sistema${maxSist !== 1 ? 's' : ''} avaliados — clique numa barra para detalhar`;
+
+    const statusOrder = ['Excelente','Bom','Atenção','Crítico'];
+    const statusDatasets = statusOrder.map(st => ({
+      label: st,
+      backgroundColor: STATUS_COLORS[st],
+      data: PILLAR_NAMES.map(pilar => (distMap[pilar] || {})[st] || 0),
+    }));
+
+    if (charts.pilarStatus) charts.pilarStatus.destroy();
+    const ctx2 = canvas2.getContext('2d');
+    charts.pilarStatus = new Chart(ctx2, {
+      type: 'bar',
+      data: { labels: PILLAR_DISPLAY_NAMES, datasets: statusDatasets },
+      options: {
+        responsive: true,
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          const el = elements[0];
+          openPilarDrill(el.index, statusOrder[el.datasetIndex]);
+        },
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        },
+        plugins: {
+          legend: { position:'top', labels:{ font:{size:10} } },
+          tooltip: {
+            callbacks: {
+              footer: (items) => {
+                const item = items[0];
+                const pilar  = PILLAR_NAMES[item.dataIndex];
+                const status = item.dataset.label;
+                const list   = ((charts.pilarDrillMap[pilar] || {})[status] || []);
+                if (!list.length) return '';
+                const top3 = list.slice(0, 3).map(s => `• ${s.nome} (${s.score_pilar})`).join('\n');
+                return list.length > 3 ? top3 + `\n+ ${list.length - 3} outros` : top3;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { stacked:true, grid:{ display:false }, ticks:{ font:{size:10}, maxRotation:0 } },
+          y: { stacked:true, min:0, ticks:{ stepSize:1, callback: v => Number.isInteger(v) ? v : null },
+               title:{ display:true, text:'Nº de sistemas', font:{size:10}, color:'var(--muted)' } }
+        }
+      }
+    });
+  }
+
   // ── Top piores questões ──
+  const pilarToDisplay = {};
+  PILLAR_NAMES.forEach((name, i) => { pilarToDisplay[name] = PILLAR_DISPLAY_NAMES[i]; });
+
+  // mapa global: questaoDrillMap[questao_id] = [{nome, portfolio, av_id, score}]
+  charts.questaoDrillMap = {};
+  (data.questao_detail || []).forEach(r => {
+    if (!charts.questaoDrillMap[r.questao_id]) charts.questaoDrillMap[r.questao_id] = [];
+    charts.questaoDrillMap[r.questao_id].push(r);
+  });
+
+  const isSingleQ    = !!document.getElementById('pilar-f-sistema').value;
+  const nomeSistQ    = document.getElementById('pilar-f-sistema').selectedOptions[0]?.text;
+  const totalSistQ   = data.piores_questoes.length
+    ? Math.max(...data.piores_questoes.map(q => q.total_sistemas))
+    : 0;
+  document.getElementById('worst-q-sub').textContent = isSingleQ
+    ? `${nomeSistQ} — clique numa linha para ver os sistemas envolvidos`
+    : `${totalSistQ} sistema${totalSistQ !== 1 ? 's' : ''} avaliados — clique numa linha para detalhar`;
+
   const tbody = document.getElementById('worst-questions-table');
   tbody.innerHTML = data.piores_questoes.map(q => {
-    const title = (QUESTIONS.find(x => x.id === q.questao_id)?.title || q.questao_id).slice(0, 60) + '...';
-    const st = getStatus(q.score_medio * 10);
-    return `<tr>
-      <td><span class="qid-link">${q.questao_id}</span></td>
-      <td>${q.pilar}</td>
+    const title     = QUESTIONS.find(x => x.id === q.questao_id)?.title || q.questao_id;
+    const st        = getStatus(q.score_medio * 10);
+    const pilarFull = pilarToDisplay[q.pilar] || q.pilar || '—';
+    return `<tr style="cursor:pointer" title="Ver sistemas desta pergunta" onclick="openQuestaoDrill('${q.questao_id}')">
+      <td>${pilarFull}</td>
       <td>${title}</td>
       <td><strong>${q.score_medio}</strong></td>
       <td>${q.total_sistemas}</td>
@@ -2020,6 +2175,17 @@ async function loadInfraCharts() {
   document.getElementById('infra-kpi-sub-total').textContent = `${k.total_sistemas} sistema${k.total_sistemas !== 1 ? 's' : ''}`;
   document.getElementById('infra-kpi-alto').textContent      = k.risco_alto_mais;
   document.getElementById('infra-kpi-sub-alto').textContent  = total ? ((k.risco_alto_mais / total * 100).toFixed(1) + '%') : '—';
+
+  // Guarda lista completa de componentes para drill-down (KPI + gráfico de faixa)
+  charts.componentesLista = data.componentes_lista || [];
+  const altoCard = document.getElementById('infra-kpi-alto-card');
+  if (k.risco_alto_mais > 0) {
+    altoCard.classList.add('kpi-clickable');
+    altoCard.onclick = openRiscoAltoModal;
+  } else {
+    altoCard.classList.remove('kpi-clickable');
+    altoCard.onclick = null;
+  }
   document.getElementById('infra-kpi-baixo').textContent     = k.risco_muito_baixo;
   document.getElementById('infra-kpi-sub-baixo').textContent = total ? ((k.risco_muito_baixo / total * 100).toFixed(1) + '%') : '—';
   document.getElementById('infra-kpi-resil').textContent     = k.score_resil_medio != null ? `${k.score_resil_medio}/5` : '—';
@@ -2034,24 +2200,49 @@ async function loadInfraCharts() {
   populateInfraFilter('infra-f-tipo',     f.tipos,      tipo);
   populateInfraFilter('infra-f-caminho',  f.caminhos,   caminho);
 
-  // Donut — por tipo
+  // Subtitles com filtros ativos
+  (function() {
+    const parts = [];
+    if (sistema  !== 'Todos') parts.push(`Sistema: ${sistema}`);
+    if (provedor !== 'Todos') parts.push(`Provedor: ${provedor}`);
+    if (tipo     !== 'Todos') parts.push(`Tipo: ${tipo}`);
+    if (caminho  !== 'Todos') parts.push(`Tipo Solução: ${caminho}`);
+    const sub = `${total} componente${total !== 1 ? 's' : ''} · ${parts.length ? parts.join(' · ') : 'todos os filtros'}`;
+    document.getElementById('infra-type-sub').textContent = sub;
+    document.getElementById('infra-risk-sub').textContent = sub;
+    document.getElementById('infra-top-sub').textContent  = sub;
+  })();
+
+  // Donut — por tipo (clicável → drill por tipo)
   if (charts.infraType) { charts.infraType.destroy(); charts.infraType = null; }
+  const tiposLabels = data.por_tipo.map(t => t.tipo);
   charts.infraType = new Chart(
     document.getElementById('chartInfraType').getContext('2d'), {
       type:'doughnut',
       data:{
-        labels: data.por_tipo.map(t => t.tipo),
+        labels: tiposLabels,
         datasets:[{
           data: data.por_tipo.map(t => t.total),
           backgroundColor: data.por_tipo.map(t => TYPE_COLORS[t.tipo] || '#6B7280'),
           borderWidth:2
         }]
       },
-      options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}, cutout:'55%'}
+      options:{
+        responsive:true,
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          openTipoModal(tiposLabels[elements[0].index]);
+        },
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        },
+        plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}},
+        cutout:'55%'
+      }
     }
   );
 
-  // Bar — por faixa de risco
+  // Bar — por faixa de risco (clicável → drill por faixa)
   if (charts.infraRisk) { charts.infraRisk.destroy(); charts.infraRisk = null; }
   const rb = data.por_faixa_risco;
   charts.infraRisk = new Chart(
@@ -2065,7 +2256,18 @@ async function loadInfraCharts() {
           borderRadius:4
         }]
       },
-      options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'#EEE'}},x:{grid:{display:false}}}}
+      options:{
+        responsive:true,
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          openRiscoFaixaModal(elements[0].index);
+        },
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        },
+        plugins:{legend:{display:false}},
+        scales:{y:{grid:{color:'#EEE'}},x:{grid:{display:false}}}
+      }
     }
   );
 
@@ -2117,8 +2319,8 @@ async function loadTemporalChart() {
     const nomeAtual = sistemaId
       ? (data.sistemas.find(s => String(s.id) === sistemaId)?.nome || 'Sistema')
       : 'Média do Portfólio';
-    document.getElementById('tempo-chart-title').textContent =
-      'Evolução IET / IES / IR — ' + nomeAtual;
+    document.getElementById('tempo-chart-title-text').textContent =
+      'Evolução dos Índices — ' + nomeAtual;
 
     // Gráfico
     if (charts.temporal) { charts.temporal.destroy(); charts.temporal = null; }
@@ -2129,9 +2331,9 @@ async function loadTemporalChart() {
         data: {
           labels,
           datasets: [
-            { id:'iet', label:'IET (Geral)',      data: data.serie.map(r => r.iet_medio), borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,0.08)', tension:.4, fill:true, pointRadius:4 },
-            { id:'ies', label:'IES (Software)',   data: data.serie.map(r => r.ies_medio), borderColor:'#2E5AAC', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
-            { id:'ir',  label:'IR (Resiliência)', data: data.serie.map(r => r.ir_medio),  borderColor:'#1B2A4A', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
+            { id:'iet', label:'Índice de Excelência Tecnológica (IET)', data: data.serie.map(r => r.iet_medio), borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,0.08)', tension:.4, fill:true, pointRadius:4 },
+            { id:'ies', label:'Índice de Excelência de Software (IES)', data: data.serie.map(r => r.ies_medio), borderColor:'#2E5AAC', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
+            { id:'ir',  label:'Índice de Resiliência (IR)',             data: data.serie.map(r => r.ir_medio),  borderColor:'#1B2A4A', backgroundColor:'transparent',            tension:.4, pointRadius:4 },
           ]
         },
         options: {
@@ -2165,7 +2367,10 @@ function applyTemporalMetrica() {
 function renderTrendList(listId, items, dir) {
   const ul = document.getElementById(listId);
   if (!items.length) {
-    ul.innerHTML = '<li style="padding:8px 4px;color:var(--muted);font-size:12px">Sem dados suficientes (necessário ≥ 2 avaliações por sistema)</li>';
+    ul.innerHTML = '<li style="padding:14px 8px;color:var(--muted);font-size:12px;line-height:1.5">' +
+      'Nenhum sistema cadastrado possui mais de uma avaliação ainda.<br>' +
+      '<span style="font-size:11px;opacity:.75">Para identificar tendências é necessário pelo menos duas avaliações por sistema.</span>' +
+      '</li>';
     return;
   }
   ul.innerHTML = items.map((t, i) => {
@@ -2487,157 +2692,84 @@ async function saveAvaliacao() {
 // Lê últimas avaliações + componentes via API existente, aplica baseline mockado
 // e calcula IPM por componente e por sistema.
 // ============================================================
-async function loadModernizacao() {
-  const kpiIpm        = document.getElementById('mod-kpi-ipm');
-  const kpiIpmSub     = document.getElementById('mod-kpi-ipm-sub');
-  const kpiAltos      = document.getElementById('mod-kpi-altos');
-  const kpiOnprem     = document.getElementById('mod-kpi-onprem');
-  const kpiOnpremSub  = document.getElementById('mod-kpi-onprem-sub');
-  const kpiGanhoOp    = document.getElementById('mod-kpi-ganho-op');
-  const rankList      = document.getElementById('mod-rank-list');
-  const compRows      = document.getElementById('mod-comp-rows');
 
-  rankList.innerHTML  = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ Carregando…</div>';
-  compRows.innerHTML  = '';
+let histPage = 1;
 
-  try {
-    const resAv = await fetch(getApiUrl() + '/api/avaliacoes');
-    if (!resAv.ok) throw new Error('HTTP ' + resAv.status);
-    const avals = await resAv.json();
-
-    // Última avaliação por sistema
-    const latestBySys = {};
-    avals.forEach(a => {
-      const prev = latestBySys[a.sistema_id];
-      if (!prev || new Date(a.data_avaliacao) > new Date(prev.data_avaliacao)) latestBySys[a.sistema_id] = a;
-    });
-    const latestIds = Object.values(latestBySys).map(a => a.id);
-
-    if (!latestIds.length) {
-      rankList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Sem avaliações para calcular IPM.</div>';
-      kpiIpm.textContent = '—'; kpiAltos.textContent = '0'; kpiOnprem.textContent = '0'; kpiGanhoOp.textContent = '—';
-      return;
-    }
-
-    // Detalhe (componentes) de cada uma
-    const detalhes = await Promise.all(
-      latestIds.map(id => fetch(getApiUrl() + `/api/avaliacoes/${id}`).then(r => r.json()))
-    );
-
-    // Agrega por sistema
-    const sistemas = detalhes.map(av => {
-      const comps = (av.componentes || []).map(c => {
-        const amb = classifyAmbiente(c.tipo, c.provedor);
-        const ipm = computeIPM(c.score_100 || 0);
-        return { ...c, ambiente: amb, ipm };
-      });
-      const ipmSys = comps.length ? Math.round(comps.reduce((s,c) => s + c.ipm, 0) / comps.length) : 0;
-      return {
-        id:           av.id,
-        sistema_id:   av.sistema_id,
-        sistema_nome: av.sistema_nome,
-        unidade:      av.unidade_negocio,
-        componentes:  comps,
-        ipm:          ipmSys
-      };
-    });
-
-    // ── KPIs ──
-    const totalComps    = sistemas.reduce((s,x) => s + x.componentes.length, 0);
-    const flatComps     = sistemas.flatMap(x => x.componentes);
-    const modCandidates = flatComps.filter(c => c.ambiente !== 'cloud_paas_saas'); // On-Prem ou IaaS
-    const ipmMedio      = sistemas.length ? Math.round(sistemas.reduce((s,x) => s + x.ipm, 0) / sistemas.length) : 0;
-    const altos         = sistemas.filter(x => x.ipm > 30).length;
-    const ganhoMig      = modCandidates.length ? Math.round(modCandidates.reduce((s,c) => s + c.ipm, 0) / modCandidates.length) : 0;
-
-    kpiIpm.textContent       = '+' + ipmMedio;
-    kpiIpmSub.textContent    = `pts médios de ganho até o teto Cloud PaaS em ${sistemas.length} sistema(s)`;
-    kpiAltos.textContent     = altos;
-    kpiOnprem.textContent    = modCandidates.length;
-    kpiOnpremSub.textContent = `de ${totalComps} componentes (On-Prem ou IaaS)`;
-    kpiGanhoOp.textContent   = modCandidates.length ? '+' + ganhoMig : '—';
-
-    // ── Ranking de sistemas ──
-    const top = [...sistemas].sort((a,b) => b.ipm - a.ipm).slice(0, 10);
-    rankList.innerHTML = top.map(sys => {
-      const cls = sys.ipm >= 30 ? '' : sys.ipm >= 10 ? 'med' : 'bx';
-      const onPct = sys.componentes.length
-        ? Math.round(sys.componentes.filter(c => c.ambiente === 'on_prem').length / sys.componentes.length * 100)
-        : 0;
-      return `<div class="mod-rank-bar">
-        <div class="mod-rank-sys">${sys.sistema_nome}
-          <span class="mrs-sub">${sys.componentes.length} componente(s) · ${onPct}% On-Prem</span>
-        </div>
-        <div class="mod-rank-track"><div class="mod-rank-fill ${cls}" style="width:${Math.min(100, sys.ipm * 2)}%"></div></div>
-        <div class="mod-rank-val">+${sys.ipm}<span class="mrv-unit"> pts</span></div>
-      </div>`;
-    }).join('') || '<div style="text-align:center;padding:20px;color:var(--muted)">Nenhum sistema avaliado.</div>';
-
-    // ── Componentes candidatos ──
-    const allComps = sistemas.flatMap(s => s.componentes.map(c => ({ ...c, _sistema: s.sistema_nome })));
-    const topComps = allComps.filter(c => c.ipm > 0).sort((a,b) => b.ipm - a.ipm).slice(0, 25);
-
-    compRows.innerHTML = topComps.map(c => {
-      const ref       = BASELINE[c.ambiente];
-      const aspirac   = BASELINE.cloud_paas_saas.score_aspiracional;
-      const cls       = ipmClass(c.ipm);
-      const ctx       = ipmContext(c.ambiente);
-      const acaoLabel = ctx.acao === 'modernizar'
-        ? '<strong style="color:#1A5FB4">🚀 Modernizar</strong> <small style="color:var(--muted)">→ Cloud PaaS</small>'
-        : '<strong style="color:#7A5500">🔧 Adequar</strong> <small style="color:var(--muted)">configuração no ambiente</small>';
-      return `<tr>
-        <td><strong>${c._sistema}</strong></td>
-        <td>${c.nome || '—'} <small style="color:var(--muted)">· ${c.tipo || '?'}</small></td>
-        <td><span class="mod-amb-tag ${ref.tag}">${ref.label}</span></td>
-        <td style="text-align:center;font-weight:700">${c.score_100 ?? '—'}</td>
-        <td style="text-align:center;color:#1E7A3E;font-weight:700">${aspirac}</td>
-        <td>${acaoLabel}</td>
-        <td style="text-align:center" class="mod-ipm-cell ${cls}">+${c.ipm}</td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Nenhum componente com potencial de evolução (todos já no teto do ambiente).</td></tr>';
-
-  } catch (err) {
-    console.error('Modernização:', err);
-    rankList.innerHTML = `<div style="text-align:center;padding:30px;color:var(--red)">Erro ao carregar: ${err.message}</div>`;
-  }
+async function loadHistorico(resetPage = true) {
+  if (resetPage) histPage = 1;
+  await fetchHistorico();
 }
 
-async function loadHistorico() {
+function applyHistFiltros() {
+  histPage = 1;
+  fetchHistorico();
+}
+
+function changeHistPage(delta) {
+  histPage = Math.max(1, histPage + delta);
+  fetchHistorico();
+}
+
+async function fetchHistorico() {
   const container = document.getElementById('hist-content');
-  const count = document.getElementById('hist-count');
+  const count     = document.getElementById('hist-count');
+  const pagination = document.getElementById('hist-pagination');
   container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">⏳ Carregando...</div>';
+  pagination.style.display = 'none';
+
+  const fSistema = document.getElementById('hist-f-sistema')?.value    || '';
+  const fResp    = document.getElementById('hist-f-responsavel')?.value || '';
+
+  const params = new URLSearchParams({ page: histPage });
+  if (fSistema) params.set('sistema_nome', fSistema);
+  if (fResp)    params.set('responsavel',  fResp);
 
   try {
-    const ctrl2 = new AbortController();
-    const t2 = setTimeout(() => ctrl2.abort(), 8000);
-    const res = await fetch(getApiUrl() + '/api/avaliacoes', { signal: ctrl2.signal });
-    clearTimeout(t2);
+    const ctrl = new AbortController();
+    const t    = setTimeout(() => ctrl.abort(), 8000);
+    const res  = await fetch(`${getApiUrl()}/api/avaliacoes?${params}`, { signal: ctrl.signal });
+    clearTimeout(t);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    count.textContent = `${data.length} avaliação(ões) encontrada(s)`;
+    const json = await res.json();
+
+    const { data, total, page, total_pages, filtros } = json;
+
+    // Atualiza página real retornada pelo backend (pode ter sido corrigida)
+    histPage = page;
+
+    // Popula selects mantendo seleção
+    function fillHistSel(id, values, cur) {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Todos</option>' +
+        values.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${v}</option>`).join('');
+    }
+    fillHistSel('hist-f-sistema',     filtros.sistemas     || [], fSistema);
+    fillHistSel('hist-f-responsavel', filtros.responsaveis || [], fResp);
+
+    count.textContent = `${total} avaliação(ões) encontrada(s)`;
 
     if (!data.length) {
-      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma avaliação salva ainda.</div>';
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma avaliação encontrada para os filtros selecionados.</div>';
       return;
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>#</th><th>Sistema</th><th>Responsável</th><th>Data</th><th>IES</th><th>IR</th><th>IET</th><th>Status</th><th>Origem</th>';
+    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
-      const st = getStatus(av.iet);
-      const color = getBarColor(av.iet);
-      const dateStr = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
+      const st          = getStatus(av.iet);
+      const color       = getBarColor(av.iet);
+      const dateStr     = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
       const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
       const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
-        <td style="color:var(--muted)">#${av.id}</td>
+        <td>${dateStr}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
         <td>${av.responsavel || '—'}</td>
-        <td>${dateStr}</td>
-        <td>${av.ies ?? '—'}</td>
-        <td>${av.ir ?? '—'}</td>
+        <td><strong style="color:${getBarColor(av.ies)};font-size:16px">${av.ies ?? '—'}</strong></td>
+        <td><strong style="color:${getBarColor(av.ir)};font-size:16px">${av.ir ?? '—'}</strong></td>
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
@@ -2646,6 +2778,13 @@ async function loadHistorico() {
 
     html += '</tbody></table></div>';
     container.innerHTML = html;
+
+    // Paginação
+    document.getElementById('hist-pg-info').textContent = `Página ${page} de ${total_pages}`;
+    document.getElementById('hist-pg-prev').disabled    = page <= 1;
+    document.getElementById('hist-pg-next').disabled    = page >= total_pages;
+    pagination.style.display = total_pages > 1 ? 'flex' : 'none';
+
   } catch (err) {
     container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px;">
       ❌ Não foi possível carregar: <strong>${err.message}</strong><br>
@@ -2660,286 +2799,10 @@ async function loadHistorico() {
 // ============================================================
 let compIdSeq = 0;
 
-// ============================================================
-// BASELINE DE MERCADO — mockup visual (Fase 1)
-// Será substituído por dados vindos de /api/baseline na implementação real.
-// Score: 0–100 esperado para o ambiente.
-// ============================================================
-const BASELINE = {
-  on_prem: {
-    label: 'On-Premises',
-    tag:   'onprem',
-    score_tipico:      55,
-    score_aspiracional:75,
-    dimensoes: {
-      sla:          { tipico: '99,5%–99,9%',           score: 60 },
-      redundancia:  { tipico: 'Ativo/Passivo',         score: 50 },
-      tolerancia:   { tipico: 'Restart manual',        score: 40 },
-      backup_rpo:   { tipico: 'Frequente (RPO 4h–24h)',score: 55 },
-      dr:           { tipico: 'DR manual (RTO > 24h)', score: 40 },
-      monit:        { tipico: 'Métricas básicas',      score: 50 },
-      depend:       { tipico: 'Baixo acoplamento',     score: 60 },
-      contorno:     { tipico: 'Sim — possui contorno', score: 70 },
-    }
-  },
-  cloud_iaas: {
-    label: 'Cloud IaaS',
-    tag:   'iaas',
-    score_tipico:      75,
-    score_aspiracional:88,
-    dimensoes: {
-      sla:          { tipico: '99,9%–99,99%',          score: 80 },
-      redundancia:  { tipico: 'Multi-AZ',              score: 80 },
-      tolerancia:   { tipico: 'Auto-restart',          score: 65 },
-      backup_rpo:   { tipico: 'Contínuo (RPO < 1h)',   score: 80 },
-      dr:           { tipico: 'DR < 1h',               score: 75 },
-      monit:        { tipico: 'Alertas estruturados',  score: 70 },
-      depend:       { tipico: 'Baixo acoplamento',     score: 70 },
-      contorno:     { tipico: 'Sim — possui contorno', score: 78 },
-    }
-  },
-  cloud_paas_saas: {
-    label: 'Cloud PaaS/SaaS',
-    tag:   'paas',
-    score_tipico:      88,
-    score_aspiracional:95,
-    dimensoes: {
-      sla:          { tipico: '> 99,99%',                                     score: 92 },
-      redundancia:  { tipico: 'Multi-Region ativo/ativo',                     score: 95 },
-      tolerancia:   { tipico: 'Auto-repair automático',                       score: 88 },
-      backup_rpo:   { tipico: 'RPO ≤ 15 min',                                 score: 95 },
-      dr:           { tipico: 'Failover automático (RTO < 15 min)',           score: 95 },
-      monit:        { tipico: 'Dashboards + alertas',                         score: 88 },
-      depend:       { tipico: 'Algumas alternativas',                         score: 82 },
-      contorno:     { tipico: 'Sim — possui contorno',                        score: 85 },
-    }
-  }
-};
-
-function classifyAmbiente(tipo, provedor) {
-  if (!provedor || provedor === 'On-Premise' || provedor === 'Outro') return 'on_prem';
-  if (tipo === 'IaaS') return 'cloud_iaas';
-  return 'cloud_paas_saas';
-}
-
-// IPM (Índice de Potencial de Modernização) =
-//   score aspiracional Cloud PaaS/SaaS − score atual do componente
-function computeIPM(scoreAtual) {
-  if (scoreAtual == null) return 0;
-  const aspiracional = BASELINE.cloud_paas_saas.score_aspiracional;
-  return Math.max(0, Math.round(aspiracional - scoreAtual));
-}
-
-function ipmClass(ipm) {
-  if (ipm >= 30) return 'alta';
-  if (ipm >= 10) return 'media';
-  return 'baixa';
-}
-
-// Label semântica do IPM conforme o ambiente atual do componente:
-// - On-Prem / IaaS: faz sentido falar em "modernizar" (mudar de ambiente)
-// - PaaS/SaaS:      já está no topo da escala — só cabe "adequar" a configuração
-function ipmContext(ambiente) {
-  if (ambiente === 'cloud_paas_saas') {
-    return { acao: 'adequar', label: 'Adequação', frase: 'até o teto do ambiente' };
-  }
-  return { acao: 'modernizar', label: 'IPM', frase: 'ao modernizar p/ Cloud PaaS' };
-}
-
-// ============================================================
-// Metadados do baseline — descrições, racional e fontes
-// ============================================================
-const AMBIENTE_INFO = {
-  on_prem: {
-    icon: '🏢',
-    descricao: 'Infraestrutura própria, em datacenter da B3 ou colocation. Controle total sobre hardware, rede e segurança física.',
-    caracteristicas: [
-      'Datacenter próprio ou colocation',
-      'CAPEX com depreciação 3–5 anos',
-      'Equipe especializada (infra, redes, DBA)',
-      'Janelas de manutenção planejadas',
-      'Compliance e auditoria sob controle direto'
-    ]
-  },
-  cloud_iaas: {
-    icon: '☁️',
-    descricao: 'Máquinas virtuais e recursos básicos (compute, storage, network) na nuvem. SO e middleware permanecem sob sua responsabilidade.',
-    caracteristicas: [
-      'Provisionamento em minutos',
-      'OPEX (pay-as-you-go)',
-      'Multi-AZ acessível por configuração',
-      'Patching de SO continua com você',
-      'Responsabilidade compartilhada de segurança'
-    ]
-  },
-  cloud_paas_saas: {
-    icon: '⚡',
-    descricao: 'Serviços gerenciados (PaaS) ou completamente entregues (SaaS). Provedor cuida da infra, runtime e parcial/totalmente dos patches.',
-    caracteristicas: [
-      'Multi-Zona nativo',
-      'Auto-scaling e auto-healing embutidos',
-      'Patching automatizado pelo provedor',
-      'Observabilidade end-to-end nativa',
-      'Menor footprint operacional'
-    ]
-  }
-};
-
-const DIMENSAO_INFO = {
-  sla: {
-    nome: 'Disponibilidade / SLA',
-    descricao: 'Percentual de tempo em que o componente está disponível para uso.',
-    por_que: {
-      on_prem:         'Datacenter único é o padrão; redundância depende de investimento em hardware, energia, refrigeração e sites secundários. SLAs internos de 99,5% são comuns; ultrapassar 99,9% exige investimento alto em automação e DR.',
-      cloud_iaas:      'SLAs publicados pelos provedores (ex.: Azure VM Multi-Zone 99,99%). Energia e rede com redundância nativa, mas dependência de VM individual sem auto-healing automático.',
-      cloud_paas_saas: 'Managed services com SLAs financeiramente garantidos. Multi-AZ ou Multi-Region embutidos. Exemplos: Azure SQL Business Critical 99,995%, DynamoDB 99,999%.'
-    }
-  },
-  redundancia: {
-    nome: 'Redundância',
-    descricao: 'Capacidade de operar mesmo com falha de componentes individuais.',
-    por_que: {
-      on_prem:         'Replicação típica é cluster HA em um único datacenter. Multi-site exige investimento significativo em link dedicado, replicação síncrona de dados e licenciamento ativo-passivo ou ativo-ativo.',
-      cloud_iaas:      'Múltiplas Availability Zones na mesma região são padrão acessível. Multi-Region exige configuração extra + custo de replicação cross-region.',
-      cloud_paas_saas: 'Serviços globais (Cosmos DB, Aurora Global, Spanner) oferecem replicação Multi-Region nativa. Failover automático entre regiões em segundos.'
-    }
-  },
-  tolerancia: {
-    nome: 'Tolerância a Falhas',
-    descricao: 'Capacidade do sistema de detectar e recuperar de falhas sem intervenção humana.',
-    por_que: {
-      on_prem:         'Falhas tipicamente exigem intervenção humana ou scripts de monitoramento + restart. Auto-healing requer orquestrador (Pacemaker, scripts custom) e maturidade operacional.',
-      cloud_iaas:      'VM Scale Sets, Auto Scaling Groups oferecem restart automático em falha de instância. Repair automático é configurável mas exige tuning.',
-      cloud_paas_saas: 'Managed services detectam falhas de instância internamente e substituem automaticamente. Aplicação consumidora não percebe a recuperação.'
-    }
-  },
-  backup_rpo: {
-    nome: 'Backup / RPO',
-    descricao: 'Frequência dos backups e máximo de dados perdidos em caso de falha (Recovery Point Objective).',
-    por_que: {
-      on_prem:         'Backup tradicional em fita ou storage com janela diária; PITR exige solução dedicada (Veeam, Commvault) e custo proporcional à frequência. RPO típico fica entre 4h e 24h.',
-      cloud_iaas:      'Snapshots automatizados e PITR são features padrão dos serviços de block storage. RPO < 1h é alcançável sem grande esforço.',
-      cloud_paas_saas: 'PITR contínuo nativo (ex.: Azure SQL PITR a partir de 5min; DynamoDB PITR contínuo). Retenção configurável até 35 dias.'
-    }
-  },
-  dr: {
-    nome: 'DR / RTO',
-    descricao: 'Capacidade de retomar operação em outro site após desastre, e o tempo até a retomada (Recovery Time Objective).',
-    por_que: {
-      on_prem:         'DR em site secundário tem custo alto; ativação manual ou semi-manual é típica. RTO de horas a dias é o padrão; chegar a < 4h requer cluster ativo-ativo e exercícios regulares.',
-      cloud_iaas:      'Replicação cross-region + scripts de failover (Azure Site Recovery, AWS DRS). RTO de minutos a 1h é alcançável.',
-      cloud_paas_saas: 'Failover automático em managed services globais. RTO em segundos para alguns serviços (Cosmos DB, DynamoDB Global Tables).'
-    }
-  },
-  monit: {
-    nome: 'Monitoramento',
-    descricao: 'Visibilidade sobre estado, performance e SLO do componente.',
-    por_que: {
-      on_prem:         'Ferramentas como Zabbix, Nagios, SCOM são comuns. Telemetria detalhada (APM, traces) exige integração e custo de licenças (Dynatrace, New Relic, Splunk).',
-      cloud_iaas:      'CloudWatch, Azure Monitor, Cloud Monitoring nativos com métricas de VM e rede. Custom metrics ou APM ainda exigem agentes.',
-      cloud_paas_saas: 'Observabilidade end-to-end nativa; SLO tracking; Application Insights / X-Ray integrados. Dashboards prontos por serviço.'
-    }
-  },
-  depend: {
-    nome: 'Dependências',
-    descricao: 'Grau de acoplamento entre o componente e suas dependências.',
-    por_que: {
-      on_prem:         'Arquiteturas tendem a integrações ponto a ponto com sistemas legados; mensageria interna (MQ, JMS) é comum. Reduzir acoplamento exige refatoração explícita.',
-      cloud_iaas:      'Service mesh (Istio, App Mesh) e message brokers gerenciados (SQS, Service Bus) facilitam desacoplamento, mas exigem design intencional.',
-      cloud_paas_saas: 'API-first; muitos serviços de integração nativos (Logic Apps, EventBridge, Pub/Sub). Eventos e callbacks como padrão de design.'
-    }
-  },
-  contorno: {
-    nome: 'Contorno',
-    descricao: 'Existência de caminho alternativo (manual, automatizado ou degradado) caso o componente principal falhe.',
-    por_que: {
-      on_prem:         'Procedimentos manuais documentados; runbooks operacionais e POPs (Procedimentos Operacionais Padrão) são essenciais para garantir contorno.',
-      cloud_iaas:      'Mesma capacidade de contorno manual + automação de provisionamento facilita criar paths alternativos sob demanda.',
-      cloud_paas_saas: 'Multi-region, region-failover automático e degradação graciosa são padrões de design embutidos no provedor.'
-    }
-  }
-};
-
-const BASELINE_FONTES = [
-  { nome: 'AWS Well-Architected Framework — Reliability Pillar', url: 'https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html' },
-  { nome: 'Azure Well-Architected Framework — Reliability',       url: 'https://learn.microsoft.com/azure/well-architected/reliability/' },
-  { nome: 'Google Cloud Architecture Framework — System Design',  url: 'https://cloud.google.com/architecture/framework' },
-  { nome: 'Gartner — Magic Quadrant for Cloud Infrastructure & Platform Services (CIPS)' },
-  { nome: 'ITIL 4 — Service Design Practices' },
-  { nome: 'ISO/IEC 22301 — Business Continuity Management' },
-  { nome: 'BACEN — Resolução CMN 4.893/2021 (computação em nuvem para Instituições Financeiras)' },
-  { nome: 'B3 — Padrões de Arquitetura Corporativa (referência interna)' }
-];
-
-function renderBaseline() {
-  const tagOf = { on_prem:'onprem', cloud_iaas:'iaas', cloud_paas_saas:'paas' };
-  const order = ['on_prem','cloud_iaas','cloud_paas_saas'];
-
-  // 1) Cards de ambiente
-  const ambRow = document.querySelector('#page-base .base-amb-row');
-  ambRow.innerHTML = order.map(key => {
-    const amb  = BASELINE[key];
-    const info = AMBIENTE_INFO[key];
-    return `<div class="base-amb-card ${tagOf[key]}">
-      <div class="bac-icon">${info.icon}</div>
-      <div class="bac-title">${amb.label}</div>
-      <div class="bac-desc">${info.descricao}</div>
-      <div class="bac-scores">
-        <div class="bac-score"><div class="bac-score-val">${amb.score_tipico}</div><div class="bac-score-label">Score Típico</div></div>
-        <div class="bac-score"><div class="bac-score-val" style="color:#1E7A3E">${amb.score_aspiracional}</div><div class="bac-score-label">Aspiracional</div></div>
-      </div>
-      <ul class="bac-features">${info.caracteristicas.map(c => `<li>${c}</li>`).join('')}</ul>
-    </div>`;
-  }).join('');
-
-  // 2) Matriz comparativa
-  const dims = Object.keys(DIMENSAO_INFO);
-  const matrixBody = document.getElementById('base-matrix-body');
-  matrixBody.innerHTML = dims.map(dKey => {
-    const dInfo = DIMENSAO_INFO[dKey];
-    const cell = (amb) => {
-      const d = BASELINE[amb].dimensoes[dKey];
-      return `<td>${d.tipico}<span class="cell-score">${d.score}</span></td>`;
-    };
-    return `<tr>
-      <td class="dim-name">${dInfo.nome}</td>
-      ${cell('on_prem')}${cell('cloud_iaas')}${cell('cloud_paas_saas')}
-    </tr>`;
-  }).join('');
-
-  // 3) Cards por dimensão com racional
-  const dimCards = document.getElementById('base-dim-cards');
-  dimCards.innerHTML = dims.map(dKey => {
-    const dInfo = DIMENSAO_INFO[dKey];
-    return `<div class="base-dim-card">
-      <div class="base-dim-head">
-        <span class="base-dim-name">${dInfo.nome}</span>
-        <span class="base-dim-desc">${dInfo.descricao}</span>
-      </div>
-      <div class="base-dim-why">
-        ${order.map(ambKey => {
-          const dim = BASELINE[ambKey].dimensoes[dKey];
-          return `<div class="bdw-block ${tagOf[ambKey]}">
-            <div class="bdw-amb">${BASELINE[ambKey].label}</div>
-            <div class="bdw-val">${dim.tipico}<span class="bdw-score">${dim.score} pts</span></div>
-            <div class="bdw-why">${dInfo.por_que[ambKey]}</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }).join('');
-
-  // 4) Fontes
-  const fontesList = document.getElementById('base-fontes-list');
-  fontesList.innerHTML = BASELINE_FONTES.map(f => {
-    if (f.url) return `<li>📌 <a href="${f.url}" target="_blank" rel="noopener">${f.nome}</a> <span class="fonte-url">${f.url}</span></li>`;
-    return `<li>📌 ${f.nome}</li>`;
-  }).join('');
-}
 
 const COMP_OPTS = {
   tipo:        ['IaaS','PaaS','SaaS','FaaS','DBaaS'],
-  provedor:    ['Azure','AWS','GCP','On-Premise','Outro'],
+  provedor:    ['Azure','AWS','On-Premise','Outro'],
   impacto:     ['Baixo','Médio','Alto','Extremo'],
   sla:         ['< 99,5%','99,5% – 99,9%','99,9% – 99,99%','> 99,99%'],
   redundancia: ['Nenhuma (SPOF)','Ativo/Passivo','Ativo/Ativo (mesma zona)','Multi-AZ','Multi-Region ativo/ativo'],
@@ -2985,10 +2848,6 @@ function buildCompCard(cid) {
       <div class="comp-field"><label>M · Happy Socks (Risco Visual)</label>${s('happy')}</div>
       <div class="comp-field"><label>N · Contorno</label>${s('contorno')}</div>
       <div class="comp-field"><label>O · Tipo Solução</label>${s('caminho')}</div>
-    </div>
-    <div class="comp-baseline-panel" id="c${cid}-baseline">
-      <span class="cbp-label">Baseline:</span>
-      <span class="cbp-tag"><span class="cbp-amb">—</span> aguardando dados</span>
     </div>
     <div class="comp-flags">
       <div class="comp-flags-title">Capacidades de Resiliência (usadas na Coerência SW × Infra)</div>
@@ -3083,40 +2942,9 @@ function calcComp(cid) {
   document.getElementById(`c${cid}-u`).textContent = pesoU.toFixed(1);
   document.getElementById(`c${cid}-v`).textContent = pesoV.toFixed(1);
 
-  updateBaselinePanel(cid, q);
   updateLiveIr();
 }
 
-function updateBaselinePanel(cid, scoreAtual) {
-  const panel = document.getElementById(`c${cid}-baseline`);
-  if (!panel) return;
-  const tipo     = document.getElementById(`c${cid}-tipo`)?.value || '';
-  const provedor = document.getElementById(`c${cid}-provedor`)?.value || '';
-  const amb      = classifyAmbiente(tipo, provedor);
-  const ref      = BASELINE[amb];
-
-  const tipico       = ref.score_tipico;
-  const aspiracional = BASELINE.cloud_paas_saas.score_aspiracional;
-  const ipm          = computeIPM(scoreAtual);
-  const diff         = scoreAtual - tipico;
-
-  let statusTag;
-  if (diff >= 5)       statusTag = `<span class="cbp-tag cbp-good">acima do padrão · +${diff} pts</span>`;
-  else if (diff >= -5) statusTag = `<span class="cbp-tag cbp-good">no padrão</span>`;
-  else                 statusTag = `<span class="cbp-tag cbp-warn">abaixo do padrão · ${diff} pts</span>`;
-
-  const ctx = ipmContext(amb);
-  const ipmTag = ipm > 5
-    ? `<span class="cbp-tag cbp-gain">${ctx.label}: ${ipm} pts ${ctx.frase}</span>`
-    : `<span class="cbp-tag cbp-good">próximo do teto · ${ctx.label} ${ipm}</span>`;
-
-  panel.innerHTML = `
-    <span class="cbp-label">Baseline:</span>
-    <span class="cbp-tag"><span class="cbp-amb">${ref.label}</span> padrão: ${tipico} pts</span>
-    ${statusTag}
-    ${ipmTag}
-  `;
-}
 
 function updateLiveIr() {
   const comps = getComponentesData();
@@ -3266,7 +3094,9 @@ function buildDetailModal(av) {
     });
 
     Object.entries(byPilar).forEach(([pilar, itens]) => {
-      html += `<div class="det-pilar-group"><div class="det-pilar-label">${pilar}</div>`;
+      const pilarIdx   = PILLAR_NAMES.indexOf(pilar);
+      const pilarLabel = pilarIdx >= 0 ? PILLAR_DISPLAY_NAMES[pilarIdx] : pilar;
+      html += `<div class="det-pilar-group"><div class="det-pilar-label">${pilarLabel}</div>`;
       itens.forEach(r => {
         const qDef   = QUESTIONS.find(q => q.id === r.questao_id);
         const titulo = qDef?.title || r.questao_id;
@@ -3320,38 +3150,6 @@ function buildDetailModal(av) {
 
     html += `</tbody></table></div>`;
 
-    // ── Posicionamento vs Mercado (Baseline mockup — Fase 3) ──
-    html += `<div class="det-position">
-      <div class="det-position-title">🚀 Posicionamento vs Baselines de Comparação <span style="color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0">— protótipo visual; baseline configurável na fase 5</span></div>`;
-    comps.forEach(c => {
-      const amb     = classifyAmbiente(c.tipo, c.provedor);
-      const ref     = BASELINE[amb];
-      const atual   = c.score_100 || 0;
-      const tipico  = ref.score_tipico;
-      const aspirac = BASELINE.cloud_paas_saas.score_aspiracional;
-      const ipm     = computeIPM(atual);
-      const cls     = ipmClass(ipm);
-      const ctx     = ipmContext(amb);
-      html += `<div class="dp-item">
-        <div class="dp-name">${c.nome || 'Componente'}<span class="dp-amb">${ref.label} · ${c.provedor || '—'}</span></div>
-        <div class="dp-bars">
-          <div class="dp-bar-row"><span class="dp-bar-label">Score atual</span>
-            <div class="dp-bar-track"><div class="dp-bar-fill atual" style="width:${atual}%"></div></div>
-            <span class="dp-bar-val">${atual}</span></div>
-          <div class="dp-bar-row"><span class="dp-bar-label">Baseline ${ref.label}</span>
-            <div class="dp-bar-track"><div class="dp-bar-fill tipico" style="width:${tipico}%"></div></div>
-            <span class="dp-bar-val">${tipico}</span></div>
-          <div class="dp-bar-row"><span class="dp-bar-label">Aspiracional Cloud</span>
-            <div class="dp-bar-track"><div class="dp-bar-fill aspirac" style="width:${aspirac}%"></div></div>
-            <span class="dp-bar-val">${aspirac}</span></div>
-        </div>
-        <div class="dp-ipm ${cls}" title="${ctx.frase}">
-          <div class="dp-ipm-val">${ipm > 0 ? '+' + ipm : ipm}</div>
-          <div class="dp-ipm-label">${ctx.label}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
 
     const compsComSolucao = comps.filter(c => c.solucao_adequacao);
     if (compsComSolucao.length) {
@@ -3553,9 +3351,11 @@ async function saveSistema() {
     }
     closeSistemaModal();
     await loadSistemas();
+    showToast(id ? 'Sistema atualizado com sucesso!' : 'Sistema cadastrado com sucesso!', 'success');
   } catch (err) {
     errDiv.textContent   = `Erro ao salvar: ${err.message}`;
     errDiv.style.display = 'block';
+    showToast(`Erro ao salvar: ${err.message}`, 'error', 6000);
     console.error('saveSistema:', err);
   } finally {
     btn.disabled    = false;
@@ -3564,6 +3364,274 @@ async function saveSistema() {
 }
 
 // ============================================================
+// ── Sistemas Críticos Modal ──────────────────────────────────
+const QUESTION_TITLE = {};
+function getQTitle(id) {
+  if (!Object.keys(QUESTION_TITLE).length)
+    QUESTIONS.forEach(q => { QUESTION_TITLE[q.id] = q.title; });
+  return QUESTION_TITLE[id] || id;
+}
+
+function qaScoreColor(v) {
+  if (v == null) return 'var(--muted)';
+  if (v >= 7.5)  return 'var(--green)';
+  if (v >= 5)    return '#E67E22';
+  return 'var(--red)';
+}
+
+function renderCritQA(container, sistema, respostas) {
+  const ic = v => v == null ? 'var(--muted)' : v >= 75 ? 'var(--green)' : v >= 60 ? '#E67E22' : 'var(--red)';
+
+  // ── Mini-grid de índices ──
+  let html = `
+    <div class="crit-indices">
+      <div>
+        <span class="crit-idx-label">Índice Geral</span>
+        <span class="crit-idx-val" style="color:${ic(sistema.iet)}">${sistema.iet ?? '—'}</span>
+      </div>
+      <div>
+        <span class="crit-idx-label">Excelência de Software</span>
+        <span class="crit-idx-val" style="color:${ic(sistema.ies)}">${sistema.ies ?? '—'}</span>
+      </div>
+      <div>
+        <span class="crit-idx-label">Resiliência</span>
+        <span class="crit-idx-val" style="color:${ic(sistema.ir)}">${sistema.ir ?? '—'}</span>
+      </div>
+    </div>`;
+
+  // ── Q&A por pilar ──
+  const groups = {};
+  respostas.forEach(r => {
+    if (!groups[r.pilar]) groups[r.pilar] = [];
+    groups[r.pilar].push(r);
+  });
+
+  if (!Object.keys(groups).length) {
+    html += '<div style="color:var(--muted);font-size:12px">Nenhuma resposta registrada.</div>';
+    container.innerHTML = html;
+    return;
+  }
+
+  Object.entries(groups).forEach(([pilar, resps]) => {
+    const label = pilar.replace(/^P\d+\s+/, '');
+    html += `<div class="crit-pilar-group">
+      <div class="crit-pilar-header">${label}</div>
+      <table class="crit-qa-table">
+        <thead><tr><th>Pergunta</th><th>Resposta</th><th>Score</th></tr></thead>
+        <tbody>`;
+    resps.forEach(r => {
+      const title  = getQTitle(r.questao_id);
+      const answer = (r.opcoes_texto || []).join('; ') || '—';
+      const score  = r.score != null ? r.score : null;
+      html += `<tr>
+        <td class="crit-qa-title">${title}</td>
+        <td class="crit-qa-answer">${answer}</td>
+        <td class="crit-qa-score" style="color:${qaScoreColor(score)}">${score != null ? score : '—'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+async function toggleCritDetail(row, avId, idx) {
+  const detail = row.nextElementSibling;
+  const isOpen = row.classList.contains('open');
+  row.classList.toggle('open', !isOpen);
+  detail.classList.toggle('open', !isOpen);
+
+  if (isOpen) return;
+
+  const container = detail.querySelector('.crit-detail-inner');
+  if (container.dataset.loaded) return;
+
+  container.innerHTML = '<div style="padding:10px 0;color:var(--muted);font-size:12px">⏳ Carregando respostas...</div>';
+  try {
+    const sistema = (charts.donutSystems['Crítico'] || [])[idx];
+    const res  = await fetch(`${getApiUrl()}/api/avaliacoes/${avId}`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    renderCritQA(container, sistema, data.respostas || []);
+    container.dataset.loaded = '1';
+  } catch {
+    container.innerHTML = '<div style="padding:10px 0;color:var(--red);font-size:12px">Erro ao carregar respostas.</div>';
+  }
+}
+
+function openCritModal() {
+  const systems = (charts.donutSystems || {})['Crítico'] || [];
+  const tbody = document.getElementById('crit-modal-list');
+  tbody.innerHTML = systems.map((s, i) => {
+    const dt = s.data_avaliacao
+      ? new Date(s.data_avaliacao).toLocaleDateString('pt-BR')
+      : '—';
+    return `
+      <tr class="crit-row" onclick="toggleCritDetail(this, ${s.av_id}, ${i})">
+        <td><span class="crit-arrow">▶</span><strong>${s.nome}</strong></td>
+        <td style="font-size:12px;color:var(--muted)">${s.portfolio || '—'}</td>
+        <td style="font-size:12px;color:var(--muted)">${s.cadeia_valor || '—'}</td>
+        <td style="text-align:right;font-size:12px;white-space:nowrap">${dt}</td>
+      </tr>
+      <tr class="crit-detail-row">
+        <td colspan="4"><div class="crit-detail-inner"></div></td>
+      </tr>`;
+  }).join('');
+  document.getElementById('crit-modal-overlay').classList.add('open');
+}
+function closeCritModal() {
+  document.getElementById('crit-modal-overlay').classList.remove('open');
+}
+
+// ── Status Drill-down Modal ──────────────────────────────────
+const SDRILL_META = {
+  'Excelente': { color:'#27AE60', range:'≥90'   },
+  'Bom':       { color:'#7CB342', range:'75–89' },
+  'Atenção':   { color:'#F1C232', range:'60–74' },
+  'Crítico':   { color:'#C0392B', range:'<60'   },
+};
+
+function openStatusDrill(status) {
+  const meta    = SDRILL_META[status] || {};
+  const systems = (charts.donutSystems || {})[status] || [];
+
+  document.getElementById('sdrill-dot').style.background  = meta.color || '#999';
+  document.getElementById('sdrill-title').textContent =
+    `${status} (${meta.range}) — ${systems.length} sistema${systems.length !== 1 ? 's' : ''}`;
+  document.getElementById('sdrill-score-col').textContent = 'IET Geral';
+
+  const tbody = document.getElementById('sdrill-list');
+  if (!systems.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema nesta faixa.</td></tr>';
+  } else {
+    tbody.innerHTML = systems.map((s, i) => `
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td>
+          <strong>${s.nome}</strong>
+          ${s.criticidade ? `<br><span style="font-size:11px;color:var(--muted)">${s.criticidade}</span>` : ''}
+        </td>
+        <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
+        <td class="sdrill-score" style="color:${meta.color}">${s.iet != null ? s.iet : '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('sdrill-overlay').classList.add('open');
+}
+
+function openPilarDrill(pilarIdx, statusLabel) {
+  const pilarName    = PILLAR_NAMES[pilarIdx];
+  const pilarDisplay = PILLAR_DISPLAY_NAMES[pilarIdx];
+  const color        = STATUS_COLORS[statusLabel] || '#999';
+  const systems      = ((charts.pilarDrillMap || {})[pilarName] || {})[statusLabel] || [];
+
+  document.getElementById('sdrill-dot').style.background  = color;
+  document.getElementById('sdrill-title').textContent =
+    `${pilarDisplay} — ${statusLabel} (${systems.length} sistema${systems.length !== 1 ? 's' : ''})`;
+  document.getElementById('sdrill-score-col').textContent = 'Score do Pilar';
+
+  const tbody = document.getElementById('sdrill-list');
+  if (!systems.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema nesta combinação.</td></tr>';
+  } else {
+    tbody.innerHTML = systems.map((s, i) => `
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td><strong>${s.nome}</strong></td>
+        <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
+        <td class="sdrill-score" style="color:${color}">${s.score_pilar != null ? s.score_pilar : '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('sdrill-overlay').classList.add('open');
+}
+
+function openQuestaoDrill(questaoId) {
+  const systems = (charts.questaoDrillMap || {})[questaoId] || [];
+  const title   = QUESTIONS.find(x => x.id === questaoId)?.title || questaoId;
+  const color   = 'var(--blue)';
+
+  document.getElementById('sdrill-dot').style.background  = color;
+  document.getElementById('sdrill-title').textContent =
+    `${systems.length} sistema${systems.length !== 1 ? 's' : ''} — ${title}`;
+  document.getElementById('sdrill-score-col').textContent = 'Score';
+
+  const tbody = document.getElementById('sdrill-list');
+  if (!systems.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted)">Nenhum sistema encontrado.</td></tr>';
+  } else {
+    tbody.innerHTML = systems.map((s, i) => `
+      <tr style="cursor:pointer" title="Ver avaliação de ${s.nome}" onclick="openAvaliacaoDetail(${s.av_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td><strong>${s.nome}</strong></td>
+        <td style="color:var(--muted);font-size:12px">${s.portfolio || '—'}</td>
+        <td class="sdrill-score" style="color:${color}">${s.score != null ? s.score : '—'}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('sdrill-overlay').classList.add('open');
+}
+
+function closeStatusDrill() {
+  document.getElementById('sdrill-overlay').classList.remove('open');
+}
+
+const RISCO_FAIXAS = [
+  { label:'Muito Baixo', color:'#27AE60', test: c => c.score_risco != null && c.score_risco < 20 },
+  { label:'Baixo',       color:'#7CB342', test: c => c.score_risco != null && c.score_risco >= 20 && c.score_risco < 40 },
+  { label:'Médio',       color:'#F1C232', test: c => c.score_risco != null && c.score_risco >= 40 && c.score_risco < 60 },
+  { label:'Alto',        color:'#E67E22', test: c => c.score_risco != null && c.score_risco >= 60 && c.score_risco < 80 },
+  { label:'Muito Alto',  color:'#C0392B', test: c => c.score_risco != null && c.score_risco >= 80 },
+];
+
+function openTipoModal(tipo) {
+  const list  = (charts.componentesLista || []).filter(c => c.tipo === tipo);
+  const color = TYPE_COLORS[tipo] || '#6B7280';
+  renderComponentesModal(`Componentes do Tipo ${tipo}`, color, list);
+}
+
+function renderComponentesModal(titulo, color, list) {
+  document.getElementById('risco-alto-dot').style.background = color;
+  document.getElementById('risco-alto-title').textContent =
+    `${titulo} — ${list.length} componente${list.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('risco-alto-list');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Nenhum componente nesta faixa.</td></tr>';
+  } else {
+    tbody.innerHTML = list.map((c, i) => {
+      const cls = c.class_risco === 'Vermelho' ? 'danger' : c.class_risco === 'Amarelo' ? 'atc' : 'bom';
+      return `<tr style="cursor:pointer" title="Ver avaliação de ${c.sistema_nome}" onclick="openAvaliacaoDetail(${c.avaliacao_id})">
+        <td class="sdrill-rank">${i + 1}</td>
+        <td><strong>${c.sistema_nome || '—'}</strong></td>
+        <td>${c.nome || '—'}</td>
+        <td style="color:var(--muted);font-size:12px">${c.tipo || '—'}</td>
+        <td style="color:var(--muted);font-size:12px">${c.provedor || '—'}</td>
+        <td class="sdrill-score" style="color:${color}">${c.score_risco ?? '—'}</td>
+        <td><span class="badge ${cls}">${c.class_risco || '—'}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('risco-alto-overlay').classList.add('open');
+}
+
+function openRiscoAltoModal() {
+  const list = (charts.componentesLista || []).filter(c => c.score_risco >= 60);
+  renderComponentesModal('Componentes Risco Alto ou Muito Alto', '#C0392B', list);
+}
+
+function openRiscoFaixaModal(faixaIdx) {
+  const faixa = RISCO_FAIXAS[faixaIdx];
+  if (!faixa) return;
+  const list = (charts.componentesLista || []).filter(faixa.test);
+  renderComponentesModal(`Componentes Risco ${faixa.label}`, faixa.color, list);
+}
+
+function closeRiscoAltoModal() {
+  document.getElementById('risco-alto-overlay').classList.remove('open');
+}
+
 // INIT
 // ============================================================
 window.onload = function() {
@@ -3572,5 +3640,77 @@ window.onload = function() {
   buildAssessmentForm();
 };
 </script>
+
+<!-- Sistemas Críticos modal -->
+<div class="sdrill-overlay" id="crit-modal-overlay" onclick="if(event.target===this)closeCritModal()">
+  <div class="sdrill-modal" style="width:820px">
+    <div class="sdrill-head">
+      <h2><span class="sdrill-dot" style="background:#C0392B"></span>Sistemas Críticos — pontuação abaixo de 60</h2>
+      <button class="sdrill-close" onclick="closeCritModal()">✕</button>
+    </div>
+    <div class="sdrill-body">
+      <table class="sdrill-table">
+        <thead>
+          <tr>
+            <th>Sistema</th>
+            <th>Portfólio</th>
+            <th>Cadeia de Valor</th>
+            <th class="r">Última Avaliação</th>
+          </tr>
+        </thead>
+        <tbody id="crit-modal-list"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Status drill-down modal -->
+<div class="sdrill-overlay" id="sdrill-overlay" onclick="if(event.target===this)closeStatusDrill()">
+  <div class="sdrill-modal">
+    <div class="sdrill-head">
+      <h2><span class="sdrill-dot" id="sdrill-dot"></span><span id="sdrill-title"></span></h2>
+      <button class="sdrill-close" onclick="closeStatusDrill()">✕</button>
+    </div>
+    <div class="sdrill-body">
+      <table class="sdrill-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Sistema</th>
+            <th>Portfólio</th>
+            <th class="r" id="sdrill-score-col">Pontuação</th>
+          </tr>
+        </thead>
+        <tbody id="sdrill-list"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Componentes Risco Alto ou Muito Alto -->
+<div class="sdrill-overlay" id="risco-alto-overlay" onclick="if(event.target===this)closeRiscoAltoModal()">
+  <div class="sdrill-modal" style="width:880px">
+    <div class="sdrill-head">
+      <h2><span class="sdrill-dot" id="risco-alto-dot" style="background:#C0392B"></span><span id="risco-alto-title">Componentes Risco Alto ou Muito Alto</span></h2>
+      <button class="sdrill-close" onclick="closeRiscoAltoModal()">✕</button>
+    </div>
+    <div class="sdrill-body">
+      <table class="sdrill-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Sistema</th>
+            <th>Componente</th>
+            <th>Tipo</th>
+            <th>Provedor</th>
+            <th class="r">Score de Risco</th>
+            <th>Classificação</th>
+          </tr>
+        </thead>
+        <tbody id="risco-alto-list"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 </body>
 </html>
