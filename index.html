@@ -40,10 +40,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 @media (max-width: 768px) {
   .hamburger { display:flex; align-items:center; }
   .sidebar {
-    position:fixed; top:52px; left:-224px; height:calc(100vh - 52px);
-    z-index:50; transition:left .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
+    position:fixed; top:52px; left:0; height:calc(100vh - 52px);
+    z-index:50; transform:translateX(-224px); transition:transform .25s ease; box-shadow:4px 0 20px rgba(0,0,0,0.3);
   }
-  .sidebar.open { left:0; }
+  .sidebar.open { transform:translateX(0); }
   .layout { height:calc(100vh - 52px); }
   .main { padding:14px; }
   .kpi-row { grid-template-columns:repeat(2,1fr) !important; }
@@ -70,6 +70,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
   background:#131E35;
   display:flex; flex-direction:column;
   border-right:none;
+  will-change:transform;
 }
 .sidebar-brand {
   padding:20px 18px 16px;
@@ -214,7 +215,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 canvas { max-height:260px; }
 
 /* TABLE */
-.table-wrap { overflow-x:auto; }
+.table-wrap { overflow-x:auto; will-change:transform; }
 table { width:100%; border-collapse:collapse; font-size:12px; }
 th { background:#F8FAFF; color:var(--muted); font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px; padding:9px 12px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
 td { padding:9px 12px; border-bottom:1px solid var(--gray2); color:var(--text); }
@@ -233,6 +234,7 @@ tr:hover td { background:#F8FAFF; }
 .hm-row-label { background:var(--navy); color:#fff; padding:10px 12px; font-size:12px; font-weight:600; border-radius:3px; }
 
 /* RANKING BAR */
+#ranking-bars { will-change:transform; }
 .rank-bar-wrap { display:flex; align-items:center; gap:10px; padding:6px 4px; border-bottom:1px solid var(--gray2); border-radius:4px; transition:background .12s; }
 .rank-bar-wrap:last-child { border-bottom:none; }
 .rank-bar-wrap:hover { background:var(--gray2); }
