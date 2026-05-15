@@ -183,7 +183,6 @@ Diferente do IES (que vem de um questionário), o IR é **calculado a partir dos
 P (Score Resiliência 1–5) = média(redundância, tolerância, backup, DR) + 1
 Q (Score 0–100)           = P × 20                  // normalização para 0–100
 R (Score Risco 0–100)     = (impacto × happy_socks × (6 - P)) / 60 × 100
-S (Classificação Risco)   = Verde (R<30) | Amarelo (R<65) | Vermelho (R≥65)
 T (Peso Impacto)          = 0.5 | 1.0 | 1.5 | 2.0   // por nível de impacto
 U (Peso Criticidade)      = depende se Core (1.5–3.0) ou Satélite (0.8–1.5) × impacto
 V (Peso Tipo Solução)     = 1.5 (Core) | 0.5 (Satélite)

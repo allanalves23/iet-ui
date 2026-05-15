@@ -590,6 +590,31 @@ tr:hover td { background:#F8FAFF; }
 .det-comp-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
 .det-comp-table tr:last-child td { border-bottom:none; }
 .det-comp-table tr:hover td { background:#F8FAFF; }
+
+/* Card de componente no modal de detalhe */
+.det-comp-card { background:#fff; border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden; }
+.det-comp-card-head { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; background:#F8FAFF; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.det-comp-card-title { flex:1; min-width:200px; }
+.det-comp-card-title .nome { font-size:14px; font-weight:700; color:var(--navy); display:block; }
+.det-comp-card-title .tags { font-size:11px; color:var(--muted); margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+.det-comp-card-title .tags .tag { display:inline-flex; align-items:center; gap:4px; }
+.det-comp-card-title .tags .tag strong { color:var(--text); font-weight:600; }
+.det-comp-card-scores { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.det-comp-score-pill { background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 10px; font-size:11px; line-height:1.3; text-align:center; min-width:60px; }
+.det-comp-score-pill .lbl { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.4px; display:block; }
+.det-comp-score-pill .val { font-size:14px; font-weight:700; color:var(--navy); display:block; }
+.det-comp-card-body { padding:14px 16px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media (max-width:640px) { .det-comp-card-body { grid-template-columns:1fr; } }
+.det-comp-card-section h4 { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:0 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+.det-comp-attr { display:flex; gap:8px; padding:4px 0; font-size:12px; line-height:1.4; }
+.det-comp-attr-label { color:var(--muted); min-width:110px; flex-shrink:0; }
+.det-comp-attr-value { color:var(--text); flex:1; }
+/* Badges de acoplamento — segue a ordem do enum: pior → melhor */
+.coupling-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; line-height:1.4; }
+.coupling-0 { background:#FDEDEC; color:#922B21; }   /* Acoplamento total */
+.coupling-1 { background:#FDEBD0; color:#9C640C; }   /* Baixo acoplamento */
+.coupling-2 { background:#FCF3CF; color:#7D6608; }   /* Algumas alternativas */
+.coupling-3 { background:#D5F5E3; color:#1E8449; }   /* Totalmente desacoplado */
 .hist-row-click { cursor:pointer; transition:background .12s; }
 .hist-row-click:hover td { background:#F0F4FF; }
 .hist-del-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:14px; line-height:1; transition:background .12s, border-color .12s; }
@@ -622,7 +647,7 @@ tr:hover td { background:#F8FAFF; }
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="logo"><span>⚡</span> IET — Excelência Tecnológica</div>
   <div class="spacer"></div>
-  <button class="btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
+  <button class="btn-new" id="topbar-btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
 </div>
 
 
@@ -914,7 +939,7 @@ tr:hover td { background:#F8FAFF; }
         <p class="chart-sub" id="infra-top-sub" style="margin-bottom:8px"></p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
+            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resiliência</th><th>Score Risco</th></tr></thead>
             <tbody id="infra-table"></tbody>
           </table>
         </div>
@@ -1459,6 +1484,10 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   const nav = document.getElementById('nav-' + id);
   if (nav) nav.classList.add('active');
+
+  // Esconde o botão "Nova Avaliação" do header quando o usuário já está nessa página
+  const topBtn = document.getElementById('topbar-btn-new');
+  if (topBtn) topBtn.style.display = id === 'assess' ? 'none' : '';
 
   if (id === 'comp')  { loadComparacao(); }
   if (id === 'pilar') { loadPilarCharts(); }
@@ -2302,12 +2331,10 @@ async function loadInfraCharts() {
   // Table
   const tbody = document.getElementById('infra-table');
   if (!data.top_criticos.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Nenhum componente encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Nenhum componente encontrado</td></tr>';
     return;
   }
   tbody.innerHTML = data.top_criticos.map(r => {
-    const cls     = r.class_risco === 'Vermelho' ? 'danger' : r.class_risco === 'Amarelo' ? 'atc' : 'bom';
-    const label   = r.class_risco === 'Vermelho' ? 'Vermelho' : r.class_risco === 'Amarelo' ? 'Amarelo' : (r.class_risco || '—');
     const tipoKey = (r.tipo || '').toLowerCase().replace(/[^a-z]/g, '');
     const clickable = r.avaliacao_id ? `class="hist-row-click" onclick="openAvaliacaoDetail(${r.avaliacao_id})" title="Clique para ver a avaliação completa"` : '';
     return `<tr ${clickable}>
@@ -2316,9 +2343,8 @@ async function loadInfraCharts() {
       <td><span class="component-type-badge ct-${tipoKey}">${r.tipo || '—'}</span></td>
       <td>${r.provedor || '—'}</td>
       <td>${r.caminho_critico || '—'}</td>
-      <td>${r.score_resil != null ? r.score_resil : '—'}</td>
+      <td>${r.score_100 != null ? r.score_100 : '—'}</td>
       <td>${r.score_risco != null ? r.score_risco : '—'}</td>
-      <td><span class="badge ${cls}">${label}</span></td>
     </tr>`;
   }).join('');
 }
@@ -2953,7 +2979,6 @@ function buildCompCard(cid) {
       <div class="comp-score-item"><div class="cs-label">P · Score Resil. (1–5)</div><div class="cs-val" id="c${cid}-p">—</div></div>
       <div class="comp-score-item"><div class="cs-label">Q · Score (0–100)</div><div class="cs-val" id="c${cid}-q">—</div></div>
       <div class="comp-score-item"><div class="cs-label">R · Score Risco</div><div class="cs-val" id="c${cid}-r">—</div></div>
-      <div class="comp-score-item"><div class="cs-label">S · Class. Risco</div><div class="cs-val cs-badge" id="c${cid}-s">—</div></div>
       <div class="comp-score-item"><div class="cs-label">T · Peso Imp.</div><div class="cs-val" id="c${cid}-t">—</div></div>
       <div class="comp-score-item"><div class="cs-label">U · Peso Crit.</div><div class="cs-val" id="c${cid}-u">—</div></div>
       <div class="comp-score-item"><div class="cs-label">V · Peso Tipo Sol.</div><div class="cs-val" id="c${cid}-v">—</div></div>
@@ -3000,10 +3025,6 @@ function calcComp(cid) {
   const happyVal   = g('happy') + 1;     // 1–3
   const r = Math.round((impactoVal * happyVal * (6 - p)) / 60 * 100);
 
-  // S — Classificação Risco
-  const sLabel = r < 30 ? 'Verde' : r < 65 ? 'Amarelo' : 'Vermelho';
-  const sCls   = r < 30 ? 'cs-verde' : r < 65 ? 'cs-amarelo' : 'cs-vermelho';
-
   // T — Peso Imp.
   const pesoImp = [0.5, 1.0, 1.5, 2.0][g('impacto')];
 
@@ -3020,10 +3041,6 @@ function calcComp(cid) {
   document.getElementById(`c${cid}-p`).textContent = p.toFixed(1);
   document.getElementById(`c${cid}-q`).textContent = q;
   document.getElementById(`c${cid}-r`).textContent = r;
-
-  const sEl = document.getElementById(`c${cid}-s`);
-  sEl.textContent = sLabel;
-  sEl.className = `cs-val cs-badge ${sCls}`;
 
   document.getElementById(`c${cid}-t`).textContent = pesoImp.toFixed(1);
   document.getElementById(`c${cid}-u`).textContent = pesoU.toFixed(1);
@@ -3072,7 +3089,6 @@ function getComponentesData() {
       score_resil:           num('p'),
       score_100:             num('q'),
       score_risco:           num('r'),
-      class_risco:           document.getElementById(`c${cid}-s`)?.textContent || '',
       peso_imp:              num('t'),
       peso_crit:             num('u'),
       peso_caminho:          num('v'),
@@ -3214,28 +3230,55 @@ function buildDetailModal(av) {
   if (!comps.length) {
     html += `<div class="det-empty">Nenhum componente de infraestrutura registrado nesta avaliação.</div>`;
   } else {
-    html += `<div style="overflow-x:auto"><table class="det-comp-table">
-      <thead><tr>
-        <th>Componente</th><th>Tipo</th><th>Provedor</th><th>Impacto</th><th>Tipo Solução</th>
-        <th>P · Resil.</th><th>Q · Score</th><th>S · Risco</th>
-      </tr></thead><tbody>`;
+    const dash = v => (v == null || v === '') ? '—' : v;
+    const happyClass = h => h === 'Verde' ? 'cs-verde' : h === 'Amarelo' ? 'cs-amarelo' : h === 'Vermelho' ? 'cs-vermelho' : '';
+    const riscoColor = r => r == null ? 'var(--muted)' : r < 30 ? '#27AE60' : r < 65 ? '#F1C232' : '#C0392B';
+    const COUPLING_ORDER = ['Acoplamento total (sem alternativa)', 'Baixo acoplamento', 'Algumas alternativas', 'Totalmente desacoplado'];
+    const couplingBadge = dep => {
+      if (!dep) return '—';
+      const idx = COUPLING_ORDER.indexOf(dep);
+      return idx >= 0
+        ? `<span class="coupling-badge coupling-${idx}">${dep}</span>`
+        : dep;  // fallback para valores legados/livres
+    };
 
     comps.forEach(c => {
-      const riscoCls = c.class_risco === 'Verde' ? 'cs-verde' : c.class_risco === 'Amarelo' ? 'cs-amarelo' : 'cs-vermelho';
       const scoreColor = c.score_100 != null ? getBarColor(c.score_100) : 'var(--muted)';
-      html += `<tr>
-        <td><strong>${c.nome || '—'}</strong>${c.sla ? `<br><small style="color:var(--muted)">SLA: ${c.sla}</small>` : ''}</td>
-        <td>${c.tipo || '—'}</td>
-        <td>${c.provedor || '—'}</td>
-        <td>${c.impacto || '—'}</td>
-        <td>${c.caminho_critico || '—'}</td>
-        <td style="text-align:center;font-weight:700">${c.score_resil ?? '—'}</td>
-        <td style="text-align:center;font-weight:700;color:${scoreColor}">${c.score_100 ?? '—'}</td>
-        <td style="text-align:center"><span class="${riscoCls}" style="font-weight:700">${c.class_risco || '—'}</span></td>
-      </tr>`;
+      html += `<div class="det-comp-card">
+        <div class="det-comp-card-head">
+          <div class="det-comp-card-title">
+            <span class="nome">${dash(c.nome)}</span>
+            <div class="tags">
+              <span class="tag"><strong>${dash(c.tipo)}</strong></span>
+              <span class="tag">Provedor: <strong>${dash(c.provedor)}</strong></span>
+              <span class="tag">Impacto: <strong>${dash(c.impacto)}</strong></span>
+              <span class="tag">Tipo Solução: <strong>${dash(c.caminho_critico)}</strong></span>
+              ${c.sla ? `<span class="tag">SLA: <strong>${c.sla}</strong></span>` : ''}
+            </div>
+          </div>
+          <div class="det-comp-card-scores">
+            <div class="det-comp-score-pill"><span class="lbl">Score Resiliência</span><span class="val" style="color:${scoreColor}">${c.score_100 ?? '—'}</span></div>
+            <div class="det-comp-score-pill"><span class="lbl">Score de Risco</span><span class="val" style="color:${riscoColor(c.score_risco)}">${c.score_risco ?? '—'}</span></div>
+          </div>
+        </div>
+        <div class="det-comp-card-body">
+          <div class="det-comp-card-section">
+            <h4>Configuração de Resiliência</h4>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Redundância</span><span class="det-comp-attr-value">${dash(c.redundancia)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Tolerância a falhas</span><span class="det-comp-attr-value">${dash(c.tolerancia)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Backup / RPO</span><span class="det-comp-attr-value">${dash(c.backup_rpo)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">DR / RTO</span><span class="det-comp-attr-value">${dash(c.dr)}</span></div>
+          </div>
+          <div class="det-comp-card-section">
+            <h4>Estado Operacional</h4>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Happy Socks</span><span class="det-comp-attr-value"><span class="${happyClass(c.happy_socks)}" style="font-weight:600">${dash(c.happy_socks)}</span></span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Monitoramento</span><span class="det-comp-attr-value">${dash(c.monitoramento)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Dependências</span><span class="det-comp-attr-value">${couplingBadge(c.dependencias)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Plano de contorno</span><span class="det-comp-attr-value">${dash(c.contorno)}</span></div>
+          </div>
+        </div>
+      </div>`;
     });
-
-    html += `</tbody></table></div>`;
 
 
     const compsComSolucao = comps.filter(c => c.solucao_adequacao);
@@ -3684,10 +3727,9 @@ function renderComponentesModal(titulo, color, list) {
 
   const tbody = document.getElementById('risco-alto-list');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Nenhum componente nesta faixa.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Nenhum componente nesta faixa.</td></tr>';
   } else {
     tbody.innerHTML = list.map((c, i) => {
-      const cls = c.class_risco === 'Vermelho' ? 'danger' : c.class_risco === 'Amarelo' ? 'atc' : 'bom';
       return `<tr style="cursor:pointer" title="Ver avaliação de ${c.sistema_nome}" onclick="openAvaliacaoDetail(${c.avaliacao_id})">
         <td class="sdrill-rank">${i + 1}</td>
         <td><strong>${c.sistema_nome || '—'}</strong></td>
@@ -3695,7 +3737,6 @@ function renderComponentesModal(titulo, color, list) {
         <td style="color:var(--muted);font-size:12px">${c.tipo || '—'}</td>
         <td style="color:var(--muted);font-size:12px">${c.provedor || '—'}</td>
         <td class="sdrill-score" style="color:${color}">${c.score_risco ?? '—'}</td>
-        <td><span class="badge ${cls}">${c.class_risco || '—'}</span></td>
       </tr>`;
     }).join('');
   }
@@ -3815,7 +3856,6 @@ window.onload = function() {
             <th>Tipo</th>
             <th>Provedor</th>
             <th class="r">Score de Risco</th>
-            <th>Classificação</th>
           </tr>
         </thead>
         <tbody id="risco-alto-list"></tbody>
