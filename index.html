@@ -247,6 +247,22 @@ tr:hover td { background:#F8FAFF; }
 
 /* ASSESSMENT */
 .assess-header { background:var(--navy); color:#fff; padding:20px 24px; border-radius:12px; margin-bottom:24px; }
+/* Barra fixa de ações da página de avaliação */
+#page-assess { padding-bottom:88px; }
+.assess-action-bar { position:fixed; bottom:0; left:224px; right:0; z-index:50; background:#fff; border-top:1px solid var(--border); box-shadow:0 -4px 16px rgba(0,0,0,0.06); padding:14px 24px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; }
+@media (max-width:768px) { .assess-action-bar { left:0; padding:12px 16px; } }
+.assess-scrolltop {
+  position:fixed; bottom:88px; right:24px; z-index:51;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; border:none;
+  font-size:20px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,0.18);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .2s ease, visibility .2s, transform .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.assess-scrolltop.show { opacity:1; visibility:visible; pointer-events:auto; }
+.assess-scrolltop:hover { transform:translateY(-2px); }
 .assess-header h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
 .assess-header p { font-size:13px; opacity:.7; }
 .score-live { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
@@ -991,11 +1007,12 @@ tr:hover td { background:#F8FAFF; }
       </div>
 
       <div id="save-feedback" style="display:none;margin:16px 0 0;padding:14px 18px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
-      <div style="text-align:center; margin-top:24px; padding:16px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <div class="assess-action-bar">
         <button onclick="resetForm()" style="background:var(--gray2);color:var(--navy);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↺ Limpar</button>
         <button class="btn-save" id="btn-save" onclick="saveAvaliacao()">💾 Salvar no Banco</button>
         <button onclick="showPage('exec')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">📊 Ver Dashboard</button>
       </div>
+      <button id="assess-scrolltop" class="assess-scrolltop" onclick="scrollAssessTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
     </div>
 
 
@@ -1425,6 +1442,18 @@ function closeSidebar() {
 }
 
 function showPage(id) {
+  // Confirma saída se estamos saindo da avaliação com formulário preenchido
+  const currentlyOnAssess = document.getElementById('page-assess')?.classList.contains('active');
+  if (currentlyOnAssess && id !== 'assess' && typeof isAssessDirty === 'function' && isAssessDirty()) {
+    const ok = confirm(
+      'Você tem dados preenchidos na avaliação que ainda não foram salvos.\n\n' +
+      'Sair desta página descartará o que está em andamento. Deseja realmente sair?'
+    );
+    if (!ok) return;
+    // Usuário confirmou — limpa para evitar vazamento de estado entre navegações
+    clearAssessForm();
+  }
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -2547,20 +2576,47 @@ function updateLiveScore() {
   document.getElementById('live-answered').textContent = `${answered} / ${total} respondidas`;
 }
 
-function resetForm() {
+function isAssessDirty() {
+  if (document.getElementById('inp-sistema')?.value.trim()) return true;
+  if (document.getElementById('inp-resp')?.value.trim())    return true;
+  if (Object.keys(answers).length > 0)                      return true;
+  if (document.querySelectorAll('#componentes-list .comp-card').length > 0) return true;
+  return false;
+}
+
+function clearAssessForm() {
   answers = {};
   document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
   document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
   for (let p = 0; p < 6; p++) {
     const el = document.getElementById('pillar-score-' + p);
-    el.textContent = '—'; el.style.color = 'var(--muted)';
+    if (el) { el.textContent = '—'; el.style.color = 'var(--muted)'; }
   }
-  document.getElementById('live-ies').textContent = '—';
-  document.getElementById('live-iet').textContent = '—';
-  document.getElementById('live-prog').textContent = '0%';
+  document.getElementById('live-ies').textContent      = '—';
+  document.getElementById('live-iet').textContent      = '—';
+  document.getElementById('live-prog').textContent     = '0%';
   document.getElementById('live-answered').textContent = '0 / 25 respondidas';
-  document.getElementById('live-ies-badge').innerHTML = '';
-  document.getElementById('live-iet-badge').innerHTML = '';
+  document.getElementById('live-ies-badge').innerHTML  = '';
+  document.getElementById('live-iet-badge').innerHTML  = '';
+
+  // Limpa identificação
+  document.getElementById('inp-sistema').value = '';
+  document.getElementById('inp-resp').value    = '';
+  document.getElementById('inp-data').value    = new Date().toISOString().split('T')[0];
+
+  // Remove componentes
+  document.querySelectorAll('#componentes-list .comp-card').forEach(c => c.remove());
+
+  // Esconde feedback
+  const fb = document.getElementById('save-feedback');
+  if (fb) fb.style.display = 'none';
+}
+
+function resetForm() {
+  if (isAssessDirty()) {
+    if (!confirm('Tem certeza que deseja limpar todos os campos preenchidos? Esta ação não pode ser desfeita.')) return;
+  }
+  clearAssessForm();
 }
 
 
@@ -2664,6 +2720,8 @@ async function saveAvaliacao() {
         · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`;
       btn.innerHTML = '✅ Salvo!';
       btn.style.background = 'var(--green-dark)';
+      // Limpa o formulário para um novo cadastro
+      clearAssessForm();
       setTimeout(() => {
         btn.disabled = false;
         btn.innerHTML = '💾 Salvar no Banco';
@@ -3656,12 +3714,36 @@ function closeRiscoAltoModal() {
   document.getElementById('risco-alto-overlay').classList.remove('open');
 }
 
+// ============================================================
+// SCROLL-TO-TOP — botão flutuante na página de avaliação
+// ============================================================
+function scrollAssessTop() {
+  const main = document.querySelector('.main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setupAssessScrollTop() {
+  const main = document.querySelector('.main');
+  const btn  = document.getElementById('assess-scrolltop');
+  if (!main || !btn) return;
+
+  const update = () => {
+    const onAssess = document.getElementById('page-assess')?.classList.contains('active');
+    const visible  = onAssess && main.scrollTop > 200;
+    btn.classList.toggle('show', visible);
+  };
+  main.addEventListener('scroll', update, { passive: true });
+  // Reavalia ao trocar de página (quando showPage roda)
+  document.addEventListener('click', () => requestAnimationFrame(update));
+}
+
 // INIT
 // ============================================================
 window.onload = function() {
   loadExecDashboard();
   updateRadar();
   buildAssessmentForm();
+  setupAssessScrollTop();
 };
 </script>
 
