@@ -576,6 +576,9 @@ tr:hover td { background:#F8FAFF; }
 .det-comp-table tr:hover td { background:#F8FAFF; }
 .hist-row-click { cursor:pointer; transition:background .12s; }
 .hist-row-click:hover td { background:#F0F4FF; }
+.hist-del-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:14px; line-height:1; transition:background .12s, border-color .12s; }
+.hist-del-btn:hover { background:#FDEDEC; border-color:#C0392B; }
+.hist-del-btn:disabled { opacity:.4; cursor:default; }
 
 /* API CONFIG BAR */
 .api-config { background:#EAF1FB; border-bottom:1px solid var(--border); padding:6px 24px; display:flex; align-items:center; gap:10px; font-size:12px; }
@@ -2751,7 +2754,7 @@ async function fetchHistorico() {
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th>';
+    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th><th>Ações</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
@@ -2760,6 +2763,7 @@ async function fetchHistorico() {
       const dateStr     = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
       const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
       const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
+      const sistemaEsc  = (av.sistema_nome || '').replace(/'/g, "\\'");
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
         <td>${dateStr}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
@@ -2769,6 +2773,7 @@ async function fetchHistorico() {
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
+        <td><button class="hist-del-btn" onclick="event.stopPropagation(); deleteAvaliacao(${av.id}, '${sistemaEsc}', '${dateStr}')" title="Excluir avaliação">🗑️</button></td>
       </tr>`;
     });
 
@@ -2787,6 +2792,29 @@ async function fetchHistorico() {
       <small style="color:var(--muted)">Verifique se a API está rodando e a URL está configurada corretamente.</small>
     </div>`;
     count.textContent = '';
+  }
+}
+
+async function deleteAvaliacao(id, sistemaNome, dateStr) {
+  const ok = confirm(
+    `Excluir definitivamente esta avaliação?\n\n` +
+    `Sistema: ${sistemaNome}\n` +
+    `Data: ${dateStr}\n\n` +
+    `Esta ação remove a avaliação, todas as respostas e componentes vinculados. Não é possível desfazer.`
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch(`${getApiUrl()}/api/avaliacoes/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    showToast('Avaliação excluída com sucesso!', 'success');
+    await fetchHistorico();
+  } catch (err) {
+    console.error('deleteAvaliacao:', err);
+    showToast(`Erro ao excluir: ${err.message}`, 'error', 6000);
   }
 }
 
