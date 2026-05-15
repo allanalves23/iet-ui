@@ -247,6 +247,22 @@ tr:hover td { background:#F8FAFF; }
 
 /* ASSESSMENT */
 .assess-header { background:var(--navy); color:#fff; padding:20px 24px; border-radius:12px; margin-bottom:24px; }
+/* Barra fixa de ações da página de avaliação */
+#page-assess { padding-bottom:88px; }
+.assess-action-bar { position:fixed; bottom:0; left:224px; right:0; z-index:50; background:#fff; border-top:1px solid var(--border); box-shadow:0 -4px 16px rgba(0,0,0,0.06); padding:14px 24px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; }
+@media (max-width:768px) { .assess-action-bar { left:0; padding:12px 16px; } }
+.assess-scrolltop {
+  position:fixed; bottom:88px; right:24px; z-index:51;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; border:none;
+  font-size:20px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,0.18);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .2s ease, visibility .2s, transform .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.assess-scrolltop.show { opacity:1; visibility:visible; pointer-events:auto; }
+.assess-scrolltop:hover { transform:translateY(-2px); }
 .assess-header h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
 .assess-header p { font-size:13px; opacity:.7; }
 .score-live { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
@@ -574,8 +590,36 @@ tr:hover td { background:#F8FAFF; }
 .det-comp-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
 .det-comp-table tr:last-child td { border-bottom:none; }
 .det-comp-table tr:hover td { background:#F8FAFF; }
+
+/* Card de componente no modal de detalhe */
+.det-comp-card { background:#fff; border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden; }
+.det-comp-card-head { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; background:#F8FAFF; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.det-comp-card-title { flex:1; min-width:200px; }
+.det-comp-card-title .nome { font-size:14px; font-weight:700; color:var(--navy); display:block; }
+.det-comp-card-title .tags { font-size:11px; color:var(--muted); margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+.det-comp-card-title .tags .tag { display:inline-flex; align-items:center; gap:4px; }
+.det-comp-card-title .tags .tag strong { color:var(--text); font-weight:600; }
+.det-comp-card-scores { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.det-comp-score-pill { background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 10px; font-size:11px; line-height:1.3; text-align:center; min-width:60px; }
+.det-comp-score-pill .lbl { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.4px; display:block; }
+.det-comp-score-pill .val { font-size:14px; font-weight:700; color:var(--navy); display:block; }
+.det-comp-card-body { padding:14px 16px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media (max-width:640px) { .det-comp-card-body { grid-template-columns:1fr; } }
+.det-comp-card-section h4 { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:0 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+.det-comp-attr { display:flex; gap:8px; padding:4px 0; font-size:12px; line-height:1.4; }
+.det-comp-attr-label { color:var(--muted); min-width:110px; flex-shrink:0; }
+.det-comp-attr-value { color:var(--text); flex:1; }
+/* Badges de acoplamento — segue a ordem do enum: pior → melhor */
+.coupling-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; line-height:1.4; }
+.coupling-0 { background:#FDEDEC; color:#922B21; }   /* Acoplamento total */
+.coupling-1 { background:#FDEBD0; color:#9C640C; }   /* Baixo acoplamento */
+.coupling-2 { background:#FCF3CF; color:#7D6608; }   /* Algumas alternativas */
+.coupling-3 { background:#D5F5E3; color:#1E8449; }   /* Totalmente desacoplado */
 .hist-row-click { cursor:pointer; transition:background .12s; }
 .hist-row-click:hover td { background:#F0F4FF; }
+.hist-del-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:14px; line-height:1; transition:background .12s, border-color .12s; }
+.hist-del-btn:hover { background:#FDEDEC; border-color:#C0392B; }
+.hist-del-btn:disabled { opacity:.4; cursor:default; }
 
 /* API CONFIG BAR */
 .api-config { background:#EAF1FB; border-bottom:1px solid var(--border); padding:6px 24px; display:flex; align-items:center; gap:10px; font-size:12px; }
@@ -603,7 +647,7 @@ tr:hover td { background:#F8FAFF; }
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="logo"><span>⚡</span> IET — Excelência Tecnológica</div>
   <div class="spacer"></div>
-  <button class="btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
+  <button class="btn-new" id="topbar-btn-new" onclick="showPage('assess')">＋ Nova Avaliação</button>
 </div>
 
 
@@ -895,7 +939,7 @@ tr:hover td { background:#F8FAFF; }
         <p class="chart-sub" id="infra-top-sub" style="margin-bottom:8px"></p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resil</th><th>Score Risco</th><th>Classificação</th></tr></thead>
+            <thead><tr><th>Sistema</th><th>Componente</th><th>Tipo</th><th>Provedor</th><th>Tipo Solução</th><th>Score Resiliência</th><th>Score Risco</th></tr></thead>
             <tbody id="infra-table"></tbody>
           </table>
         </div>
@@ -988,11 +1032,12 @@ tr:hover td { background:#F8FAFF; }
       </div>
 
       <div id="save-feedback" style="display:none;margin:16px 0 0;padding:14px 18px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
-      <div style="text-align:center; margin-top:24px; padding:16px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <div class="assess-action-bar">
         <button onclick="resetForm()" style="background:var(--gray2);color:var(--navy);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↺ Limpar</button>
         <button class="btn-save" id="btn-save" onclick="saveAvaliacao()">💾 Salvar no Banco</button>
         <button onclick="showPage('exec')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">📊 Ver Dashboard</button>
       </div>
+      <button id="assess-scrolltop" class="assess-scrolltop" onclick="scrollAssessTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
     </div>
 
 
@@ -1422,11 +1467,27 @@ function closeSidebar() {
 }
 
 function showPage(id) {
+  // Confirma saída se estamos saindo da avaliação com formulário preenchido
+  const currentlyOnAssess = document.getElementById('page-assess')?.classList.contains('active');
+  if (currentlyOnAssess && id !== 'assess' && typeof isAssessDirty === 'function' && isAssessDirty()) {
+    const ok = confirm(
+      'Você tem dados preenchidos na avaliação que ainda não foram salvos.\n\n' +
+      'Sair desta página descartará o que está em andamento. Deseja realmente sair?'
+    );
+    if (!ok) return;
+    // Usuário confirmou — limpa para evitar vazamento de estado entre navegações
+    clearAssessForm();
+  }
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   const nav = document.getElementById('nav-' + id);
   if (nav) nav.classList.add('active');
+
+  // Esconde o botão "Nova Avaliação" do header quando o usuário já está nessa página
+  const topBtn = document.getElementById('topbar-btn-new');
+  if (topBtn) topBtn.style.display = id === 'assess' ? 'none' : '';
 
   if (id === 'comp')  { loadComparacao(); }
   if (id === 'pilar') { loadPilarCharts(); }
@@ -2270,12 +2331,10 @@ async function loadInfraCharts() {
   // Table
   const tbody = document.getElementById('infra-table');
   if (!data.top_criticos.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Nenhum componente encontrado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Nenhum componente encontrado</td></tr>';
     return;
   }
   tbody.innerHTML = data.top_criticos.map(r => {
-    const cls     = r.class_risco === 'Vermelho' ? 'danger' : r.class_risco === 'Amarelo' ? 'atc' : 'bom';
-    const label   = r.class_risco === 'Vermelho' ? 'Vermelho' : r.class_risco === 'Amarelo' ? 'Amarelo' : (r.class_risco || '—');
     const tipoKey = (r.tipo || '').toLowerCase().replace(/[^a-z]/g, '');
     const clickable = r.avaliacao_id ? `class="hist-row-click" onclick="openAvaliacaoDetail(${r.avaliacao_id})" title="Clique para ver a avaliação completa"` : '';
     return `<tr ${clickable}>
@@ -2284,9 +2343,8 @@ async function loadInfraCharts() {
       <td><span class="component-type-badge ct-${tipoKey}">${r.tipo || '—'}</span></td>
       <td>${r.provedor || '—'}</td>
       <td>${r.caminho_critico || '—'}</td>
-      <td>${r.score_resil != null ? r.score_resil : '—'}</td>
+      <td>${r.score_100 != null ? r.score_100 : '—'}</td>
       <td>${r.score_risco != null ? r.score_risco : '—'}</td>
-      <td><span class="badge ${cls}">${label}</span></td>
     </tr>`;
   }).join('');
 }
@@ -2503,12 +2561,15 @@ function updateLiveScore() {
     }
   }
 
-  // Compute IES
-  let iesWeightedSum = 0, iesWeightSum = 0;
+  // Compute IES — pilares não respondidos contam como 0 (não há renormalização).
+  // Isso faz com que faltar pilar derrube a nota proporcionalmente ao peso do pilar omitido.
+  const anyAnswered = pillarScores.some(s => s !== null);
+  let iesWeightedSum = 0;
   pillarScores.forEach((s, i) => {
-    if (s !== null) { iesWeightedSum += s * PILLAR_WEIGHTS[i]; iesWeightSum += PILLAR_WEIGHTS[i]; }
+    iesWeightedSum += (s ?? 0) * PILLAR_WEIGHTS[i];
   });
-  let ies = iesWeightSum > 0 ? Math.round(iesWeightedSum / iesWeightSum) : null;
+  // Σ PILLAR_WEIGHTS = 1.0, então a soma já é o IES final
+  let ies = anyAnswered ? Math.round(iesWeightedSum) : null;
 
   // IET = IES*60% + IR*40%
   const ir = 76.1;
@@ -2544,20 +2605,47 @@ function updateLiveScore() {
   document.getElementById('live-answered').textContent = `${answered} / ${total} respondidas`;
 }
 
-function resetForm() {
+function isAssessDirty() {
+  if (document.getElementById('inp-sistema')?.value.trim()) return true;
+  if (document.getElementById('inp-resp')?.value.trim())    return true;
+  if (Object.keys(answers).length > 0)                      return true;
+  if (document.querySelectorAll('#componentes-list .comp-card').length > 0) return true;
+  return false;
+}
+
+function clearAssessForm() {
   answers = {};
   document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
   document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
   for (let p = 0; p < 6; p++) {
     const el = document.getElementById('pillar-score-' + p);
-    el.textContent = '—'; el.style.color = 'var(--muted)';
+    if (el) { el.textContent = '—'; el.style.color = 'var(--muted)'; }
   }
-  document.getElementById('live-ies').textContent = '—';
-  document.getElementById('live-iet').textContent = '—';
-  document.getElementById('live-prog').textContent = '0%';
+  document.getElementById('live-ies').textContent      = '—';
+  document.getElementById('live-iet').textContent      = '—';
+  document.getElementById('live-prog').textContent     = '0%';
   document.getElementById('live-answered').textContent = '0 / 25 respondidas';
-  document.getElementById('live-ies-badge').innerHTML = '';
-  document.getElementById('live-iet-badge').innerHTML = '';
+  document.getElementById('live-ies-badge').innerHTML  = '';
+  document.getElementById('live-iet-badge').innerHTML  = '';
+
+  // Limpa identificação
+  document.getElementById('inp-sistema').value = '';
+  document.getElementById('inp-resp').value    = '';
+  document.getElementById('inp-data').value    = new Date().toISOString().split('T')[0];
+
+  // Remove componentes
+  document.querySelectorAll('#componentes-list .comp-card').forEach(c => c.remove());
+
+  // Esconde feedback
+  const fb = document.getElementById('save-feedback');
+  if (fb) fb.style.display = 'none';
+}
+
+function resetForm() {
+  if (isAssessDirty()) {
+    if (!confirm('Tem certeza que deseja limpar todos os campos preenchidos? Esta ação não pode ser desfeita.')) return;
+  }
+  clearAssessForm();
 }
 
 
@@ -2661,6 +2749,8 @@ async function saveAvaliacao() {
         · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`;
       btn.innerHTML = '✅ Salvo!';
       btn.style.background = 'var(--green-dark)';
+      // Limpa o formulário para um novo cadastro
+      clearAssessForm();
       setTimeout(() => {
         btn.disabled = false;
         btn.innerHTML = '💾 Salvar no Banco';
@@ -2751,7 +2841,7 @@ async function fetchHistorico() {
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th>';
+    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th><th>Ações</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
@@ -2760,6 +2850,7 @@ async function fetchHistorico() {
       const dateStr     = av.data_avaliacao ? new Date(av.data_avaliacao).toLocaleDateString('pt-BR') : '—';
       const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
       const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
+      const sistemaEsc  = (av.sistema_nome || '').replace(/'/g, "\\'");
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
         <td>${dateStr}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
@@ -2769,6 +2860,7 @@ async function fetchHistorico() {
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
+        <td><button class="hist-del-btn" onclick="event.stopPropagation(); deleteAvaliacao(${av.id}, '${sistemaEsc}', '${dateStr}')" title="Excluir avaliação">🗑️</button></td>
       </tr>`;
     });
 
@@ -2787,6 +2879,29 @@ async function fetchHistorico() {
       <small style="color:var(--muted)">Verifique se a API está rodando e a URL está configurada corretamente.</small>
     </div>`;
     count.textContent = '';
+  }
+}
+
+async function deleteAvaliacao(id, sistemaNome, dateStr) {
+  const ok = confirm(
+    `Excluir definitivamente esta avaliação?\n\n` +
+    `Sistema: ${sistemaNome}\n` +
+    `Data: ${dateStr}\n\n` +
+    `Esta ação remove a avaliação, todas as respostas e componentes vinculados. Não é possível desfazer.`
+  );
+  if (!ok) return;
+
+  try {
+    const res = await fetch(`${getApiUrl()}/api/avaliacoes/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    showToast('Avaliação excluída com sucesso!', 'success');
+    await fetchHistorico();
+  } catch (err) {
+    console.error('deleteAvaliacao:', err);
+    showToast(`Erro ao excluir: ${err.message}`, 'error', 6000);
   }
 }
 
@@ -2864,7 +2979,6 @@ function buildCompCard(cid) {
       <div class="comp-score-item"><div class="cs-label">P · Score Resil. (1–5)</div><div class="cs-val" id="c${cid}-p">—</div></div>
       <div class="comp-score-item"><div class="cs-label">Q · Score (0–100)</div><div class="cs-val" id="c${cid}-q">—</div></div>
       <div class="comp-score-item"><div class="cs-label">R · Score Risco</div><div class="cs-val" id="c${cid}-r">—</div></div>
-      <div class="comp-score-item"><div class="cs-label">S · Class. Risco</div><div class="cs-val cs-badge" id="c${cid}-s">—</div></div>
       <div class="comp-score-item"><div class="cs-label">T · Peso Imp.</div><div class="cs-val" id="c${cid}-t">—</div></div>
       <div class="comp-score-item"><div class="cs-label">U · Peso Crit.</div><div class="cs-val" id="c${cid}-u">—</div></div>
       <div class="comp-score-item"><div class="cs-label">V · Peso Tipo Sol.</div><div class="cs-val" id="c${cid}-v">—</div></div>
@@ -2904,14 +3018,12 @@ function calcComp(cid) {
   // Q — Score 0–100
   const q = Math.round(p * 20);
 
-  // R — Score Risco: (impacto 1–4) × (happy 1–3) normalizado em 0–100
+  // R — Score Risco RESIDUAL: combina exposição (impacto × happy) com mitigação (P).
+  // (6 - P) vira fator multiplicador entre 5 (P=1, sem mitigação) e 1 (P=5, mitigação total).
+  // Componente Extremo + Verde + P=5 (ideal) → R baixo; Extremo + Vermelho + P=1 → R máximo.
   const impactoVal = g('impacto') + 1;   // 1–4
   const happyVal   = g('happy') + 1;     // 1–3
-  const r = Math.round((impactoVal * happyVal) / 12 * 100);
-
-  // S — Classificação Risco
-  const sLabel = r < 30 ? 'Verde' : r < 65 ? 'Amarelo' : 'Vermelho';
-  const sCls   = r < 30 ? 'cs-verde' : r < 65 ? 'cs-amarelo' : 'cs-vermelho';
+  const r = Math.round((impactoVal * happyVal * (6 - p)) / 60 * 100);
 
   // T — Peso Imp.
   const pesoImp = [0.5, 1.0, 1.5, 2.0][g('impacto')];
@@ -2929,10 +3041,6 @@ function calcComp(cid) {
   document.getElementById(`c${cid}-p`).textContent = p.toFixed(1);
   document.getElementById(`c${cid}-q`).textContent = q;
   document.getElementById(`c${cid}-r`).textContent = r;
-
-  const sEl = document.getElementById(`c${cid}-s`);
-  sEl.textContent = sLabel;
-  sEl.className = `cs-val cs-badge ${sCls}`;
 
   document.getElementById(`c${cid}-t`).textContent = pesoImp.toFixed(1);
   document.getElementById(`c${cid}-u`).textContent = pesoU.toFixed(1);
@@ -2981,7 +3089,6 @@ function getComponentesData() {
       score_resil:           num('p'),
       score_100:             num('q'),
       score_risco:           num('r'),
-      class_risco:           document.getElementById(`c${cid}-s`)?.textContent || '',
       peso_imp:              num('t'),
       peso_crit:             num('u'),
       peso_caminho:          num('v'),
@@ -3123,28 +3230,55 @@ function buildDetailModal(av) {
   if (!comps.length) {
     html += `<div class="det-empty">Nenhum componente de infraestrutura registrado nesta avaliação.</div>`;
   } else {
-    html += `<div style="overflow-x:auto"><table class="det-comp-table">
-      <thead><tr>
-        <th>Componente</th><th>Tipo</th><th>Provedor</th><th>Impacto</th><th>Tipo Solução</th>
-        <th>P · Resil.</th><th>Q · Score</th><th>S · Risco</th>
-      </tr></thead><tbody>`;
+    const dash = v => (v == null || v === '') ? '—' : v;
+    const happyClass = h => h === 'Verde' ? 'cs-verde' : h === 'Amarelo' ? 'cs-amarelo' : h === 'Vermelho' ? 'cs-vermelho' : '';
+    const riscoColor = r => r == null ? 'var(--muted)' : r < 30 ? '#27AE60' : r < 65 ? '#F1C232' : '#C0392B';
+    const COUPLING_ORDER = ['Acoplamento total (sem alternativa)', 'Baixo acoplamento', 'Algumas alternativas', 'Totalmente desacoplado'];
+    const couplingBadge = dep => {
+      if (!dep) return '—';
+      const idx = COUPLING_ORDER.indexOf(dep);
+      return idx >= 0
+        ? `<span class="coupling-badge coupling-${idx}">${dep}</span>`
+        : dep;  // fallback para valores legados/livres
+    };
 
     comps.forEach(c => {
-      const riscoCls = c.class_risco === 'Verde' ? 'cs-verde' : c.class_risco === 'Amarelo' ? 'cs-amarelo' : 'cs-vermelho';
       const scoreColor = c.score_100 != null ? getBarColor(c.score_100) : 'var(--muted)';
-      html += `<tr>
-        <td><strong>${c.nome || '—'}</strong>${c.sla ? `<br><small style="color:var(--muted)">SLA: ${c.sla}</small>` : ''}</td>
-        <td>${c.tipo || '—'}</td>
-        <td>${c.provedor || '—'}</td>
-        <td>${c.impacto || '—'}</td>
-        <td>${c.caminho_critico || '—'}</td>
-        <td style="text-align:center;font-weight:700">${c.score_resil ?? '—'}</td>
-        <td style="text-align:center;font-weight:700;color:${scoreColor}">${c.score_100 ?? '—'}</td>
-        <td style="text-align:center"><span class="${riscoCls}" style="font-weight:700">${c.class_risco || '—'}</span></td>
-      </tr>`;
+      html += `<div class="det-comp-card">
+        <div class="det-comp-card-head">
+          <div class="det-comp-card-title">
+            <span class="nome">${dash(c.nome)}</span>
+            <div class="tags">
+              <span class="tag"><strong>${dash(c.tipo)}</strong></span>
+              <span class="tag">Provedor: <strong>${dash(c.provedor)}</strong></span>
+              <span class="tag">Impacto: <strong>${dash(c.impacto)}</strong></span>
+              <span class="tag">Tipo Solução: <strong>${dash(c.caminho_critico)}</strong></span>
+              ${c.sla ? `<span class="tag">SLA: <strong>${c.sla}</strong></span>` : ''}
+            </div>
+          </div>
+          <div class="det-comp-card-scores">
+            <div class="det-comp-score-pill"><span class="lbl">Score Resiliência</span><span class="val" style="color:${scoreColor}">${c.score_100 ?? '—'}</span></div>
+            <div class="det-comp-score-pill"><span class="lbl">Score de Risco</span><span class="val" style="color:${riscoColor(c.score_risco)}">${c.score_risco ?? '—'}</span></div>
+          </div>
+        </div>
+        <div class="det-comp-card-body">
+          <div class="det-comp-card-section">
+            <h4>Configuração de Resiliência</h4>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Redundância</span><span class="det-comp-attr-value">${dash(c.redundancia)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Tolerância a falhas</span><span class="det-comp-attr-value">${dash(c.tolerancia)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Backup / RPO</span><span class="det-comp-attr-value">${dash(c.backup_rpo)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">DR / RTO</span><span class="det-comp-attr-value">${dash(c.dr)}</span></div>
+          </div>
+          <div class="det-comp-card-section">
+            <h4>Estado Operacional</h4>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Happy Socks</span><span class="det-comp-attr-value"><span class="${happyClass(c.happy_socks)}" style="font-weight:600">${dash(c.happy_socks)}</span></span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Monitoramento</span><span class="det-comp-attr-value">${dash(c.monitoramento)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Dependências</span><span class="det-comp-attr-value">${couplingBadge(c.dependencias)}</span></div>
+            <div class="det-comp-attr"><span class="det-comp-attr-label">Plano de contorno</span><span class="det-comp-attr-value">${dash(c.contorno)}</span></div>
+          </div>
+        </div>
+      </div>`;
     });
-
-    html += `</tbody></table></div>`;
 
 
     const compsComSolucao = comps.filter(c => c.solucao_adequacao);
@@ -3593,10 +3727,9 @@ function renderComponentesModal(titulo, color, list) {
 
   const tbody = document.getElementById('risco-alto-list');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Nenhum componente nesta faixa.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Nenhum componente nesta faixa.</td></tr>';
   } else {
     tbody.innerHTML = list.map((c, i) => {
-      const cls = c.class_risco === 'Vermelho' ? 'danger' : c.class_risco === 'Amarelo' ? 'atc' : 'bom';
       return `<tr style="cursor:pointer" title="Ver avaliação de ${c.sistema_nome}" onclick="openAvaliacaoDetail(${c.avaliacao_id})">
         <td class="sdrill-rank">${i + 1}</td>
         <td><strong>${c.sistema_nome || '—'}</strong></td>
@@ -3604,7 +3737,6 @@ function renderComponentesModal(titulo, color, list) {
         <td style="color:var(--muted);font-size:12px">${c.tipo || '—'}</td>
         <td style="color:var(--muted);font-size:12px">${c.provedor || '—'}</td>
         <td class="sdrill-score" style="color:${color}">${c.score_risco ?? '—'}</td>
-        <td><span class="badge ${cls}">${c.class_risco || '—'}</span></td>
       </tr>`;
     }).join('');
   }
@@ -3628,12 +3760,36 @@ function closeRiscoAltoModal() {
   document.getElementById('risco-alto-overlay').classList.remove('open');
 }
 
+// ============================================================
+// SCROLL-TO-TOP — botão flutuante na página de avaliação
+// ============================================================
+function scrollAssessTop() {
+  const main = document.querySelector('.main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setupAssessScrollTop() {
+  const main = document.querySelector('.main');
+  const btn  = document.getElementById('assess-scrolltop');
+  if (!main || !btn) return;
+
+  const update = () => {
+    const onAssess = document.getElementById('page-assess')?.classList.contains('active');
+    const visible  = onAssess && main.scrollTop > 200;
+    btn.classList.toggle('show', visible);
+  };
+  main.addEventListener('scroll', update, { passive: true });
+  // Reavalia ao trocar de página (quando showPage roda)
+  document.addEventListener('click', () => requestAnimationFrame(update));
+}
+
 // INIT
 // ============================================================
 window.onload = function() {
   loadExecDashboard();
   updateRadar();
   buildAssessmentForm();
+  setupAssessScrollTop();
 };
 </script>
 
@@ -3700,7 +3856,6 @@ window.onload = function() {
             <th>Tipo</th>
             <th>Provedor</th>
             <th class="r">Score de Risco</th>
-            <th>Classificação</th>
           </tr>
         </thead>
         <tbody id="risco-alto-list"></tbody>
