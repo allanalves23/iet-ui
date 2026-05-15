@@ -127,9 +127,9 @@ Os pesos refletem a importância relativa de cada dimensão para a continuidade 
    *Exemplo:* o pilar **P1 Topologia** tem 4 perguntas. As respostas resultaram nos scores `6.5`, `8.0`, `5.0` e `7.5`.
    `score_pilar_P1 = ((6.5 + 8.0 + 5.0 + 7.5) / 4) × 10 = 6.75 × 10 = 67.5`
 
-3. **IES**: média **ponderada** dos 6 scores de pilar, usando os pesos acima.
+3. **IES**: soma **ponderada** dos 6 scores de pilar, usando os pesos acima. Como Σ pesos = 1.0, a soma já é o IES final.
    ```
-   IES = Σ (score_pilar_i × peso_pilar_i) / Σ peso_pilar_i
+   IES = Σ (score_pilar_i × peso_pilar_i)        // pilar não respondido contribui com 0
    ```
    *Exemplo:* o portfólio termina com os seguintes scores por pilar:
 
@@ -143,9 +143,9 @@ Os pesos refletem a importância relativa de cada dimensão para a continuidade 
    | P6    | 50.0  | 0.10  |  5.00           |
    | **Σ** |       | **1.00** | **69.25**    |
 
-   `IES = 69.25 / 1.00 = 69.25` → faixa **Atenção** (60–74).
+   `IES = 69.25` → faixa **Atenção** (60–74).
 
-   Pilares não respondidos são ignorados no denominador (a fórmula re-normaliza), permitindo cálculo parcial durante o preenchimento. Se P6 não tivesse sido respondido no exemplo acima, o cálculo seria `(20.25+20+10.5+6+7.5) / (0.30+0.25+0.15+0.10+0.10) = 64.25 / 0.90 ≈ 71.4`.
+   **Pilares não respondidos contam como zero** — não há renormalização. Isso é proposital: deixar de avaliar uma dimensão é tão informativo quanto avaliá-la mal, e a nota precisa refletir essa lacuna. Por exemplo, se P6 (Segurança, peso 0.10) não tivesse sido respondido no exemplo acima, o cálculo seria `20.25 + 20 + 10.5 + 6 + 7.5 + (0 × 0.10) = 64.25`. A nota cai 5 pontos pelo pilar omitido — exatamente o peso de P6.
 
 **Como interpretar:**
 

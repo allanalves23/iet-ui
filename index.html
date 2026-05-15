@@ -2535,12 +2535,15 @@ function updateLiveScore() {
     }
   }
 
-  // Compute IES
-  let iesWeightedSum = 0, iesWeightSum = 0;
+  // Compute IES — pilares não respondidos contam como 0 (não há renormalização).
+  // Isso faz com que faltar pilar derrube a nota proporcionalmente ao peso do pilar omitido.
+  const anyAnswered = pillarScores.some(s => s !== null);
+  let iesWeightedSum = 0;
   pillarScores.forEach((s, i) => {
-    if (s !== null) { iesWeightedSum += s * PILLAR_WEIGHTS[i]; iesWeightSum += PILLAR_WEIGHTS[i]; }
+    iesWeightedSum += (s ?? 0) * PILLAR_WEIGHTS[i];
   });
-  let ies = iesWeightSum > 0 ? Math.round(iesWeightedSum / iesWeightSum) : null;
+  // Σ PILLAR_WEIGHTS = 1.0, então a soma já é o IES final
+  let ies = anyAnswered ? Math.round(iesWeightedSum) : null;
 
   // IET = IES*60% + IR*40%
   const ir = 76.1;
