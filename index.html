@@ -2993,10 +2993,12 @@ function calcComp(cid) {
   // Q — Score 0–100
   const q = Math.round(p * 20);
 
-  // R — Score Risco: (impacto 1–4) × (happy 1–3) normalizado em 0–100
+  // R — Score Risco RESIDUAL: combina exposição (impacto × happy) com mitigação (P).
+  // (6 - P) vira fator multiplicador entre 5 (P=1, sem mitigação) e 1 (P=5, mitigação total).
+  // Componente Extremo + Verde + P=5 (ideal) → R baixo; Extremo + Vermelho + P=1 → R máximo.
   const impactoVal = g('impacto') + 1;   // 1–4
   const happyVal   = g('happy') + 1;     // 1–3
-  const r = Math.round((impactoVal * happyVal) / 12 * 100);
+  const r = Math.round((impactoVal * happyVal * (6 - p)) / 60 * 100);
 
   // S — Classificação Risco
   const sLabel = r < 30 ? 'Verde' : r < 65 ? 'Amarelo' : 'Vermelho';

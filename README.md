@@ -182,12 +182,18 @@ Diferente do IES (que vem de um questionário), o IR é **calculado a partir dos
 ```
 P (Score Resiliência 1–5) = média(redundância, tolerância, backup, DR) + 1
 Q (Score 0–100)           = P × 20                  // normalização para 0–100
-R (Score Risco 0–100)     = (impacto × happy_socks) / 12 × 100
+R (Score Risco 0–100)     = (impacto × happy_socks × (6 - P)) / 60 × 100
 S (Classificação Risco)   = Verde (R<30) | Amarelo (R<65) | Vermelho (R≥65)
 T (Peso Impacto)          = 0.5 | 1.0 | 1.5 | 2.0   // por nível de impacto
 U (Peso Criticidade)      = depende se Core (1.5–3.0) ou Satélite (0.8–1.5) × impacto
 V (Peso Tipo Solução)     = 1.5 (Core) | 0.5 (Satélite)
 ```
+
+**Por que a fórmula de R inclui o `(6 - P)`?** Sem esse fator, todo componente de alto impacto apareceria sempre como risco alto, mesmo quando bem-configurado — confundindo "importância" com "risco". O `(6 - P)` funciona como um redutor de mitigação:
+- **P = 1** (sem mitigação): `(6 - 1) = 5` → R não é amortecido, exposição vira risco integral.
+- **P = 5** (mitigação total — redundância, tolerância, backup, DR todos no nível ideal): `(6 - 5) = 1` → R cai para 1/5 da exposição bruta, refletindo que o risco residual é baixo.
+
+Isso garante que um componente Core/Extremo bem-arquitetado (ex: Kafka multi-AZ com failover automático e backup contínuo) não polua a lista de "componentes de risco" — ele entra na faixa Verde, deixando o foco para componentes que realmente exigem remediação.
 
 **Cálculo do IR (média ponderada dos componentes):**
 
@@ -199,7 +205,7 @@ A ponderação por **peso de criticidade (U)** é o que faz a fórmula ser justa
 
 **Score de Risco (R) — uso secundário:**
 
-Embora IR meça resiliência *positiva* (o quanto está bom), o **Score de Risco** (R) faz o oposto: combina impacto de negócio com a saúde operacional declarada (Happy Socks). É usado na tela "Componentes & Riscos" para destacar componentes que pedem ação imediata, com 5 faixas:
+Embora IR meça resiliência *positiva* (o quanto está bom), o **Score de Risco** (R) faz o oposto: estima o **risco residual** do componente combinando três sinais — impacto de negócio, saúde operacional declarada (Happy Socks) e o nível de mitigação efetivamente em vigor (Score de Resiliência P). Componentes bem-arquitetados ficam em faixas baixas mesmo sendo críticos; componentes mal-mitigados ou em estado operacional ruim sobem para faixas altas. É usado na tela "Componentes & Riscos" para destacar componentes que pedem ação, com 5 faixas:
 
 | Faixa        | Range  |
 |--------------|--------|
