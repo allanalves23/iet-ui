@@ -162,6 +162,16 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--gray); c
 .page-header { margin-bottom:20px; }
 .page-header h1 { font-size:22px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:10px; }
 .page-header .sub { font-size:13px; color:var(--muted); margin-top:4px; }
+/* Breadcrumbs — padrão para TODAS as páginas. Estrutura hierárquica derivada dos grupos do sidebar:
+   - Categoria (ex: "Dashboard", "Avaliação"): <span>...</span> — não-clicável, cor muted, segue grupo do menu
+   - Pai navegável (sub-páginas): <a onclick="showPage('xxx')">...</a> — azul clicável
+   - Página atual:                <span class="current">...</span> — navy bold, sem link
+   - Separador entre níveis:      <span class="sep">›</span> */
+.breadcrumbs { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.breadcrumbs a { color:var(--blue); text-decoration:none; cursor:pointer; font-weight:600; }
+.breadcrumbs a:hover { text-decoration:underline; }
+.breadcrumbs .sep { color:var(--muted); user-select:none; font-size:18px; line-height:1; opacity:.55; }
+.breadcrumbs .current { color:var(--navy); font-weight:600; }
 
 /* FILTERS */
 .filter-bar { display:flex; gap:10px; margin-bottom:18px; padding:10px 14px; background:var(--white); border:1px solid var(--border); border-radius:8px; }
@@ -551,6 +561,31 @@ tr:hover td { background:#F8FAFF; }
   flex-shrink:0; transition:background .15s;
 }
 .det-close:hover { background:rgba(255,255,255,.28); }
+.det-header-actions { display:flex; align-items:center; gap:8px; }
+.det-version-badge { background:rgba(255,255,255,.16); color:#fff; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+.det-version-badge.is-archived { background:#E67E22; }
+.det-edit-btn { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background .12s; }
+.det-edit-btn:hover { background:rgba(255,255,255,.32); }
+.det-versions-link { color:rgba(255,255,255,.85); font-size:11px; text-decoration:underline; cursor:pointer; margin-top:6px; display:inline-block; }
+.det-versions-link:hover { color:#fff; }
+.det-archived-banner { background:#FEF9E7; border:1px solid var(--gold); color:#7A5500; padding:10px 16px; font-size:12px; text-align:center; }
+
+/* Banner de edição na tela de avaliação */
+.assess-edit-banner { background:#EAF1FB; border:1px solid var(--blue); border-radius:8px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.assess-edit-banner .info { font-size:13px; color:var(--navy); }
+.assess-edit-banner .info strong { font-weight:700; }
+.assess-edit-banner button { background:transparent; border:1px solid var(--navy); color:var(--navy); padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; }
+.assess-edit-banner button:hover { background:var(--navy); color:#fff; }
+input[readonly].locked-edit { background:#F5F6FA; cursor:not-allowed; color:var(--muted); }
+
+/* Modal de histórico de versões */
+.ver-row { display:grid; grid-template-columns:60px 1fr 1fr 120px 80px 120px; gap:12px; padding:10px 16px; border-bottom:1px solid var(--border); align-items:center; font-size:12.5px; cursor:pointer; transition:background .12s; }
+.ver-row:hover { background:#F8F9FE; }
+.ver-row.header { font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); background:var(--gray2); cursor:default; }
+.ver-row.header:hover { background:var(--gray2); }
+.ver-row.is-current { background:#EAF7EE; }
+.ver-row.is-current:hover { background:#D5F2DD; }
+.ver-vigente-badge { background:#1E8449; color:#fff; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.4px; }
 .det-scores {
   display:flex; flex-wrap:wrap; gap:0;
   border-bottom:1px solid var(--border);
@@ -679,7 +714,7 @@ tr:hover td { background:#F8FAFF; }
       <div class="sidebar-label">Avaliação</div>
       <div class="nav-item" id="nav-sist" onclick="showPage('sist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M5 6h14M5 18h10"/><circle cx="19" cy="18" r="3"/><path d="M19 15v3l2 1"/></svg> Sistemas<span class="nav-new">NOVO</span></div>
       <div class="nav-item" id="nav-assess" onclick="showPage('assess')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Nova Avaliação</div>
-      <div class="nav-item" id="nav-hist" onclick="showPage('hist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Histórico</div>
+      <div class="nav-item" id="nav-hist" onclick="showPage('hist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Histórico de Avaliações</div>
     </div>
 
     <div class="sidebar-divider"></div>
@@ -697,15 +732,18 @@ tr:hover td { background:#F8FAFF; }
 
     <!-- ========== P1: VISÃO EXECUTIVA ========== -->
     <div class="page active" id="page-exec">
-      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <div>
-          <h1>📊 Visão Executiva — Portfólio</h1>
-          <div class="sub" id="exec-subtitle">Excelência tecnológica consolidada · Carregando...</div>
+      <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Visão Executiva</span></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div>
+            <h1>📊 Visão Executiva — Portfólio</h1>
+            <div class="sub" id="exec-subtitle">Excelência tecnológica consolidada · Carregando...</div>
+          </div>
+          <button onclick="loadExecDashboard()" id="btn-exec-reload"
+            style="background:var(--white);border:1px solid var(--border);color:var(--navy);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            ↻ Atualizar
+          </button>
         </div>
-        <button onclick="loadExecDashboard()" id="btn-exec-reload"
-          style="background:var(--white);border:1px solid var(--border);color:var(--navy);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
-          ↻ Atualizar
-        </button>
       </div>
 
       <!-- FILTROS DINÂMICOS -->
@@ -774,6 +812,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== P2: COMPARAÇÃO SISTEMAS ========== -->
     <div class="page" id="page-comp">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Comparação Sistemas</span></div>
         <h1>🆚 Comparação entre Sistemas</h1>
         <div class="sub">Confronto lado a lado de até 3 sistemas selecionados</div>
       </div>
@@ -818,6 +857,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== P3: ANÁLISE POR PILAR ========== -->
     <div class="page" id="page-pilar">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Análise por Pilar</span></div>
         <h1>🎯 Análise por Pilar</h1>
         <div class="sub">Drill por pilar → subpilar → pergunta. Identifica gaps comuns no portfólio.</div>
       </div>
@@ -872,6 +912,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== P4: COERÊNCIA SW × INFRA ========== -->
     <div class="page" id="page-coh">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Coerência SW × Infra</span></div>
         <h1>🔄 Coerência Software × Infraestrutura</h1>
         <div class="sub">Onde a arquitetura declarada não casa com a infra. Risco oculto.</div>
       </div>
@@ -906,6 +947,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== P5: COMPONENTES & RISCOS ========== -->
     <div class="page" id="page-infra">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Componentes & Riscos</span></div>
         <h1>☁️ Componentes & Riscos de Infraestrutura</h1>
         <div class="sub">Análise por componente — onde concentrar investimento de modernização.</div>
       </div>
@@ -949,6 +991,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== P6: EVOLUÇÃO TEMPORAL ========== -->
     <div class="page" id="page-tempo">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Dashboard</span><span class="sep">›</span><span class="current">Evolução Temporal</span></div>
         <h1>📈 Evolução Temporal</h1>
         <div class="sub">Tendência do portfólio ao longo dos trimestres — estamos melhorando?</div>
       </div>
@@ -978,6 +1021,24 @@ tr:hover td { background:#F8FAFF; }
 
     <!-- ========== AVALIAÇÃO ========== -->
     <div class="page" id="page-assess">
+      <div class="breadcrumbs"><span>Avaliação</span><span class="sep">›</span><span class="current">Nova Avaliação</span></div>
+
+      <!-- Estado de carregamento (mostrado em modo edição enquanto busca a avaliação) -->
+      <div id="assess-edit-loading" style="display:none;text-align:center;padding:80px 24px;color:var(--muted);font-size:14px;">
+        ⏳ Carregando avaliação para edição…
+      </div>
+
+      <!-- Empty state de erro ao acessar para edição -->
+      <div id="assess-edit-error" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:12px;line-height:1">⚠️</div>
+        <h2 style="font-size:18px;color:var(--navy);margin:0 0 8px;">Não foi possível abrir a avaliação para edição</h2>
+        <p id="assess-edit-error-msg" style="font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5;"></p>
+        <button id="assess-edit-error-back" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          ← Voltar
+        </button>
+      </div>
+
+      <div id="assess-form-wrap">
       <div class="assess-header">
         <h2>📝 Nova Avaliação de Sistema</h2>
         <p>Preencha as respostas abaixo. O score é calculado em tempo real. Múltipla escolha permitida — score = média das opções selecionadas.</p>
@@ -1038,17 +1099,21 @@ tr:hover td { background:#F8FAFF; }
         <button onclick="showPage('exec')" style="background:var(--navy);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">📊 Ver Dashboard</button>
       </div>
       <button id="assess-scrolltop" class="assess-scrolltop" onclick="scrollAssessTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
+      </div><!-- end assess-form-wrap -->
     </div>
 
 
     <!-- ========== SISTEMAS ========== -->
     <div class="page" id="page-sist">
-      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div>
-          <h1>⚙️ Gestão de Sistemas</h1>
-          <div class="sub">Cadastre e mantenha os sistemas avaliados pelo IET</div>
+      <div class="page-header">
+        <div class="breadcrumbs"><span>Avaliação</span><span class="sep">›</span><span class="current">Sistemas</span></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <h1>⚙️ Gestão de Sistemas</h1>
+            <div class="sub">Cadastre e mantenha os sistemas avaliados pelo IET</div>
+          </div>
+          <button class="btn-save" style="margin-top:4px" onclick="openSistemaModal()">+ Novo Sistema</button>
         </div>
-        <button class="btn-save" style="margin-top:4px" onclick="openSistemaModal()">+ Novo Sistema</button>
       </div>
 
       <div class="sist-filter-bar">
@@ -1100,6 +1165,7 @@ tr:hover td { background:#F8FAFF; }
     <!-- ========== HISTÓRICO ========== -->
     <div class="page" id="page-hist">
       <div class="page-header">
+        <div class="breadcrumbs"><span>Avaliação</span><span class="sep">›</span><span class="current">Histórico de Avaliações</span></div>
         <h1>🗂️ Histórico de Avaliações</h1>
         <div class="sub">Avaliações salvas no banco · carregadas via API</div>
       </div>
@@ -1123,6 +1189,29 @@ tr:hover td { background:#F8FAFF; }
           <button id="hist-pg-prev" onclick="changeHistPage(-1)">← Anterior</button>
           <span class="pg-info" id="hist-pg-info"></span>
           <button id="hist-pg-next" onclick="changeHistPage(1)">Próxima →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== P7: HISTÓRICO DE VERSÕES (sub-página do Histórico) ========== -->
+    <div class="page" id="page-versoes">
+      <div class="page-header">
+        <div class="breadcrumbs">
+          <span>Avaliação</span>
+          <span class="sep">›</span>
+          <a onclick="showPage('hist')">Histórico de Avaliações</a>
+          <span class="sep">›</span>
+          <span class="current">Histórico de Versões</span>
+        </div>
+        <h1>📜 Histórico de Versões</h1>
+        <div class="sub" id="versoes-sub">Carregando…</div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <span id="versoes-count" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="card">
+        <div id="versoes-content">
+          <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">⏳ Carregando…</div>
         </div>
       </div>
     </div>
@@ -1435,6 +1524,7 @@ const QUESTIONS = [
 
 // State for assessment
 let answers = {}; // { qId: [scoreValues] }
+let editingAvaliacao = null; // { id, sistema_id, sistema_nome, versao } quando em modo edição
 
 function getStatus(score) {
   if (score >= 90) return {label:'Excelente', cls:'exc'};
@@ -1488,6 +1578,10 @@ function showPage(id) {
   // Esconde o botão "Nova Avaliação" do header quando o usuário já está nessa página
   const topBtn = document.getElementById('topbar-btn-new');
   if (topBtn) topBtn.style.display = id === 'assess' ? 'none' : '';
+
+  // Ao entrar normalmente em page-assess (clique no menu), garante que o form esteja visível
+  // (caso o usuário tenha caído na tela de erro de edição antes e navegou em seguida)
+  if (id === 'assess' && typeof toggleEditState === 'function') toggleEditState('form');
 
   if (id === 'comp')  { loadComparacao(); }
   if (id === 'pilar') { loadPilarCharts(); }
@@ -2639,6 +2733,27 @@ function clearAssessForm() {
   // Esconde feedback
   const fb = document.getElementById('save-feedback');
   if (fb) fb.style.display = 'none';
+
+  // Sai do modo de edição
+  exitEditMode();
+}
+
+function exitEditMode() {
+  editingAvaliacao = null;
+  const banner = document.getElementById('assess-edit-banner');
+  if (banner) banner.remove();
+  const sistInp = document.getElementById('inp-sistema');
+  if (sistInp) {
+    sistInp.readOnly = false;
+    sistInp.classList.remove('locked-edit');
+    sistInp.title = '';
+  }
+  const btn = document.getElementById('btn-save');
+  if (btn) btn.innerHTML = '💾 Salvar no Banco';
+  const headerH2 = document.querySelector('#page-assess .assess-header h2');
+  if (headerH2) headerH2.textContent = '📝 Nova Avaliação de Sistema';
+  const headerP = document.querySelector('#page-assess .assess-header p');
+  if (headerP) headerP.textContent = 'Preencha as respostas abaixo. O score é calculado em tempo real. Múltipla escolha permitida — score = média das opções selecionadas.';
 }
 
 function resetForm() {
@@ -2720,13 +2835,18 @@ async function saveAvaliacao() {
     respostas,
     componentes,
   };
+  // Modo edição: backend deve criar nova versão a partir dessa avaliação
+  if (editingAvaliacao) {
+    payload.editando_avaliacao_id = editingAvaliacao.id;
+  }
 
   // Salva
   const btn = document.getElementById('btn-save');
   const feedback = document.getElementById('save-feedback');
+  const wasEditing = !!editingAvaliacao;
   btn.disabled = true;
   btn.innerHTML = '⏳ Salvando...';
-  const loadingToast = showToast('Salvando avaliação...', 'loading', 0);
+  const loadingToast = showToast(wasEditing ? 'Salvando nova versão...' : 'Salvando avaliação...', 'loading', 0);
 
   try {
     const res = await fetch(getApiUrl() + '/api/avaliacoes', {
@@ -2739,17 +2859,23 @@ async function saveAvaliacao() {
     loadingToast.remove();
 
     if (res.ok) {
-      showToast(`Avaliação #${data2.id} salva! IET: ${iet} — ${data2.status}`, 'success', 5000);
+      const successMsg = wasEditing
+        ? `Nova versão #${data2.id} (v${data2.versao ?? '?'}) criada! IET: ${iet} — ${data2.status}`
+        : `Avaliação #${data2.id} salva! IET: ${iet} — ${data2.status}`;
+      showToast(successMsg, 'success', 5000);
       feedback.style.display = 'block';
       feedback.style.background = '#D5F5E3';
       feedback.style.color = '#1E8449';
       feedback.style.border = '1px solid #A9DFBF';
-      feedback.innerHTML = `✅ Avaliação <strong>#${data2.id}</strong> salva com sucesso! 
-        Sistema: <strong>${sistema}</strong> · IET: <strong>${iet}</strong> · Status: <strong>${data2.status}</strong>
-        · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`;
+      feedback.innerHTML = wasEditing
+        ? `✅ Nova versão criada com sucesso! Avaliação <strong>#${data2.id}</strong> (v${data2.versao ?? '?'}) · IET: <strong>${iet}</strong> · Status: <strong>${data2.status}</strong>
+           · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`
+        : `✅ Avaliação <strong>#${data2.id}</strong> salva com sucesso!
+           Sistema: <strong>${sistema}</strong> · IET: <strong>${iet}</strong> · Status: <strong>${data2.status}</strong>
+           · <a href="#" onclick="showPage('hist');loadHistorico()" style="color:var(--blue)">Ver no histórico →</a>`;
       btn.innerHTML = '✅ Salvo!';
       btn.style.background = 'var(--green-dark)';
-      // Limpa o formulário para um novo cadastro
+      // Limpa o formulário (e sai do modo edição se aplicável)
       clearAssessForm();
       setTimeout(() => {
         btn.disabled = false;
@@ -2769,7 +2895,7 @@ async function saveAvaliacao() {
     feedback.innerHTML = `❌ Falha ao salvar: <strong>${err.message}</strong><br>
       <small>Verifique se a API está rodando e a URL está correta na barra acima.</small>`;
     btn.disabled = false;
-    btn.innerHTML = '💾 Salvar no Banco';
+    btn.innerHTML = wasEditing ? '💾 Salvar Nova Versão' : '💾 Salvar no Banco';
   }
 }
 
@@ -2841,7 +2967,7 @@ async function fetchHistorico() {
     }
 
     let html = '<div class="table-wrap"><table><thead><tr>';
-    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th><th>Ações</th>';
+    html += '<th>Data</th><th>Sistema</th><th>Responsável Avaliação</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Origem</th><th>Versão</th><th>Ações</th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(av => {
@@ -2851,6 +2977,16 @@ async function fetchHistorico() {
       const origemCls   = av.tipo_cadastro === 'integração' ? 'integracao' : 'manual';
       const origemLabel = av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual';
       const sistemaEsc  = (av.sistema_nome || '').replace(/'/g, "\\'");
+      // Versionamento (fallbacks enquanto backend não retorna)
+      const versao    = av.versao ?? 1;
+      const totalVer  = av.total_versoes ?? 1;
+      const grupoId   = av.grupo_id ?? av.id;
+      const versaoCell = totalVer > 1
+        ? `<span title="Versão vigente · ${totalVer} no total">v${versao} / ${totalVer}</span>`
+        : `<span title="Avaliação ainda sem revisões">v1</span>`;
+      const versoesBtn = totalVer > 1
+        ? `<button class="hist-del-btn" style="margin-right:4px" onclick="event.stopPropagation(); openVersionHistory(${grupoId}, ${av.id})" title="Ver histórico de versões">📜</button>`
+        : '';
       html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${av.id})" title="Clique para ver detalhes">
         <td>${dateStr}</td>
         <td><strong>${av.sistema_nome}</strong>${av.unidade_negocio ? '<br><small style="color:var(--muted)">'+av.unidade_negocio+'</small>' : ''}</td>
@@ -2860,7 +2996,12 @@ async function fetchHistorico() {
         <td><strong style="color:${color};font-size:16px">${av.iet}</strong></td>
         <td><span class="badge ${st.cls}">${st.label}</span></td>
         <td><span class="badge ${origemCls}" style="margin-top:0">${origemLabel}</span></td>
-        <td><button class="hist-del-btn" onclick="event.stopPropagation(); deleteAvaliacao(${av.id}, '${sistemaEsc}', '${dateStr}')" title="Excluir avaliação">🗑️</button></td>
+        <td>${versaoCell}</td>
+        <td style="white-space:nowrap">
+          <button class="hist-del-btn" style="margin-right:4px;border-color:var(--blue);color:var(--blue)" onclick="event.stopPropagation(); editAvaliacao(${av.id})" title="Editar (cria nova versão)">✏️</button>
+          ${versoesBtn}
+          <button class="hist-del-btn" onclick="event.stopPropagation(); deleteAvaliacao(${av.id}, '${sistemaEsc}', '${dateStr}')" title="Excluir avaliação">🗑️</button>
+        </td>
       </tr>`;
     });
 
@@ -3144,6 +3285,300 @@ function closeAvaliacaoDetail() {
 
 function _detEscHandler(e) { if (e.key === 'Escape') closeAvaliacaoDetail(); }
 
+// ============================================================
+// EDIT MODE — entrar/sair, prefill, save
+// ============================================================
+async function editAvaliacao(id) {
+  // Captura página de origem para o "Voltar" do empty state de erro
+  const sourcePageId = document.querySelector('.page.active')?.id.replace('page-', '') || 'hist';
+
+  // Fecha modal de detalhe se aberto
+  closeAvaliacaoDetail();
+
+  // Navega para page-assess imediatamente (bypassando o dirty-check de showPage,
+  // já que estamos sobrescrevendo o estado do form de qualquer jeito)
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-assess').classList.add('active');
+  document.getElementById('nav-assess').classList.add('active');
+  const topBtn = document.getElementById('topbar-btn-new');
+  if (topBtn) topBtn.style.display = 'none';
+
+  // Mostra loading state, esconde form e erro
+  toggleEditState('loading');
+
+  // Tenta carregar a avaliação
+  let av;
+  try {
+    const res = await fetch(`${getApiUrl()}/api/avaliacoes/${id}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    av = await res.json();
+  } catch (err) {
+    showEditErrorState(err.message || 'Erro desconhecido', sourcePageId);
+    return;
+  }
+
+  // Sucesso — restaura form, limpa e hidrata silenciosamente (sem toast)
+  toggleEditState('form');
+  clearAssessForm();
+
+  // Configura modo edição
+  editingAvaliacao = {
+    id:           av.id,
+    sistema_id:   av.sistema_id,
+    sistema_nome: av.sistema_nome,
+    versao:       av.versao ?? 1,
+  };
+  enterEditMode(av);
+
+  // Pré-preenche identificação
+  document.getElementById('inp-sistema').value = av.sistema_nome || '';
+  document.getElementById('inp-resp').value    = av.responsavel || '';
+  if (av.data_avaliacao) {
+    document.getElementById('inp-data').value = av.data_avaliacao.split('T')[0];
+  }
+
+  // Pré-preenche respostas
+  (av.respostas || []).forEach(r => {
+    (r.opcoes_selecionadas || []).forEach(letra => {
+      const optEl = document.getElementById(`opt-${r.questao_id}-${letra}`);
+      if (optEl) {
+        const c = optEl.querySelector('input[type=checkbox]');
+        if (c) c.checked = true;
+      }
+    });
+    onAnswer(r.questao_id);
+  });
+
+  // Pré-preenche componentes
+  (av.componentes || []).forEach(c => {
+    addComponenteComDados(c);
+  });
+
+  // Scroll para o topo
+  scrollAssessTop();
+}
+
+// Alterna entre os 3 estados visuais da página de avaliação: 'loading' | 'error' | 'form'
+function toggleEditState(state) {
+  const loading = document.getElementById('assess-edit-loading');
+  const error   = document.getElementById('assess-edit-error');
+  const wrap    = document.getElementById('assess-form-wrap');
+  if (loading) loading.style.display = state === 'loading' ? 'block' : 'none';
+  if (error)   error.style.display   = state === 'error'   ? 'block' : 'none';
+  if (wrap)    wrap.style.display    = state === 'form'    ? ''      : 'none';
+}
+
+function showEditErrorState(msg, sourcePageId) {
+  toggleEditState('error');
+  document.getElementById('assess-edit-error-msg').textContent =
+    `${msg}. Tente novamente em alguns instantes ou volte para a página anterior.`;
+  const btn = document.getElementById('assess-edit-error-back');
+  btn.onclick = () => {
+    // Sai do modo edição (limpa estado) e volta para a página de origem
+    editingAvaliacao = null;
+    toggleEditState('form');
+    // Restaura visibilidade do botão "Nova Avaliação" no topbar
+    const topBtn = document.getElementById('topbar-btn-new');
+    if (topBtn) topBtn.style.display = '';
+    showPage(sourcePageId);
+  };
+}
+
+function enterEditMode(av) {
+  // Trava input de sistema
+  const sistInp = document.getElementById('inp-sistema');
+  sistInp.readOnly = true;
+  sistInp.classList.add('locked-edit');
+  sistInp.title = 'O sistema vinculado a uma avaliação não pode ser alterado. Se precisar mudar, exclua a avaliação e cadastre uma nova.';
+
+  // Banner no topo
+  const existing = document.getElementById('assess-edit-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'assess-edit-banner';
+  banner.className = 'assess-edit-banner';
+  banner.innerHTML = `
+    <div class="info">✏️ <strong>Editando avaliação #${av.id}</strong> (versão atual: ${av.versao ?? 1}) — ao salvar, uma <strong>nova versão</strong> será criada. As versões anteriores ficam preservadas no histórico.</div>
+    <button onclick="cancelEdit()">Cancelar edição</button>
+  `;
+  const header = document.querySelector('#page-assess .assess-header');
+  header.insertAdjacentElement('afterend', banner);
+
+  // Ajusta título e botão
+  document.querySelector('#page-assess .assess-header h2').textContent = `✏️ Editando Avaliação #${av.id} — ${av.sistema_nome}`;
+  document.querySelector('#page-assess .assess-header p').textContent = 'Faça os ajustes necessários. Ao salvar, uma nova versão é gerada e a anterior fica arquivada no histórico.';
+  const btn = document.getElementById('btn-save');
+  if (btn) btn.innerHTML = '💾 Salvar Nova Versão';
+}
+
+function cancelEdit() {
+  if (isAssessDirty()) {
+    if (!confirm('Você tem alterações não salvas. Cancelar a edição vai descartar essas mudanças. Deseja continuar?')) return;
+  }
+  clearAssessForm();
+  showPage('hist');
+}
+
+// Cria card de componente e preenche todos os campos com os dados de `c`
+function addComponenteComDados(c) {
+  addComponente();
+  // Identifica o card recém-criado (último .comp-card)
+  const cards = document.querySelectorAll('.comp-card');
+  const card  = cards[cards.length - 1];
+  const cid   = card.id.replace('comp-card-', '');
+
+  const setVal = (key, value) => {
+    const el = document.getElementById(`c${cid}-${key}`);
+    if (el && value != null) el.value = value;
+  };
+  const setCheck = (key, value) => {
+    const el = document.getElementById(`c${cid}-${key}`);
+    if (el) el.checked = !!value;
+  };
+
+  setVal('nome',        c.nome);
+  setVal('tipo',        c.tipo);
+  setVal('provedor',    c.provedor);
+  setVal('impacto',     c.impacto);
+  setVal('sla',         c.sla);
+  setVal('redundancia', c.redundancia);
+  setVal('tolerancia',  c.tolerancia);
+  setVal('backup_rpo',  c.backup_rpo);
+  setVal('dr',          c.dr);
+  setVal('monit',       c.monitoramento);
+  setVal('depend',      c.dependencias);
+  setVal('happy',       c.happy_socks);
+  setVal('contorno',    c.contorno);
+  setVal('caminho',     c.caminho_critico);
+
+  setCheck('possui_multi_az',      c.possui_multi_az);
+  setCheck('possui_failover_auto', c.possui_failover_auto);
+  setCheck('possui_dr_testado',    c.possui_dr_testado);
+  setCheck('possui_backup_auto',   c.possui_backup_auto);
+  setCheck('possui_telemetria',    c.possui_telemetria);
+  setCheck('possui_slo_monit',     c.possui_slo_monit);
+  setVal('adequacao',   c.solucao_adequacao);
+
+  // Recalcula os scores derivados
+  calcComp(cid);
+}
+
+// ============================================================
+// HISTÓRICO DE VERSÕES — página própria (page-versoes)
+// ============================================================
+// ============================================================
+// MODAL: Detalhe rápido do sistema (read-only)
+// Usado em links contextuais (ex: "Versões da avaliação do sistema X")
+// ============================================================
+async function openSistemaDetail(sistemaId) {
+  const overlay = document.getElementById('sist-detail-overlay');
+  const title   = document.getElementById('sist-detail-title');
+  const body    = document.getElementById('sist-detail-body');
+  overlay.classList.add('open');
+  title.textContent = 'Carregando…';
+  body.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">⏳ Carregando…</div>';
+
+  let s;
+  try {
+    const res = await fetch(`${getApiUrl()}/api/sistemas/${sistemaId}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    s = await res.json();
+  } catch (err) {
+    body.innerHTML = `<div style="text-align:center;color:var(--red);font-size:13px;padding:20px">❌ ${err.message}</div>`;
+    return;
+  }
+
+  title.textContent = s.nome;
+  const dash = v => (v == null || v === '') ? '<span style="color:var(--muted)">—</span>' : v;
+  const lbl  = 'font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:2px';
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;font-size:13px">
+      <div><div style="${lbl}">Nome</div>${s.nome}</div>
+      <div><div style="${lbl}">Criticidade (Happy Socks)</div>${dash(s.criticidade)}</div>
+      <div><div style="${lbl}">Provedor de Nuvem</div>${dash(s.provedor_nuvem)}</div>
+      <div><div style="${lbl}">Portfólio</div>${dash(s.portfolio)}</div>
+      <div><div style="${lbl}">Cadeia de Valor</div>${dash(s.cadeia_valor)}</div>
+      <div><div style="${lbl}">Cadastrado em</div>${s.criado_em ? new Date(s.criado_em).toLocaleString('pt-BR', {dateStyle:'short',timeStyle:'short'}) : '—'}</div>
+    </div>
+  `;
+}
+
+function closeSistemaDetail() {
+  document.getElementById('sist-detail-overlay')?.classList.remove('open');
+}
+
+async function openVersionHistory(grupoId, currentAvId) {
+  // Fecha qualquer modal de detalhe aberto antes de navegar
+  closeAvaliacaoDetail();
+
+  // Navega para a página de versões (sem o dirty-check do showPage,
+  // já que esta página é só visualização)
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-versoes').classList.add('active');
+  // Mantém o item "Histórico de Avaliações" highlighted no menu (contexto)
+  document.getElementById('nav-hist')?.classList.add('active');
+  const topBtn = document.getElementById('topbar-btn-new');
+  if (topBtn) topBtn.style.display = '';
+
+  const sub     = document.getElementById('versoes-sub');
+  const count   = document.getElementById('versoes-count');
+  const content = document.getElementById('versoes-content');
+  sub.textContent = 'Carregando versões…';
+  count.textContent = '';
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">⏳ Carregando…</div>';
+
+  let versoes;
+  try {
+    const res = await fetch(`${getApiUrl()}/api/avaliacoes/${grupoId}/versoes`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    versoes = await res.json();
+  } catch (err) {
+    content.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px;">
+      ❌ Não foi possível carregar as versões: <strong>${err.message}</strong>
+    </div>`;
+    sub.textContent = 'Erro';
+    return;
+  }
+
+  if (!versoes.length) {
+    content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Nenhuma versão encontrada para este grupo.</div>';
+    return;
+  }
+
+  // Subtítulo + contador
+  const vigente = versoes.find(v => v.is_current) || versoes[0];
+  // textContent não funciona aqui pq vamos injetar um link clicável
+  sub.innerHTML = `Versões da avaliação do sistema <a onclick="openSistemaDetail(${vigente.sistema_id})" style="color:var(--blue);font-weight:600;text-decoration:none;cursor:pointer" title="Ver detalhes do sistema">${vigente.sistema_nome}</a>`;
+  count.textContent = `${versoes.length} versão(ões) registrada(s)`;
+
+  // Renderiza como tabela
+  let html = '<div class="table-wrap"><table><thead><tr>';
+  html += '<th>Versão</th><th>Data Avaliação</th><th>Responsável</th><th>Índice de Excelência de Software</th><th>Índice de Resiliência</th><th>Índice de Excelência Tecnológica</th><th>Status</th><th>Vigente</th>';
+  html += '</tr></thead><tbody>';
+
+  versoes.forEach(v => {
+    const isCur   = v.is_current;
+    const st      = getStatus(v.iet);
+    const color   = getBarColor(v.iet);
+    const dateStr = v.data_avaliacao ? new Date(v.data_avaliacao).toLocaleDateString('pt-BR') : '—';
+    html += `<tr class="hist-row-click" onclick="openAvaliacaoDetail(${v.id})" title="Clique para visualizar esta versão" ${isCur ? 'style="background:#EAF7EE"' : ''}>
+      <td><strong>v${v.versao}</strong></td>
+      <td>${dateStr}</td>
+      <td>${v.responsavel || '—'}</td>
+      <td><strong style="color:${getBarColor(v.ies)};font-size:16px">${v.ies ?? '—'}</strong></td>
+      <td><strong style="color:${getBarColor(v.ir)};font-size:16px">${v.ir ?? '—'}</strong></td>
+      <td><strong style="color:${color};font-size:16px">${v.iet}</strong></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td>${isCur ? '<span class="ver-vigente-badge">✓ MAIS RECENTE</span>' : '<span style="color:var(--muted);font-size:11px">arquivada</span>'}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  content.innerHTML = html;
+}
+
 function buildDetailModal(av) {
   const st       = getStatus(av.iet);
   const color    = getBarColor(av.iet);
@@ -3152,9 +3587,21 @@ function buildDetailModal(av) {
     ? new Date(av.criado_em).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })
     : '—';
 
+  // ── Versionamento (com fallbacks caso backend ainda não exponha) ──
+  const versao    = av.versao    ?? 1;
+  const isCurrent = av.is_current !== false; // default true se ausente
+  const totalVer  = av.total_versoes ?? 1;
+  const grupoId   = av.grupo_id   ?? av.id;
+  const versionBadge = `<span class="det-version-badge ${isCurrent ? '' : 'is-archived'}">📦 ${isCurrent ? 'Versão mais recente da avaliação' : 'Versão arquivada · v' + versao}</span>`;
+  const verHistLink  = `<span class="det-versions-link" onclick="openVersionHistory(${grupoId}, ${av.id})">📜 Ver histórico de versões${totalVer > 1 ? ` (${totalVer})` : ''}</span>`;
+  const editBtn = isCurrent
+    ? `<button class="det-edit-btn" onclick="editAvaliacao(${av.id})">✏️ Editar</button>`
+    : '';
+
   // ── Header ──
   let html = `
   <div class="det-modal">
+    ${!isCurrent ? `<div class="det-archived-banner">⚠️ Esta é uma versão <strong>arquivada</strong> da avaliação. Para editar, abra a versão vigente.</div>` : ''}
     <div class="det-header">
       <div class="det-header-info">
         <h2>${av.sistema_nome} <span style="font-size:14px;opacity:.6;font-weight:400">#${av.id}</span></h2>
@@ -3165,8 +3612,13 @@ function buildDetailModal(av) {
           ${av.unidade_negocio ? `&nbsp;·&nbsp; 🏢 ${av.unidade_negocio}` : ''}
           &nbsp;·&nbsp; <span class="badge ${av.tipo_cadastro === 'integração' ? 'integracao' : 'manual'}" style="margin-top:0;vertical-align:middle">${av.tipo_cadastro === 'integração' ? '⚡ Integração' : '✏️ Manual'}</span>
         </p>
+        ${verHistLink}
       </div>
-      <button class="det-close" onclick="closeAvaliacaoDetail()">✕</button>
+      <div class="det-header-actions">
+        ${versionBadge}
+        ${editBtn}
+        <button class="det-close" onclick="closeAvaliacaoDetail()">✕</button>
+      </div>
     </div>`;
 
   // ── Scores ──
@@ -3836,6 +4288,17 @@ window.onload = function() {
         <tbody id="sdrill-list"></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- Modal: Detalhe do Sistema (read-only, usado em links contextuais) -->
+<div class="sdrill-overlay" id="sist-detail-overlay" onclick="if(event.target===this)closeSistemaDetail()">
+  <div class="sdrill-modal" style="width:560px">
+    <div class="sdrill-head">
+      <h2><span class="sdrill-dot" style="background:var(--navy)"></span><span id="sist-detail-title">Sistema</span></h2>
+      <button class="sdrill-close" onclick="closeSistemaDetail()">✕</button>
+    </div>
+    <div class="sdrill-body" id="sist-detail-body" style="padding:20px"></div>
   </div>
 </div>
 
